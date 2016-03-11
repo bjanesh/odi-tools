@@ -11,12 +11,12 @@ import glob
 import shutil
 import pandas as pd
 
-images_g = glob.glob('*GC*_odi_g*.fits')
+images_g = glob.glob('*_odi_g*.fits')
 images_g.sort()
 #print images_g
-images_r = glob.glob('*GC*_odi_r*')
+images_r = glob.glob('*_odi_i*.fits')
 images_r.sort()
-filters = ['odi_g','odi_r']
+filters = ['odi_g','odi_i']
 
 images = images_g+images_r
 
@@ -90,7 +90,7 @@ if not os.path.isfile('derived_props.txt'):
                 bg_mean, bg_median, bg_std = odi.bgsub_ota(img, ota, apply=True)
             else:
                 bg_mean, bg_median, bg_std = odi.bgsub_ota(img, ota, apply=False)
-	    print >> f1, img[16], ota, filt, fwhm, zp_med, zp_std, bg_mean, bg_median, bg_std
+	        print >> f1, img[16], ota, filt, fwhm, zp_med, zp_std, bg_mean, bg_median, bg_std
     f1.close()
 
 
