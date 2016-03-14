@@ -6,11 +6,11 @@ from pyraf import iraf
 from tqdm import tqdm
 import odi_config as odi
 
-def list_wcs_coords(img, ota, gapmask, output='radec.coo', gmaglim=20., stars_only=True, offline = False, source = 'sdss'):
+def list_wcs_coords(img, ota, gapmask, inst,output='radec.coo', gmaglim=20., stars_only=True, offline = False, source = 'sdss'):
 	# outputs a list of coordinates in the proper formatting to be used as input to 
 	# iraf.msccmatch. RETURNS a list of pixel coordinates for plotting
 	if offline == False:
-	  xdim, ydim = odi.get_sdss_coords(img, ota, output=odi.coordspath+img[0:-5]+'.'+ota+'.sdss')
+	  xdim, ydim = odi.get_sdss_coords(img, ota, inst,output=odi.coordspath+img[0:-5]+'.'+ota+'.sdss')
 	  ras,decs,psfMag_u,psfMagErr_u,psfMag_g,psfMagErr_g,psfMag_r,psfMagErr_r,psfMag_i,psfMagErr_i,psfMag_z,psfMagErr_z = np.loadtxt(odi.coordspath+img[0:-5]+'.'+ota+'.sdss',usecols=(0,1,2,3,4,5,6,7,8,9,10,11), unpack=True, delimiter=',', skiprows=2)
 	  probPSF = np.loadtxt(odi.coordspath+img[0:-5]+'.'+ota+'.sdss', usecols=(12,), dtype=int, unpack=True, delimiter=',', skiprows=2)
 	  coords2 = zip(ras[np.where((psfMag_g<gmaglim) & (probPSF==1))],decs[np.where((psfMag_g<gmaglim) & (probPSF==1))])
@@ -37,10 +37,11 @@ def list_wcs_coords(img, ota, gapmask, output='radec.coo', gmaglim=20., stars_on
 
 	hdulist = odi.fits.open(img)
 	hdu = hdulist[ota]
-	pvlist = hdu.header['PV*']
-	for pv in pvlist:
-		tpv = 'T'+pv
-		hdu.header.rename_keyword(pv, tpv, force=False)
+        if inst == 'podi':
+            pvlist = hdu.header['PV*']
+            for pv in pvlist:
+                tpv = 'T'+pv
+                hdu.header.rename_keyword(pv, tpv, force=False)
 	if offline == True:
 	  xdim = hdu.header['NAXIS1']
 	  ydim = hdu.header['NAXIS2']
