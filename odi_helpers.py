@@ -150,6 +150,21 @@ def stack_images(refimg):
 	# iraf.immatch.imcombine(reprojpath+'*.fits', 'test', expm='exp.pl', combine='average', reject='none', offsets='wcs', masktype='goodvalue', maskval=0, blank=-999, scale='none', zero='none', lthresh=-900, hthresh=60000)  
 	return output
 
+def instument(img):
+    from astropy.io import fits
+    """
+    A function to grab what version of odi has been used
+    should return 'podi' or '5odi'
+    Add a line to this effect before all of the other
+    odi_process.py stuff
+    inst = odi.instument(images[0])
+    """
+    hdulist = fits.open(img)
+    instument_name = hdulist[0].header['INSTRUME']
+    hdulist.close()
+    print 'Setting instrument to: ', instument_name 
+    return instument_name
+
 def main():
     pass
 
