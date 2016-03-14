@@ -13,14 +13,15 @@ import os
 import glob
 import odi_config as odi
 
-def get_sdss_coords_offline(img, ota, output='test.sdss'):
+def get_sdss_coords_offline(img, ota, inst,output='test.sdss'):
     hdulist = odi.fits.open(img)
     hdu = hdulist[ota]
     
-    pvlist = hdu.header['PV*']
-    for pv in pvlist:
-        tpv = 'T'+pv
-        hdu.header.rename_keyword(pv, tpv, force=False)
+    if inst == 'podi':
+        pvlist = hdu.header['PV*']
+        for pv in pvlist:
+            tpv = 'T'+pv
+            hdu.header.rename_keyword(pv, tpv, force=False)
     xdim = hdu.header['NAXIS1']
     ydim = hdu.header['NAXIS2']
     
@@ -40,14 +41,15 @@ def get_sdss_coords_offline(img, ota, output='test.sdss'):
     output_df.to_csv(output,index=False)
     return xdim, ydim
 
-def get_2mass_coords_offline(img, ota, output='test.mass'):
+def get_2mass_coords_offline(img, ota, inst,output='test.mass'):
     hdulist = odi.fits.open(img)
     hdu = hdulist[ota]
     
-    pvlist = hdu.header['PV*']
-    for pv in pvlist:
-        tpv = 'T'+pv
-        hdu.header.rename_keyword(pv, tpv, force=False)
+    if inst == 'podi':
+        pvlist = hdu.header['PV*']
+        for pv in pvlist:
+            tpv = 'T'+pv
+            hdu.header.rename_keyword(pv, tpv, force=False)
     xdim = hdu.header['NAXIS1']
     ydim = hdu.header['NAXIS2']
     
