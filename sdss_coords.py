@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from pyraf import iraf
 import odi_config as odi
 
-def get_sdss_coords(img, ota, output='test.sdss'):
+def get_sdss_coords(img, ota, inst,output='test.sdss'):
     formats = ['csv','xml','html']
 
     astro_url='http://skyserver.sdss3.org/public/en/tools/search/x_sql.aspx'
@@ -16,10 +16,12 @@ def get_sdss_coords(img, ota, output='test.sdss'):
 
     hdulist = odi.fits.open(img)
     hdu = hdulist[ota]
-    pvlist = hdu.header['PV*']
-    for pv in pvlist:
-        tpv = 'T'+pv
-        hdu.header.rename_keyword(pv, tpv, force=False)
+    
+    if inst == 'podi':
+        pvlist = hdu.header['PV*']
+        for pv in pvlist:
+            tpv = 'T'+pv
+            hdu.header.rename_keyword(pv, tpv, force=False)
     xdim = hdu.header['NAXIS1']
     ydim = hdu.header['NAXIS2']
 
@@ -99,15 +101,17 @@ def get_sdss_coords(img, ota, output='test.sdss'):
     return xdim, ydim
     hdulist.close()
     
-def refetch_sdss_coords(img, ota, gapmask, gmaglim=19.,offline = False,source='sdss'):
+def refetch_sdss_coords(img, ota, gapmask, inst,gmaglim=19.,offline = False,source='sdss'):
     
     image = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
     outcoords = odi.coordspath+'reproj_'+ota+'.'+str(img[16:-5])+'.sdss'
     hdulist = odi.fits.open(image)
-    pvlist = hdulist[0].header['PV*']
-    for pv in pvlist:
-	tpv = 'T'+pv
-	hdulist[0].header.rename_keyword(pv, tpv, force=False)
+    
+    if inst == 'podi':
+        pvlist = hdulist[0].header['PV*']
+        for pv in pvlist:
+            tpv = 'T'+pv
+	    hdulist[0].header.rename_keyword(pv, tpv, force=False)
     xdim = hdulist[0].header['NAXIS1']
     ydim = hdulist[0].header['NAXIS2']  
   
@@ -249,13 +253,14 @@ def refetch_sdss_coords(img, ota, gapmask, gmaglim=19.,offline = False,source='s
 
     hdulist.close()
     
-def repoxy_offline(img, ota, gapmask, gmaglim=19.,source='sdss'):
+def repoxy_offline(img, ota, gapmask, inst,gmaglim=19.,source='sdss'):
     image = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
     hdulist = odi.fits.open(image)
-    pvlist = hdulist[0].header['PV*']
-    for pv in pvlist:
-	tpv = 'T'+pv
-	hdulist[0].header.rename_keyword(pv, tpv, force=False)
+    if inst == 'podi':
+        pvlist = hdulist[0].header['PV*']
+        for pv in pvlist:
+	    tpv = 'T'+pv
+	    hdulist[0].header.rename_keyword(pv, tpv, force=False)
     xdim = hdulist[0].header['NAXIS1']
     ydim = hdulist[0].header['NAXIS2']
     if source == 'sdss':
@@ -294,7 +299,7 @@ def repoxy_offline(img, ota, gapmask, gmaglim=19.,source='sdss'):
 
     hdulist.close()
 
-def sdss_coords_full(img, gmaglim=19.):
+def sdss_coords_full(img, inst,gmaglim=19.):
     formats = ['csv','xml','html']
 
     astro_url='http://skyserver.sdss3.org/public/en/tools/search/x_sql.aspx'
@@ -309,10 +314,12 @@ def sdss_coords_full(img, gmaglim=19.):
     hdulist = odi.fits.open(image)
     data = hdulist[0].data
     # hdu = hdulist[ota]
-    pvlist = hdulist[0].header['PV*']
-    for pv in pvlist:
-      tpv = 'T'+pv
-      hdulist[0].header.rename_keyword(pv, tpv, force=False)
+    
+    if inst == 'podi':
+        pvlist = hdulist[0].header['PV*']
+        for pv in pvlist:
+            tpv = 'T'+pv
+            hdulist[0].header.rename_keyword(pv, tpv, force=False)
     xdim = hdulist[0].header['NAXIS1']
     ydim = hdulist[0].header['NAXIS2']
 
@@ -412,20 +419,21 @@ def sdss_coords_full(img, gmaglim=19.):
                       print >> fxy, pixcrd2[0][0], pixcrd2[0][1], ras[i],decs[i],psfMag_u[i],psfMagErr_u[i],psfMag_g[i],psfMagErr_g[i],psfMag_r[i],psfMagErr_r[i],psfMag_i[i],psfMagErr_i[i],psfMag_z[i],psfMagErr_z[i]
     hdulist.close()    
 
-def get_sdss_coords_offline(img, ota, output='test.sdss'):
+def get_sdss_coords_offline(img, ota, inst,output='test.sdss'):
     hdulist = odi.fits.open(img)
     hdu = hdulist[ota]
     
-    pvlist = hdu.header['PV*']
-    for pv in pvlist:
-        tpv = 'T'+pv
-        hdu.header.rename_keyword(pv, tpv, force=False)
+    if inst == 'podi':
+        pvlist = hdu.header['PV*']
+        for pv in pvlist:
+            tpv = 'T'+pv
+            hdu.header.rename_keyword(pv, tpv, force=False)
     xdim = hdu.header['NAXIS1']
     ydim = hdu.header['NAXIS2']
     
     sdss_cat_img = hdulist['CAT.PHOTCALIB']
     sdss_cat_img_df = pd.DataFrame.from_dict(sdss_cat_img.data)
-    hdulist1.close()
+    hdulist.close()
     
     ota = float(ota.strip('OTA.SCI'))
     ota_matches_df = sdss_cat_img_df.iloc[np.where(sdss_cat_img_df['ODI_OTA'] == ota)]
@@ -439,15 +447,16 @@ def get_sdss_coords_offline(img, ota, output='test.sdss'):
     output_df.to_csv(output,index=False)
     return xdim, ydim
 
-def refetch_sdss_coords_offline(img, ota, gapmask, gmaglim=19.):
+def refetch_sdss_coords_offline(img, ota, gapmask, inst,gmaglim=19.):
     image = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
     outcoords = odi.coordspath+'reproj_'+ota+'.'+str(img[16:-5])+'.sdss'
 
     hdulist = odi.fits.open(image)
-    pvlist = hdulist[0].header['PV*']
-    for pv in pvlist:
-      tpv = 'T'+pv
-      hdulist[0].header.rename_keyword(pv, tpv, force=False)
+    if inst == 'podi':
+        pvlist = hdulist[0].header['PV*']
+        for pv in pvlist:
+            tpv = 'T'+pv
+            hdulist[0].header.rename_keyword(pv, tpv, force=False)
     xdim = hdulist[0].header['NAXIS1']
     ydim = hdulist[0].header['NAXIS2']
 
