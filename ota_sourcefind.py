@@ -13,15 +13,16 @@ from astropy.coordinates import SkyCoord
 from astropy import units as u
 import matplotlib.pyplot as plt
 
-def source_find(img,ota):
+def source_find(img,ota,inst):
     image = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
     QR_raw = odi.fits.open(image)
     hdu_ota = QR_raw[0]
     
-    pvlist = hdu_ota.header['PV*']
-    for pv in pvlist:
-	tpv = 'T'+pv
-	hdu_ota.header.rename_keyword(pv, tpv, force=False)
+    if inst == 'podi':
+        pvlist = hdu_ota.header['PV*']
+        for pv in pvlist:
+            tpv = 'T'+pv
+            hdu_ota.header.rename_keyword(pv, tpv, force=False)
     w = odi.WCS(hdu_ota.header)
     bg_mean,bg_median,bg_std = odi.mask_ota(img,ota,reproj=True)
     threshold = bg_median + (bg_std * 5.)
@@ -39,7 +40,7 @@ def source_find(img,ota):
     source_tbl_df.to_csv(outputfile,index=False)
     QR_raw.close()
     
-def source_xy(img,ota,gapmask,filter):
+def source_xy(img,ota,gapmask,filter,inst):
     image = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
     #image = odi.bgsubpath+'bgsub_'+ota+'.'+str(img[16:])
     input_xy = odi.sourcepath+'source_'+ota+'.'+str(img[16:-5])+'.csv'
@@ -48,10 +49,12 @@ def source_xy(img,ota,gapmask,filter):
     QR_raw = odi.fits.open(image)
     hdu_ota = QR_raw[0]
     
-    pvlist = hdu_ota.header['PV*']
-    for pv in pvlist:
-	tpv = 'T'+pv
-	hdu_ota.header.rename_keyword(pv, tpv, force=False)
+    if inst == 'podi':
+        pvlist = hdu_ota.header['PV*']
+        for pv in pvlist:
+            tpv = 'T'+pv
+            hdu_ota.header.rename_keyword(pv, tpv, force=False)
+            
     w = odi.WCS(hdu_ota.header)
     xdim = hdu_ota.header['NAXIS1']
     ydim = hdu_ota.header['NAXIS2']
