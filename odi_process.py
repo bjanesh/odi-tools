@@ -52,6 +52,7 @@ else:
     print 'dark sky flats done'
 
 source = 'sdss'
+inst = odi.instument(images[0])
 #source = 'twomass'
 if not os.path.isfile('derived_props.txt'):
     f1 = open('derived_props.txt','w+')
@@ -74,13 +75,13 @@ if not os.path.isfile('derived_props.txt'):
             gaps = odi.get_gaps(img, ota)
             reprojed_image = 'reproj_'+ota+'.'+str(img[16:])
             if not os.path.isfile(odi.reprojpath+reprojed_image):
-                pixcrd3 = odi.list_wcs_coords(img, ota, gaps, output=img[:-5]+'.'+ota+'.radec.coo', gmaglim=23., stars_only=True, offline = True, source = source)
+                pixcrd3 = odi.list_wcs_coords(img, ota, gaps, inst,output=img[:-5]+'.'+ota+'.radec.coo', gmaglim=23., stars_only=True, offline = True, source = source)
                 odi.fix_wcs(img, ota, coords=img[:-5]+'.'+ota+'.radec.coo', iters=3)
                 odi.reproject_ota(img, ota, rad, decd)
             gaps = odi.get_gaps_rep(img, ota)
-            odi.refetch_sdss_coords(img, ota, gaps,gmaglim=20.,offline = True,source=source)
+            odi.refetch_sdss_coords(img, ota, gaps, inst,gmaglim=20.,offline = True,source=source)
             #run an additional refetch to get the xy for 2mass so they can be used for scaling
-            odi.repoxy_offline(img, ota, gaps, gmaglim=20.,source='twomass')
+            odi.repoxy_offline(img, ota, gaps, inst,gmaglim=20.,source='twomass')
             fwhm = odi.getfwhm_ota(img, ota)
             if source == 'sdss':
 		zp_med, zp_std, phot_tbl = odi.zeropoint_ota(img, ota, fwhm)
@@ -90,7 +91,7 @@ if not os.path.isfile('derived_props.txt'):
                 bg_mean, bg_median, bg_std = odi.bgsub_ota(img, ota, apply=True)
             else:
                 bg_mean, bg_median, bg_std = odi.bgsub_ota(img, ota, apply=False)
-	        print >> f1, img[16], ota, filt, fwhm, zp_med, zp_std, bg_mean, bg_median, bg_std
+	    print >> f1, img[16], ota, filt, fwhm, zp_med, zp_std, bg_mean, bg_median, bg_std
     f1.close()
 
 
@@ -100,9 +101,9 @@ for img in images_g:
     for key in tqdm(odi.OTA_dictionary):
 	ota = odi.OTA_dictionary[key]
 	if not os.path.isfile(odi.sourcepath+'source_'+ota+'.'+str(img[16:-5])+'.csv'):
-	    odi.source_find(img,ota)
+	    odi.source_find(img,ota,inst)
 	    gaps = odi.get_gaps_rep(img, ota)
-	    odi.source_xy(img,ota,gaps,filters[0])
+	    odi.source_xy(img,ota,gaps,filters[0],inst)
 	    fwhm = odi.getfwhm_source(img,ota)
 	    odi.phot_sources(img, ota, fwhm)
 	odi.phot_combine(img, ota)
@@ -137,9 +138,9 @@ for img in images_r:
     for key in tqdm(odi.OTA_dictionary):
 	ota = odi.OTA_dictionary[key]
 	if not os.path.isfile(odi.sourcepath+'source_'+ota+'.'+str(img[16:-5])+'.csv'):
-	    odi.source_find(img,ota)
+	    odi.source_find(img,ota,inst)
 	    gaps = odi.get_gaps_rep(img, ota)
-	    odi.source_xy(img,ota,gaps,filters[1])
+	    odi.source_xy(img,ota,gaps,filters[1],inst)
 	    fwhm = odi.getfwhm_source(img,ota)
 	    odi.phot_sources(img, ota, fwhm)
 	odi.phot_combine(img, ota)
