@@ -105,44 +105,7 @@ fits_h_g = fits.open(fits_g)
 print 'Target Coordinates :: ',fits_h_r[0].header['TARGRA'],fits_h_r[0].header['TARGDEC']
 print 'Image header FWHM :: g = {0:5.3f} : i = {1:5.3f}'.format(fwhm_g,fwhm_r)
 
-# background sigma calculation
-# put down boxes to measure it. QR should give a reasonable estimate as well, maybe use that? (simpler)
-# if not os.path.isfile('background_regions.txt') :
-#     print 'To continue you must select 12 to 15 empty rectangular regions in'
-#     print 'DS9 and export to an IRAF PROS file named background_regions.txt'
-#     raw_input("Press Enter when finished:")
-# # 
-# # 
-# if not os.path.isfile('bgvals_r.txt'):
-#     bg_file_g = open("bgvals_g.txt", 'w+')
-#     bg_file_r = open("bgvals_r.txt", 'w+')
-# 
-#     b3,b4,b5,b6 = np.loadtxt('background_regions.txt',usecols=(2,3,4,5),unpack=True)
-#     for i in range(len(b3)) :
-#         bx1 = b3[i] - (b5[i]/2.)
-#         bx2 = b3[i] + (b5[i]/2.)
-#         by1 = b4[i] - (b6[i]/2.)
-#         by2 = b4[i] + (b6[i]/2.)
-#         
-#         iraf.images.imstat(fits_g+'['+repr(int(bx1))+':'+repr(int(bx2))+','+repr(int(by1))+':'+repr(int(by2))+']', fields="image,npix,mean,midpt,stddev,min,max", Stdout=bg_file_g)
-#         iraf.images.imstat(fits_r+'['+repr(int(bx1))+':'+repr(int(bx2))+','+repr(int(by1))+':'+repr(int(by2))+']', fields="image,npix,mean,midpt,stddev,min,max", Stdout=bg_file_r)
-#         
-#     bg_file_g.close()
-#     bg_file_r.close()
-#     
-# bgmean_g, bgsig_g = np.loadtxt('bgvals_g.txt',usecols=(3,4),unpack=True)
-# bgmean_r, bgsig_r = np.loadtxt('bgvals_r.txt',usecols=(3,4),unpack=True)
 
-# yes, use the QR measured background values (get them from the image headers!) 
-# bg_r = fits_h_r[0].header['SKY_STD']
-# bg_g = fits_h_g[0].header['SKY_STD']
-# bgm_r = fits_h_r[0].header['SKY_MEDI']
-# bgm_g = fits_h_g[0].header['SKY_MEDI']
-
-# bg_g = np.mean(bgsig_g)
-# bg_r = np.mean(bgsig_r)
-# bgm_g = np.mean(bgmean_g)
-# bgm_r = np.mean(bgmean_r)
 print 'Image mean BG sigma value :: g = {0:5.3f} : i = {1:5.3f}'.format(bg_g,bg_r)
 print 'Image mean BG median value :: g = {0:5.3f} : i = {1:5.3f}'.format(bgm_g,bgm_r)
 

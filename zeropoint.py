@@ -51,7 +51,7 @@ def zeropoint_ota(img, ota, fwhm):
 	if not os.path.isfile(output):
 		iraf.apphot.phot(image=image, coords=coords, output=output)
 	with open(phot_tbl,'w+') as txdump_out :
-		iraf.ptools.txdump(textfiles=output, fields="id,mag,merr,msky,stdev,rapert,xcen,ycen,ifilter,xairmass,peak,flux,image", expr='MAG != INDEF && MERR != INDEF', headers='no', Stdout=txdump_out)
+		iraf.ptools.txdump(textfiles=output, fields="id,mag,merr,msky,stdev,rapert,xcen,ycen,ifilter,xairmass,peak,flux,image", expr='yes', headers='no', Stdout=txdump_out)
     
 	outputfile_clean = open(phot_tbl.replace('.sdssphot','_clean.sdssphot'),"w")
 	for line in open(phot_tbl,"r"):

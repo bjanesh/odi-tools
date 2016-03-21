@@ -10,7 +10,11 @@ from astropy import units as u
 from collections import OrderedDict
 
 def full_sdssmatch(img1,img2,inst):
-    
+    """
+    Fetch sdss images in each final stacked image
+    Then match the sources in common between each
+    image based on ra and dec.
+    """
     odi.sdss_coords_full(img1,inst,gmaglim=19)
     img1_sdss_cat = img1[:-5]+'.sdssxy'
     img1_match = img1[:-5]+'.match.sdssxy'
@@ -88,8 +92,52 @@ def full_sdssmatch(img1,img2,inst):
     
     return img1_match_df, img2_match_df
 
+def sdss_source_props(img):
+    """
+    Use photutils to get the elongation of all of the sdss sources
+    can maybe use for point source filter
+    """
+    hdulist = odi.fits.open(img)
+    data = hdulist[0].data
+    
+    sdss_source_file = img[:-5]+'.match.sdssxy'
+    
+    x,y,ra,dec,g,g_err,r,r_err = np.loadtxt(sdss_source_file,usecols=(0,1,2,3,
+								      6,7,8,9),unpack=True)
+    
+    box_centers = zip(y,x)
+    box_centers = np.reshape(box_centers,(len(box_centers),2))
+    source_dict = {}
+    for i,center in enumerate(box_centers):
+        x1 = center[0]-50
+        x2 = center[0]+50
+        y1 = center[1]-50
+        y2 = center[1]+50
+        
+        #print x1,x2,y1,y2,center
+        box = data[x1:x2,y1:y2]
+        #odi.plt.imshow(box)
+        #plt.show()
+        mean, median, std = odi.sigma_clipped_stats(box, sigma=3.0)
+        threshold = median + (std * 2.)
+        segm_img = odi.detect_sources(box, threshold, npixels=20)
+        source_props = odi.source_properties(box,segm_img)
+        columns = ['xcentroid', 'ycentroid','elongation','semimajor_axis_sigma','semiminor_axis_sigma']
+        if i == 0:
+	    source_tbl = odi.properties_table(source_props,columns=columns)
+	else:
+	    source_tbl.add_row((source_props[0].xcentroid,source_props[0].ycentroid, 
+			       source_props[0].elongation,source_props[0].semimajor_axis_sigma,
+			       source_props[0].semiminor_axis_sigma))
+    elong_med,elong_std = np.median(source_tbl['elongation']),np.std(source_tbl['elongation'])
+    hdulist.close()
+    return elong_med,elong_std
 
 def read_proc(file,filter):
+    """
+    Read the derived properties file to get useful values
+    need for phot and dao find
+    """
     filter_str = np.loadtxt(file,usecols=(2,),unpack=True,dtype=str)
     fwhm,bg_mean,bg_med,bg_std = np.loadtxt(file,usecols=(3,6,7,8),unpack=True)
     
@@ -101,6 +149,11 @@ def read_proc(file,filter):
     return median_fwhm,median_bg_mean,median_bg_median,median_bg_std
 
 def get_airmass(image_list):
+    """
+    Calculate the median arimass of
+    all the dithers in a given
+    filter
+    """
     airmasses = []
     for img in image_list:
 	hdulist = odi.fits.open(img)
@@ -133,7 +186,10 @@ def calc_airmass():
     else:
 	print 'setairmass already done'
     
-def sdss_phot(img,fwhm,airmass):
+def sdss_phot_full(img,fwhm,airmass):
+    """
+    Run phot on the matches sdss stars
+    """
     from pyraf import iraf
     iraf.ptools(_doprint=0)
     # first grab the header and hang on to it so we can use other values
@@ -180,6 +236,9 @@ def sdss_phot(img,fwhm,airmass):
 	os.rename(phot_tbl.replace('.sdssphot','_clean.sdssphot'),phot_tbl)
 
 def calibrate_match(img1, img2, fwhm1, fwhm2, airmass1, airmass2):
+    """
+    Solve color equations
+    """
     try:
         from pyraf import iraf
         from astropy.io import fits
@@ -417,8 +476,8 @@ def calibrate_match(img1, img2, fwhm1, fwhm2, airmass1, airmass2):
     plt.xlabel('$g_0 - '+filterName+'_0$ (ODI)')
     plt.ylim(-1,3.5)
     plt.ylabel('$g - '+filterName+'$ (SDSS)')
-    plt.text(-0.9, 3.0, '$\mu_{g'+filterName+'} = %.4f \pm %.4f$'%(mu_gi,std_mu_gi))
-    plt.text(-0.9, 2.5, '$\mathrm{zp}_{g'+filterName+'} = %.4f \pm %.4f$'%(zp_gi,std_mu_gi))
+    plt.text(-0.9, 3.0, '$\mu_{g'+filterName+'} = %.7f \pm %.7f$'%(mu_gi,std_mu_gi))
+    plt.text(-0.9, 2.5, '$\mathrm{zp}_{g'+filterName+'} = %.7f \pm %.7f$'%(zp_gi,std_zp_gi))
     # plt.legend(loc=3)
 
     plt.subplot(212)
@@ -433,8 +492,8 @@ def calibrate_match(img1, img2, fwhm1, fwhm2, airmass1, airmass2):
     plt.ylim(zp_i+1.0,zp_i-1.0)
     plt.xlabel('$g - '+filterName+'$ (SDSS)')
     plt.ylabel('$'+filterName+' - '+filterName+'_0$ (SDSS - ODI)')
-    plt.text(-0.9, zp_i-0.8, '$\epsilon_{g'+filterName+'} = %.4f \pm %.4f$'%(eps_gi,std_eps_gi))
-    plt.text(-0.9, zp_i-0.6, '$\mathrm{zp}_{'+filterName+'} = %.4f \pm %.4f$'%(zp_i,std_zp_i))
+    plt.text(-0.9, zp_i-0.8, '$\epsilon_{g'+filterName+'} = %.5f \pm %.5f$'%(eps_gi,std_eps_gi))
+    plt.text(-0.9, zp_i-0.6, '$\mathrm{zp}_{'+filterName+'} = %.5f \pm %.5f$'%(zp_i,std_zp_i))
     plt.tight_layout()
     plt.savefig(img_root+'_photcal.pdf')
     

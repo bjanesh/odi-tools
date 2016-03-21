@@ -109,8 +109,10 @@ def getfwhm_source(img, ota, radius=4.0, buff=7.0, width=5.0):
 	# hdulist = ast.io.fits.open(image)
 	# seeing = hdulist[0].header['FWHMSTAR']
 	# gfwhm = seeing/0.11
-	print 'median gwfhm in ota',ota+': ',np.median(gfwhm),'pixels'# (determined via QR)'
-	return np.median(gfwhm)
+	sfwhm = np.median(gfwhm[np.where(gfwhm < 900.0)])
+	
+	print 'median gwfhm in ota',ota+': ',sfwhm,'pixels'# (determined via QR)'
+	return sfwhm
     
 def phot_sources(img, ota, fwhm):
 	iraf.ptools(_doprint=0)
