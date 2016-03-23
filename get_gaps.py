@@ -31,25 +31,26 @@ def get_gaps_rep(img, ota):
     if not os.path.isfile(BPM):
         # mask,gaps = mask_ota(img,ota)
         hdu = odi.fits.PrimaryHDU(gaps_mask.astype(float))
-    if not os.path.isfile(mask_name):
-        hdu.writeto(mask_name,clobber=True)
+        if not os.path.isfile(mask_name):
+            hdu.writeto(mask_name,clobber=True)
     if not os.path.isfile(mask_name.replace('fits','pl')):
         iraf.unlearn(iraf.imutil.imcopy)
         iraf.imutil.imcopy.setParam('input',mask_name)
         iraf.imutil.imcopy.setParam('output',mask_name.replace('fits','pl'))
         iraf.imutil.imcopy.setParam('verbose','no')
         iraf.imutil.imcopy(mode='h')
-        iraf.unlearn(iraf.imutil.hedit)
-        iraf.imutil.hedit.setParam('images',image)
-        iraf.imutil.hedit.setParam('fields','BPM')
-        iraf.imutil.hedit.setParam('value',BPM)
-        iraf.imutil.hedit.setParam('add','yes')
-        iraf.imutil.hedit.setParam('addonly','no')
-        iraf.imutil.hedit.setParam('verify','no')
-        iraf.imutil.hedit.setParam('update','yes')
-        iraf.imutil.hedit(mode='h')
+    iraf.unlearn(iraf.imutil.hedit)
+    iraf.imutil.hedit.setParam('images',image)
+    iraf.imutil.hedit.setParam('fields','BPM')
+    iraf.imutil.hedit.setParam('value',BPM)
+    iraf.imutil.hedit.setParam('add','yes')
+    iraf.imutil.hedit.setParam('addonly','no')
+    iraf.imutil.hedit.setParam('verify','no')
+    iraf.imutil.hedit.setParam('update','yes')
+    iraf.imutil.hedit(mode='h')
         
-	return gaps_mask
+    return gaps_mask
+
 
 def main():
     pass

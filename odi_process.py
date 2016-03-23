@@ -10,6 +10,7 @@ import odi_config as odi
 import glob
 import shutil
 import pandas as pd
+import time
 
 images_g = glob.glob('*_odi_g*.fits')
 images_g.sort()
@@ -43,11 +44,12 @@ if len(listfiles) == 0:
 else:
     print 'imcombine lists done'
 
-for img in images:
-    print 'updating bpms for', img
-    for key in tqdm(odi.OTA_dictionary):
-        ota = odi.OTA_dictionary[key]
-        odi.make_bpms(img, ota)
+if not os.path.isfile('bpms.done'):
+    for img in images:
+        print 'updating bpms for', img
+        for key in tqdm(odi.OTA_dictionary):
+            ota = odi.OTA_dictionary[key]
+            odi.make_bpms(img, ota)
 
 listfiles = glob.glob(odi.skyflatpath+'*.med.fits')
 if len(listfiles) == 0:
@@ -75,7 +77,12 @@ if not os.path.isfile('derived_props.txt'):
             reprojed_image = 'reproj_'+ota+'.'+str(img[16:])
             if not os.path.isfile(odi.reprojpath+reprojed_image):
                 pixcrd3 = odi.list_wcs_coords(img, ota, gaps, inst,output=img[:-5]+'.'+ota+'.radec.coo', gmaglim=23., stars_only=True, offline = True, source = source)
-                odi.fix_wcs(img, ota, coords=img[:-5]+'.'+ota+'.radec.coo', iters=3)
+                try:
+                    odi.fix_wcs(img, ota, coords=img[:-5]+'.'+ota+'.radec.coo', iters=3)
+                except:
+                    print 'msccmatch failed, wait a second and try again'
+                    time.sleep(1.0)
+                    odi.fix_wcs(img, ota, coords=img[:-5]+'.'+ota+'.radec.coo', iters=3)
                 odi.reproject_ota(img, ota, rad, decd)
             gaps = odi.get_gaps_rep(img, ota)
             odi.refetch_sdss_coords(img, ota, gaps, inst,gmaglim=21.5,offline = True,source=source)
@@ -92,7 +99,6 @@ if not os.path.isfile('derived_props.txt'):
                 bg_mean, bg_median, bg_std = odi.bgsub_ota(img, ota, apply=False)
             print >> f1, img[16], ota, filt, fwhm, zp_med, zp_std, bg_mean, bg_median, bg_std
     f1.close()
-    
 else:
     imgnum,fwhm,zp_med, zp_std, bg_mean, bg_median, bg_std = np.loadtxt('derived_props.txt',usecols=(0,3,4,5,6,7,8),unpack=True)
     ota_d, filt_d = np.loadtxt('derived_props.txt',usecols=(1,2),unpack=True,dtype=str)
@@ -106,7 +112,7 @@ else:
             filt = hdr['filter']
             finishcheck = (int(str(img[16])),ota,filt)
             if finishcheck in finished:
-                print 'values already in derived_props.txt'
+                already = 0
             else:
                 image_to_correct = img+'['+ota+']'
                 correction_image = ota+'.'+filt+'.med.fits'
@@ -117,7 +123,12 @@ else:
                 reprojed_image = 'reproj_'+ota+'.'+str(img[16:])
                 if not os.path.isfile(odi.reprojpath+reprojed_image):
                     pixcrd3 = odi.list_wcs_coords(img, ota, gaps, inst,output=img[:-5]+'.'+ota+'.radec.coo', gmaglim=23., stars_only=True, offline = True, source = source)
-                    odi.fix_wcs(img, ota, coords=img[:-5]+'.'+ota+'.radec.coo', iters=3)
+                    try:
+                        odi.fix_wcs(img, ota, coords=img[:-5]+'.'+ota+'.radec.coo', iters=3)
+                    except:
+                        print 'msccmatch failed, wait a second and try again'
+                        time.sleep(1.0)
+                        odi.fix_wcs(img, ota, coords=img[:-5]+'.'+ota+'.radec.coo', iters=3)
                     odi.reproject_ota(img, ota, rad, decd)
                 gaps = odi.get_gaps_rep(img, ota)
                 odi.refetch_sdss_coords(img, ota, gaps, inst,gmaglim=21.5,offline = True,source=source)

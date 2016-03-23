@@ -63,8 +63,8 @@ def reproject_ota(img, ota, rad, decd):
     iraf.mscred.mscimage.blank=-999
     iraf.mscred.mscimage.interpo='poly5'
     iraf.mscred.mscimage.minterp='poly5'
-    iraf.mscred.mscimage.nxbl=2048
-    iraf.mscred.mscimage.nybl=2048
+    iraf.mscred.mscimage.nxbl=4096
+    iraf.mscred.mscimage.nybl=4096
     iraf.mscred.mscimage.fluxcon='yes'
     iraf.mscred.mscimage(image,imout)
     
@@ -148,6 +148,7 @@ def stack_images(refimg):
     iraf.imutil.hedit.setParam('update','yes')
     iraf.imutil.hedit(show='no', mode='h')
     # iraf.immatch.imcombine(reprojpath+'*.fits', 'test', expm='exp.pl', combine='average', reject='none', offsets='wcs', masktype='goodvalue', maskval=0, blank=-999, scale='none', zero='none', lthresh=-900, hthresh=60000)  
+
     return output
 
 def instrument(img):
@@ -163,6 +164,12 @@ def instrument(img):
     instrument_name = hdulist[0].header['INSTRUME']
     hdulist.close()
     print 'Setting instrument to: ', instrument_name 
+
+    if instrument_name == '5odi':
+        odi.OTA_dictionary = odi.odi5_dictionary
+    else :
+        odi.OTA_dictionary = odi.podi_dictionary
+        
     return instrument_name
 
 def main():
