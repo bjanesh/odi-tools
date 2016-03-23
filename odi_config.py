@@ -26,41 +26,41 @@ from full_calibrate import *
 from full_phot import *
 
 
-OTA_dictionary = {1:'OTA33.SCI',2: 'OTA34.SCI',3 :'OTA44.SCI', 4:'OTA43.SCI',5:'OTA42.SCI', 6:'OTA32.SCI', 
+podi_dictionary = {1:'OTA33.SCI',2: 'OTA34.SCI',3 :'OTA44.SCI', 4:'OTA43.SCI',5:'OTA42.SCI', 6:'OTA32.SCI', 
 7:'OTA22.SCI' ,8:'OTA23.SCI',9:'OTA24.SCI'}
 
-#OTA_dictionary = {
-	#1 :'OTA33.SCI',
-	#2 :'OTA34.SCI',
-	#3 :'OTA43.SCI',
-	#4 :'OTA44.SCI',
-	#5 :'OTA32.SCI',
-	#6 :'OTA23.SCI',
-	#7 :'OTA24.SCI',
-	#8 :'OTA42.SCI',
-	#9 :'OTA35.SCI',
-	#10:'OTA53.SCI',
-	#11:'OTA45.SCI',
-	#12:'OTA54.SCI',
-	#13:'OTA22.SCI',
-	#14:'OTA25.SCI',
-	#15:'OTA52.SCI',
-	#16:'OTA55.SCI',
-	#17:'OTA31.SCI',
-	#18:'OTA13.SCI',
-	#19:'OTA41.SCI',
-	#20:'OTA14.SCI',
-	#21:'OTA36.SCI',
-	#22:'OTA46.SCI',
-	#23:'OTA21.SCI',
-	#24:'OTA12.SCI',
-	#25:'OTA15.SCI',
-	#26:'OTA51.SCI',
-	#27:'OTA26.SCI',
-	#28:'OTA56.SCI',
-	#29:'OTA11.SCI',
-	#30:'OTA16.SCI'	
-#}
+odi5_dictionary = {
+	1 :'OTA33.SCI',
+	2 :'OTA34.SCI',
+	3 :'OTA43.SCI',
+	4 :'OTA44.SCI',
+	5 :'OTA32.SCI',
+	6 :'OTA23.SCI',
+	7 :'OTA24.SCI',
+	8 :'OTA42.SCI',
+	9 :'OTA35.SCI',
+	10:'OTA53.SCI',
+	11:'OTA45.SCI',
+	12:'OTA54.SCI',
+	13:'OTA22.SCI',
+	14:'OTA25.SCI',
+	15:'OTA52.SCI',
+	16:'OTA55.SCI',
+	17:'OTA31.SCI',
+	18:'OTA13.SCI',
+	19:'OTA41.SCI',
+	20:'OTA14.SCI',
+	21:'OTA36.SCI',
+	22:'OTA46.SCI',
+	23:'OTA21.SCI',
+	24:'OTA12.SCI',
+	25:'OTA15.SCI',
+	26:'OTA51.SCI',
+	27:'OTA26.SCI',
+	28:'OTA56.SCI',
+	29:'OTA11.SCI',
+	30:'OTA16.SCI'	
+}
 
 
 bpmdirectory = 'bpmasks'

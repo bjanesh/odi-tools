@@ -10,31 +10,33 @@ import odi_config as odi
 import glob
 import shutil
 import pandas as pd
+import time
 
 images_g = glob.glob('*_odi_g*.fits')
 images_g.sort()
 #print images_g
-images_r = glob.glob('*_odi_r*.fits')
+images_r = glob.glob('*_odi_i*.fits')
 images_r.sort()
-filters = ['odi_g','odi_r']
+filters = ['odi_g','odi_i']
 
 images = images_g+images_r
 
 rad, decd = odi.get_targ_ra_dec(images[0], 'OTA33.SCI')
 
 source = 'sdss'
-inst = odi.instument(images[0])
+inst = odi.instrument(images[0])
 #source = 'twomass'
 
 ## Create offlines catalogs
 for img in images:
     print 'Retrieving QR SDSS and 2MASS catalogs for:', img
     for key in odi.OTA_dictionary:
-	ota = odi.OTA_dictionary[key]
-	outputsd = odi.sdsspath+'offline_'+ota+'.'+str(img[16:-5])+'.sdss'
-	x,y = odi.get_sdss_coords_offline(img,ota,inst,output=outputsd)
-	output2m = odi.twomasspath+'offline_'+ota+'.'+str(img[16:-5])+'.mass'
-	x,y = odi.get_2mass_coords_offline(img,ota,inst,output=output2m)
+        ota = odi.OTA_dictionary[key]
+        outputsd = odi.sdsspath+'offline_'+ota+'.'+str(img[16:-5])+'.sdss'
+        if not os.path.isfile(outputsd):
+            x,y = odi.get_sdss_coords_offline(img,ota,inst,output=outputsd)
+            output2m = odi.twomasspath+'offline_'+ota+'.'+str(img[16:-5])+'.mass'
+            x,y = odi.get_2mass_coords_offline(img,ota,inst,output=output2m)
 
 listfiles = glob.glob('*.lis')
 if len(listfiles) == 0:
@@ -42,11 +44,12 @@ if len(listfiles) == 0:
 else:
     print 'imcombine lists done'
 
-for img in images:
-    print 'updating bpms for', img
-    for key in tqdm(odi.OTA_dictionary):
-        ota = odi.OTA_dictionary[key]
-        odi.make_bpms(img, ota)
+if not os.path.isfile('bpms.done'):
+    for img in images:
+        print 'updating bpms for', img
+        for key in tqdm(odi.OTA_dictionary):
+            ota = odi.OTA_dictionary[key]
+            odi.make_bpms(img, ota)
 
 listfiles = glob.glob(odi.skyflatpath+'*.med.fits')
 if len(listfiles) == 0:
@@ -59,56 +62,72 @@ else:
 if not os.path.isfile('derived_props.txt'):
     f1 = open('derived_props.txt','w+')
     print >> f1, '# img  ota  filter fwhm  zp_med  zp_std  bg_mean  bg_med  bg_std'
+else:
+    imgnum,fwhm,zp_med, zp_std, bg_mean, bg_median, bg_std = np.loadtxt('derived_props.txt',usecols=(0,3,4,5,6,7,8),unpack=True)
+    ota_d, filt_d = np.loadtxt('derived_props.txt',usecols=(1,2),unpack=True,dtype=str)
+    finished = zip(imgnum,ota_d,filt_d)
+    f1 = open('derived_props.txt','a+')
     for img in images:
         for key in tqdm(odi.OTA_dictionary):
             ota = odi.OTA_dictionary[key]
-            image_to_correct = img+'['+ota+']'
             hdulist = odi.fits.open(img)
             hdr = hdulist[0].header
             filt = hdr['filter']
-            correction_image = ota+'.'+filt+'.med.fits'
-            corrected_image = 'illcor_'+ota+'.'+str(img[16:])
-            if not os.path.isfile(odi.illcorpath+corrected_image):
-                odi.illumination_corrections(image_to_correct, correction_image, corrected_image)
-            gaps = odi.get_gaps(img, ota)
-            reprojed_image = 'reproj_'+ota+'.'+str(img[16:])
-            if not os.path.isfile(odi.reprojpath+reprojed_image):
-                pixcrd3 = odi.list_wcs_coords(img, ota, gaps, inst,output=img[:-5]+'.'+ota+'.radec.coo', gmaglim=23., stars_only=True, offline = True, source = source)
-                odi.fix_wcs(img, ota, coords=img[:-5]+'.'+ota+'.radec.coo', iters=3)
-                odi.reproject_ota(img, ota, rad, decd)
-            gaps = odi.get_gaps_rep(img, ota)
-            odi.refetch_sdss_coords(img, ota, gaps, inst,gmaglim=21.5,offline = True,source=source)
-            #run an additional refetch to get the xy for 2mass so they can be used for scaling
-            odi.repoxy_offline(img, ota, gaps, inst,gmaglim=21.5,source='twomass')
-            fwhm = odi.getfwhm_ota(img, ota)
-            if source == 'sdss':
-		zp_med, zp_std, phot_tbl = odi.zeropoint_ota(img, ota, fwhm)
-	    if source == 'twomass':
-		zp_med, zp_std = 99.99,99.99
-            if not os.path.isfile(odi.bgsubpath+'bgsub_'+ota+'.'+str(img[16:])):
-                bg_mean, bg_median, bg_std = odi.bgsub_ota(img, ota, apply=True)
+            finishcheck = (int(str(img[16])),ota,filt)
+            if finishcheck in finished:
+                already = 0
+                # print 'values already in derived_props.txt'
             else:
-                bg_mean, bg_median, bg_std = odi.bgsub_ota(img, ota, apply=False)
-	    print >> f1, img[16], ota, filt, fwhm, zp_med, zp_std, bg_mean, bg_median, bg_std
+                image_to_correct = img+'['+ota+']'
+                correction_image = ota+'.'+filt+'.med.fits'
+                corrected_image = 'illcor_'+ota+'.'+str(img[16:])
+                if not os.path.isfile(odi.illcorpath+corrected_image):
+                    odi.illumination_corrections(image_to_correct, correction_image, corrected_image)
+                gaps = odi.get_gaps(img, ota)
+                reprojed_image = 'reproj_'+ota+'.'+str(img[16:])
+                if not os.path.isfile(odi.reprojpath+reprojed_image):
+                    pixcrd3 = odi.list_wcs_coords(img, ota, gaps, inst,output=img[:-5]+'.'+ota+'.radec.coo', gmaglim=23., stars_only=True, offline = True, source = source)
+                    try:
+                        odi.fix_wcs(img, ota, coords=img[:-5]+'.'+ota+'.radec.coo', iters=3)
+                    except:
+                        print 'msccmatch failed, wait a second and try again'
+                        time.sleep(1.0)
+                        odi.fix_wcs(img, ota, coords=img[:-5]+'.'+ota+'.radec.coo', iters=3)
+                    odi.reproject_ota(img, ota, rad, decd)
+                gaps = odi.get_gaps_rep(img, ota)
+                odi.refetch_sdss_coords(img, ota, gaps, inst,gmaglim=21.5,offline = True,source=source)
+                #run an additional refetch to get the xy for 2mass so they can be used for scaling
+                odi.repoxy_offline(img, ota, gaps, inst,gmaglim=21.5,source='twomass')
+                fwhm = odi.getfwhm_ota(img, ota)
+                if source == 'sdss':
+                    zp_med, zp_std, phot_tbl = odi.zeropoint_ota(img, ota, fwhm)
+                if source == 'twomass':
+                    zp_med, zp_std = 99.99,99.99
+                if not os.path.isfile(odi.bgsubpath+'bgsub_'+ota+'.'+str(img[16:])):
+                    bg_mean, bg_median, bg_std = odi.bgsub_ota(img, ota, apply=True)
+                else:
+                    bg_mean, bg_median, bg_std = odi.bgsub_ota(img, ota, apply=False)
+                print >> f1, img[16], ota, filt, fwhm, zp_med, zp_std, bg_mean, bg_median, bg_std
     f1.close()
+
 
 
 ## Scaling with all sources
 #for img in images_g:
     #dither  = img.split('.')[1][0]+'_'
     #for key in tqdm(odi.OTA_dictionary):
-	#ota = odi.OTA_dictionary[key]
-	#if not os.path.isfile(odi.sourcepath+'source_'+ota+'.'+str(img[16:-5])+'.csv'):
-	    #odi.source_find(img,ota,inst)
-	    #gaps = odi.get_gaps_rep(img, ota)
-	    #odi.source_xy(img,ota,gaps,filters[0],inst)
-	    #fwhm = odi.getfwhm_source(img,ota)
-	    #odi.phot_sources(img, ota, fwhm)
-	#odi.phot_combine(img, ota)
+    #ota = odi.OTA_dictionary[key]
+    #if not os.path.isfile(odi.sourcepath+'source_'+ota+'.'+str(img[16:-5])+'.csv'):
+        #odi.source_find(img,ota,inst)
+        #gaps = odi.get_gaps_rep(img, ota)
+        #odi.source_xy(img,ota,gaps,filters[0],inst)
+        #fwhm = odi.getfwhm_source(img,ota)
+        #odi.phot_sources(img, ota, fwhm)
+    #odi.phot_combine(img, ota)
     #if not os.path.isfile(odi.sourcepath+dither+filters[0]+'.allsource'):
-	#dither_total = odi.sourcepath+dither+filters[0]+'.allsource' 
-	#cat_command = 'cat' + ' ' + 'sources/'+'*'+dither+'*_'+filters[0]+'*.totphot' + '>'+dither_total
-	#os.system(cat_command)
+    #dither_total = odi.sourcepath+dither+filters[0]+'.allsource' 
+    #cat_command = 'cat' + ' ' + 'sources/'+'*'+dither+'*_'+filters[0]+'*.totphot' + '>'+dither_total
+    #os.system(cat_command)
 
 #refimg_g = odi.find_ref_image(images_g)
 #ref_img = images_g[refimg_g]
@@ -134,18 +153,18 @@ if not os.path.isfile('derived_props.txt'):
 #for img in images_r:
     #dither  = img.split('.')[1][0]+'_'
     #for key in tqdm(odi.OTA_dictionary):
-	#ota = odi.OTA_dictionary[key]
-	#if not os.path.isfile(odi.sourcepath+'source_'+ota+'.'+str(img[16:-5])+'.csv'):
-	    #odi.source_find(img,ota,inst)
-	    #gaps = odi.get_gaps_rep(img, ota)
-	    #odi.source_xy(img,ota,gaps,filters[1],inst)
-	    #fwhm = odi.getfwhm_source(img,ota)
-	    #odi.phot_sources(img, ota, fwhm)
-	#odi.phot_combine(img, ota)
+    #ota = odi.OTA_dictionary[key]
+    #if not os.path.isfile(odi.sourcepath+'source_'+ota+'.'+str(img[16:-5])+'.csv'):
+        #odi.source_find(img,ota,inst)
+        #gaps = odi.get_gaps_rep(img, ota)
+        #odi.source_xy(img,ota,gaps,filters[1],inst)
+        #fwhm = odi.getfwhm_source(img,ota)
+        #odi.phot_sources(img, ota, fwhm)
+    #odi.phot_combine(img, ota)
     #if not os.path.isfile(odi.sourcepath+dither+filters[1]+'.allsource'):
-	#dither_total = odi.sourcepath+dither+filters[1]+'.allsource' 
-	#cat_command = 'cat' + ' ' + 'sources/'+'*'+dither+'*_'+filters[1]+'*.totphot' + '>'+dither_total
-	#os.system(cat_command)
+    #dither_total = odi.sourcepath+dither+filters[1]+'.allsource' 
+    #cat_command = 'cat' + ' ' + 'sources/'+'*'+dither+'*_'+filters[1]+'*.totphot' + '>'+dither_total
+    #os.system(cat_command)
 
 
 #refimg_r = odi.find_ref_image(images_r)
