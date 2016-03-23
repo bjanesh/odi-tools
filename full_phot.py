@@ -24,8 +24,8 @@ def trim_img(img):
 def find_sources_full(img,fwhm,bg_std,threshold=4.0):
     output = img[:-10]+'_sources.coo'
     if not os.path.isfile(output):
-	print 'Locating sources on ',img
-	print 'Will output to ',output
+        print 'Locating sources on ',img
+        print 'Will output to ',output
         iraf.unlearn(iraf.apphot.daofind)
         iraf.datapars.setParam('fwhmpsf',fwhm,check=1)
         iraf.datapars.setParam('datamin',-900,check=1)
@@ -68,15 +68,15 @@ def phot_sources_full(img,fwhm,airmass):
         with open(phot_tbl,'w+') as txdump_out:
             iraf.ptools.txdump(textfiles=output, fields="id,mag,merr,msky,stdev,rapert,xcen,ycen,ifilter,xairmass,image",expr='yes', headers='no', Stdout=txdump_out)
     
-	outputfile_clean = open(phot_tbl.replace('.srcphot','_clean.srcphot'),"w")
-	for line in open(phot_tbl,"r"):
-	    if not 'INDEF' in line:
-		outputfile_clean.write(line)
-	    if 'INDEF' in line:
-		outputfile_clean.write(line.replace('INDEF','999'))
-	outputfile_clean.close()
-	os.rename(phot_tbl.replace('.srcphot','_clean.srcphot'),phot_tbl)
-	
+        outputfile_clean = open(phot_tbl.replace('.srcphot','_clean.srcphot'),"w")
+        for line in open(phot_tbl,"r"):
+            if not 'INDEF' in line:
+                outputfile_clean.write(line)
+            if 'INDEF' in line:
+                outputfile_clean.write(line.replace('INDEF','999'))
+        outputfile_clean.close()
+        os.rename(phot_tbl.replace('.srcphot','_clean.srcphot'),phot_tbl)
+        
 def phot_sources_xy2sky(img,inst):
     phot_tbl = img[0:-10]+'.srcphot'
     outputradec = img[0:-10]+'.srcphotrd'
@@ -92,9 +92,9 @@ def phot_sources_xy2sky(img,inst):
     MAG, MERR, SKY, SERR, RAPERT, XPOS, YPOS = np.loadtxt(phot_tbl, usecols=(1,2,3,4,5,6,7), dtype=float, unpack=True)
     with open(outputradec, 'w+') as fxy:
         for i,c in enumerate(XPOS):
-	    coords2 = [[XPOS[i],YPOS[i]]]
-	    pixcrd2 = w.wcs_pix2world(coords2, 1)
-	    print >> fxy, pixcrd2[0][0], pixcrd2[0][1],XPOS[i],YPOS[i],MAG[i], MERR[i],SKY[i],SERR[i],RAPERT[i]
+            coords2 = [[XPOS[i],YPOS[i]]]
+            pixcrd2 = w.wcs_pix2world(coords2, 1)
+            print >> fxy, pixcrd2[0][0], pixcrd2[0][1],XPOS[i],YPOS[i],MAG[i], MERR[i],SKY[i],SERR[i],RAPERT[i]
     hdulist.close()
     
 def match_phot_srcs(img1,img2):

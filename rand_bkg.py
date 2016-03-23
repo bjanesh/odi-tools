@@ -69,19 +69,19 @@ def bkg_boxes(hdu,nboxes,length,sources):
        """
        mean, median, std = sigma_clipped_stats(box, sigma=3.0)
        if sources == False:
-	 bg_stats.append((mean, median, std))
+           bg_stats.append((mean, median, std))
        if sources == True:
-	 threshold = median + (std * 2.)
-	 segm_img = detect_sources(box, threshold, npixels=20)
-	 mask = segm_img.data.astype(np.bool)# turn segm_img into a mask
-	 selem = np.ones((10, 10))    # dilate using a 25x25 box
-	 mask2 = binary_dilation(mask, selem)
-	 #new_mask = mask_first_pass + mask2
-	 new_mask = mask2
-	 
-	 mean_mask, median_mask, std_mask = sigma_clipped_stats(box, sigma=3.0, mask=new_mask)
-	 bg_stats.append((mean_mask, median_mask, std_mask))
-	  
+           threshold = median + (std * 2.)
+           segm_img = detect_sources(box, threshold, npixels=20)
+           mask = segm_img.data.astype(np.bool)# turn segm_img into a mask
+           selem = np.ones((10, 10))    # dilate using a 25x25 box
+           mask2 = binary_dilation(mask, selem)
+           #new_mask = mask_first_pass + mask2
+           new_mask = mask2
+           
+           mean_mask, median_mask, std_mask = sigma_clipped_stats(box, sigma=3.0, mask=new_mask)
+           bg_stats.append((mean_mask, median_mask, std_mask))
+           
   bg_stats = np.reshape(np.array(bg_stats),(len(bg_stats),3))
   centers = np.reshape(np.array(centers),(len(centers),2))
   

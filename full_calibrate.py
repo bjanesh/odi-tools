@@ -23,12 +23,12 @@ def full_sdssmatch(img1,img2,inst):
     img2_match = img2[:-5]+'.match.sdssxy'
     
     x_1, y_1, ras_1,decs_1,psfMag_u_1,psfMagErr_u_1,psfMag_g_1,psfMagErr_g_1,psfMag_r_1,psfMagErr_r_1,psfMag_i_1,psfMagErr_i_1,psfMag_z_1,psfMagErr_z_1 = np.loadtxt(img1_sdss_cat,
-																				     usecols=(0,1,2,3,4,5,6,7,8,9,10,11,12,13),
-																				     unpack=True)
-
+                                                                                                                                                                     usecols=(0,1,2,3,4,5,6,7,8,9,10,11,12,13),
+                                                                                                                                                                     unpack=True)
+    
     x_2, y_2, ras_2,decs_2,psfMag_u_2,psfMagErr_u_2,psfMag_g_2,psfMagErr_g_2,psfMag_r_2,psfMagErr_r_2,psfMag_i_2,psfMagErr_i_2,psfMag_z_2,psfMagErr_z_2 = np.loadtxt(img2_sdss_cat,
-																			     usecols=(0,1,2,3,4,5,6,7,8,9,10,11,12,13),
-																			     unpack=True)
+                                                                                                                                                                     usecols=(0,1,2,3,4,5,6,7,8,9,10,11,12,13),
+                                                                                                                                                                     unpack=True)
     
 
     img1_catalog = SkyCoord(ra = ras_1*u.degree, dec= decs_1*u.degree)
@@ -53,12 +53,12 @@ def full_sdssmatch(img1,img2,inst):
     psfMagErr_z_1    = psfMagErr_z_1[id_img1]
     
     img1_match_dict = OrderedDict([('x_1',x_1),('y_1',y_1),('ras_1',ras_1),
-				   ('decs_1',decs_1),('psfMag_u_1',psfMag_u_1),
-				   ('psfMagErr_u_1',psfMagErr_u_1),
-				   ('psfMag_g_1',psfMag_g_1),('psfMagErr_g_1',psfMagErr_g_1),
-				   ('psfMag_r_1',psfMag_r_1),('psfMagErr_r_1',psfMagErr_r_1),
-				   ('psfMag_i_1',psfMag_i_1),('psfMagErr_i_1',psfMagErr_i_1),
-				   ('psfMag_z_1',psfMag_z_1),('psfMagErr_z_1',psfMagErr_z_1)])
+                                   ('decs_1',decs_1),('psfMag_u_1',psfMag_u_1),
+                                   ('psfMagErr_u_1',psfMagErr_u_1),
+                                   ('psfMag_g_1',psfMag_g_1),('psfMagErr_g_1',psfMagErr_g_1),
+                                   ('psfMag_r_1',psfMag_r_1),('psfMagErr_r_1',psfMagErr_r_1),
+                                   ('psfMag_i_1',psfMag_i_1),('psfMagErr_i_1',psfMagErr_i_1),
+                                   ('psfMag_z_1',psfMag_z_1),('psfMagErr_z_1',psfMagErr_z_1)])
 
     img1_match_df = pd.DataFrame.from_dict(img1_match_dict)
     img1_match_df.to_csv(img1_match,index=False,sep= ' ',header=False)
@@ -80,13 +80,13 @@ def full_sdssmatch(img1,img2,inst):
     
     
     img2_match_dict = OrderedDict([('x_2',x_2),('y_2',y_2),('ras_2',ras_2),
-				   ('decs_2',decs_2),('psfMag_u_2',psfMag_u_2),
-				   ('psfMagErr_u_2',psfMagErr_u_2),
-				   ('psfMag_g_2',psfMag_g_2),('psfMagErr_g_2',psfMagErr_g_2),
-				   ('psfMag_r_2',psfMag_r_2),('psfMagErr_r_2',psfMagErr_r_2),
-				   ('psfMag_i_2',psfMag_i_2),('psfMagErr_i_2',psfMagErr_i_2),
-				   ('psfMag_z_2',psfMag_z_2),('psfMagErr_z_2',psfMagErr_z_2)])
-
+                                   ('decs_2',decs_2),('psfMag_u_2',psfMag_u_2),
+                                   ('psfMagErr_u_2',psfMagErr_u_2),
+                                   ('psfMag_g_2',psfMag_g_2),('psfMagErr_g_2',psfMagErr_g_2),
+                                   ('psfMag_r_2',psfMag_r_2),('psfMagErr_r_2',psfMagErr_r_2),
+                                   ('psfMag_i_2',psfMag_i_2),('psfMagErr_i_2',psfMagErr_i_2),
+                                   ('psfMag_z_2',psfMag_z_2),('psfMagErr_z_2',psfMagErr_z_2)])
+    
     img2_match_df = pd.DataFrame.from_dict(img2_match_dict)
     img2_match_df.to_csv(img2_match,index=False,sep= ' ',header=False)
     
@@ -103,7 +103,7 @@ def sdss_source_props(img):
     sdss_source_file = img[:-5]+'.match.sdssxy'
     
     x,y,ra,dec,g,g_err,r,r_err = np.loadtxt(sdss_source_file,usecols=(0,1,2,3,
-								      6,7,8,9),unpack=True)
+                                                                      6,7,8,9),unpack=True)
     
     box_centers = zip(y,x)
     box_centers = np.reshape(box_centers,(len(box_centers),2))
@@ -124,11 +124,11 @@ def sdss_source_props(img):
         source_props = odi.source_properties(box,segm_img)
         columns = ['xcentroid', 'ycentroid','elongation','semimajor_axis_sigma','semiminor_axis_sigma']
         if i == 0:
-	    source_tbl = odi.properties_table(source_props,columns=columns)
-	else:
-	    source_tbl.add_row((source_props[0].xcentroid,source_props[0].ycentroid, 
-			       source_props[0].elongation,source_props[0].semimajor_axis_sigma,
-			       source_props[0].semiminor_axis_sigma))
+            source_tbl = odi.properties_table(source_props,columns=columns)
+        else:
+            source_tbl.add_row((source_props[0].xcentroid,source_props[0].ycentroid, 
+                                source_props[0].elongation,source_props[0].semimajor_axis_sigma,
+                                source_props[0].semiminor_axis_sigma))
     elong_med,elong_std = np.median(source_tbl['elongation']),np.std(source_tbl['elongation'])
     hdulist.close()
     return elong_med,elong_std
@@ -226,14 +226,14 @@ def sdss_phot_full(img,fwhm,airmass):
         with open(phot_tbl,'w+') as txdump_out :
             iraf.ptools.txdump(textfiles=img[0:-5]+'.phot.1', fields="id,mag,merr,msky,stdev,rapert,xcen,ycen,ifilter,xairmass,image",expr='yes', headers='no', Stdout=txdump_out)
     
-	outputfile_clean = open(phot_tbl.replace('.sdssphot','_clean.sdssphot'),"w")
-	for line in open(phot_tbl,"r"):
-	    if not 'INDEF' in line:
-		outputfile_clean.write(line)
-	    if 'INDEF' in line:
-		outputfile_clean.write(line.replace('INDEF','999'))
-	outputfile_clean.close()
-	os.rename(phot_tbl.replace('.sdssphot','_clean.sdssphot'),phot_tbl)
+        outputfile_clean = open(phot_tbl.replace('.sdssphot','_clean.sdssphot'),"w")
+        for line in open(phot_tbl,"r"):
+            if not 'INDEF' in line:
+                outputfile_clean.write(line)
+            if 'INDEF' in line:
+                outputfile_clean.write(line.replace('INDEF','999'))
+        outputfile_clean.close()
+        os.rename(phot_tbl.replace('.sdssphot','_clean.sdssphot'),phot_tbl)
 
 def calibrate_match(img1, img2, fwhm1, fwhm2, airmass1, airmass2):
     """

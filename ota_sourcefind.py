@@ -60,111 +60,106 @@ def source_xy(img,ota,gapmask,filter,inst):
     ydim = hdu_ota.header['NAXIS2']
     
     with open(outputxy, 'w+') as fxy:
-	for i,c in enumerate(xcentroid):
-		coords2 = [[xcentroid[i],ycentroid[i]]]
-		pixcrd2 = coords2
-		if  100.0 <= pixcrd2[0][0] < xdim-100.0 and 100.0 <= pixcrd2[0][1] < ydim-100.0 and elongation[i] <=1.25:
-		    # make an image cutout of the gap mask
-		    x, y = int(round(pixcrd2[0][0])), int(round(pixcrd2[0][1]))
-		    cutout = gapmask[y-30:y+30,x-30:x+30]
-		    if not (cutout.astype(bool)).any():
-			print >> fxy, pixcrd2[0][0], pixcrd2[0][1], id[i],ra_icrs_centroid[i],dec_icrs_centroid[i],source_sum[i],max_value[i],elongation[i]
+        for i,c in enumerate(xcentroid):
+            coords2 = [[xcentroid[i],ycentroid[i]]]
+            pixcrd2 = coords2
+            if  100.0 <= pixcrd2[0][0] < xdim-100.0 and 100.0 <= pixcrd2[0][1] < ydim-100.0 and elongation[i] <=1.25:
+                # make an image cutout of the gap mask
+                x, y = int(round(pixcrd2[0][0])), int(round(pixcrd2[0][1]))
+                cutout = gapmask[y-30:y+30,x-30:x+30]
+                if not (cutout.astype(bool)).any():
+                    print >> fxy, pixcrd2[0][0], pixcrd2[0][1], id[i],ra_icrs_centroid[i],dec_icrs_centroid[i],source_sum[i],max_value[i],elongation[i]
     QR_raw.close()
     fxy.close()
     
 def getfwhm_source(img, ota, radius=4.0, buff=7.0, width=5.0):
-	'''
-	Get a fwhm estimate for the image using the SDSS catalog stars and IRAF imexam (SLOW, but works)
-	Adapted from Kathy's getfwhm script (this implementation is simpler in practice)
-	'''
-	# coords= img[0:-5]+'.'+ota+'.sdssxy'
-	image = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
-	coords = odi.sourcepath+'source_'+ota+'.'+str(img[16:-5])+'.xy'
-	print image, coords
-	outputfile = odi.sourcepath+img[0:-5]+'.'+ota+'.fwhm.log'
-	
-	iraf.tv.rimexam.setParam('radius',radius)
-	iraf.tv.rimexam.setParam('buffer',buff)
-	iraf.tv.rimexam.setParam('width',width)
-	iraf.tv.rimexam.setParam('rplot',20.)
-	iraf.tv.rimexam.setParam('center','yes')
-	# fit a gaussian, rather than a moffat profile (it's more robust for faint sources)
-	iraf.tv.rimexam.setParam('fittype','gaussian')
-	iraf.tv.rimexam.setParam('iterati',1)
+    '''
+    Get a fwhm estimate for the image using the SDSS catalog stars and IRAF imexam (SLOW, but works)
+    Adapted from Kathy's getfwhm script (this implementation is simpler in practice)
+    '''
+    image = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
+    coords = odi.sourcepath+'source_'+ota+'.'+str(img[16:-5])+'.xy'
+    print image, coords
+    outputfile = odi.sourcepath+img[0:-5]+'.'+ota+'.fwhm.log'
+    
+    iraf.tv.rimexam.setParam('radius',radius)
+    iraf.tv.rimexam.setParam('buffer',buff)
+    iraf.tv.rimexam.setParam('width',width)
+    iraf.tv.rimexam.setParam('rplot',20.)
+    iraf.tv.rimexam.setParam('center','yes')
+    # fit a gaussian, rather than a moffat profile (it's more robust for faint sources)
+    iraf.tv.rimexam.setParam('fittype','gaussian')
+    iraf.tv.rimexam.setParam('iterati',1)
 
-	if not os.path.isfile(outputfile):
-		iraf.tv.imexamine(image, frame=10, logfile = outputfile, keeplog = 'yes', defkey = "a", nframes=0, imagecur = coords,use_display='no',  StdoutG='/dev/null',mode='h')
-	# 
-	# # unfortunately we have to toss the first measured fwhm value from the median because of the file format    
-	# # gfwhm = np.genfromtxt(outputfile, usecols=(3,), skip_header=4, skip_footer=3, unpack=True)
-	outputfile_clean = open(outputfile.replace('.log','_clean.log'),"w")
-	for line in open(outputfile,"r"):
-	    if not 'INDEF' in line:
-		outputfile_clean.write(line)
-	    if 'INDEF' in line:
-		outputfile_clean.write(line.replace('INDEF','999'))
-	outputfile_clean.close()
-	os.rename(outputfile.replace('.log','_clean.log'),outputfile)
-	gfwhm = np.loadtxt(outputfile, usecols=(10,), unpack=True)
-	# hdulist = ast.io.fits.open(image)
-	# seeing = hdulist[0].header['FWHMSTAR']
-	# gfwhm = seeing/0.11
-	sfwhm = np.median(gfwhm[np.where(gfwhm < 900.0)])
-	
-	print 'median gwfhm in ota',ota+': ',sfwhm,'pixels'# (determined via QR)'
-	return sfwhm
+    if not os.path.isfile(outputfile):
+        iraf.tv.imexamine(image, frame=10, logfile = outputfile, keeplog = 'yes', defkey = "a", nframes=0, imagecur = coords,use_display='no',  StdoutG='/dev/null',mode='h')
+    outputfile_clean = open(outputfile.replace('.log','_clean.log'),"w")
+    for line in open(outputfile,"r"):
+        if not 'INDEF' in line:
+            outputfile_clean.write(line)
+        if 'INDEF' in line:
+            outputfile_clean.write(line.replace('INDEF','999'))
+    outputfile_clean.close()
+    os.rename(outputfile.replace('.log','_clean.log'),outputfile)
+    gfwhm = np.loadtxt(outputfile, usecols=(10,), unpack=True)
+    # hdulist = ast.io.fits.open(image)
+    # seeing = hdulist[0].header['FWHMSTAR']
+    # gfwhm = seeing/0.11
+    sfwhm = np.median(gfwhm[np.where(gfwhm < 900.0)])
+    
+    print 'median gwfhm in ota',ota+': ',sfwhm,'pixels'# (determined via QR)'
+    return sfwhm
     
 def phot_sources(img, ota, fwhm):
-	iraf.ptools(_doprint=0)
-	# otaext = {'33':1,'34':2,'44':3,'43':4,'42':5,'32':6,'22':7,'23':8,'24':9}
-	# values determined by ralf/daniel @ wiyn
-	kg = 0.20
-	kr = 0.12
-	ki = 0.058
+    iraf.ptools(_doprint=0)
+    # otaext = {'33':1,'34':2,'44':3,'43':4,'42':5,'32':6,'22':7,'23':8,'24':9}
+    # values determined by ralf/daniel @ wiyn
+    kg = 0.20
+    kr = 0.12
+    ki = 0.058
+    
+    image = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
+    coords = odi.sourcepath+'source_'+ota+'.'+str(img[16:-5])+'.xy'
+    output = odi.sourcepath+img[0:-5]+'.'+ota+'.phot.1'
+    phot_tbl = odi.sourcepath+img[0:-5]+'.'+ota+'.sourcephot'
+    
+    # alas, we must use IRAF apphot to do the measuring
+    # first set common parameters (these shouldn't change if you're using ODI)
+    iraf.unlearn(iraf.phot,iraf.datapars,iraf.photpars,iraf.centerpars,iraf.fitskypars)
+    iraf.apphot.phot.setParam('interactive',"no")
+    iraf.apphot.phot.setParam('verify',"no")
+    iraf.datapars.setParam('datamax',50000.)
+    iraf.datapars.setParam('gain',"gain")
+    iraf.datapars.setParam('ccdread',"rdnoise")
+    iraf.datapars.setParam('exposure',"exptime")
+    
+    iraf.datapars.setParam('filter',"filter")
+    iraf.datapars.setParam('obstime',"time-obs")
+    iraf.datapars.setParam('sigma',"INDEF")
+    iraf.photpars.setParam('zmag',0.)
+    iraf.centerpars.setParam('cbox',9.)
+    iraf.centerpars.setParam('maxshift',3.)
+    iraf.fitskypars.setParam('salgorithm',"median")
+    iraf.fitskypars.setParam('dannulus',10.)
+    
+    iraf.datapars.setParam('airmass','airmass')
+    iraf.datapars.setParam('fwhmpsf',fwhm)
+    iraf.photpars.setParam('apertures',3.*fwhm) # use a big aperture for this
+    iraf.fitskypars.setParam('annulus',4.*fwhm)
 
-	image = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
-	coords = odi.sourcepath+'source_'+ota+'.'+str(img[16:-5])+'.xy'
-	output = odi.sourcepath+img[0:-5]+'.'+ota+'.phot.1'
-	phot_tbl = odi.sourcepath+img[0:-5]+'.'+ota+'.sourcephot'
-
-	# alas, we must use IRAF apphot to do the measuring
-	# first set common parameters (these shouldn't change if you're using ODI)
-	iraf.unlearn(iraf.phot,iraf.datapars,iraf.photpars,iraf.centerpars,iraf.fitskypars)
-	iraf.apphot.phot.setParam('interactive',"no")
-	iraf.apphot.phot.setParam('verify',"no")
-	iraf.datapars.setParam('datamax',50000.)
-	iraf.datapars.setParam('gain',"gain")
-	iraf.datapars.setParam('ccdread',"rdnoise")
-	iraf.datapars.setParam('exposure',"exptime")
-
-	iraf.datapars.setParam('filter',"filter")
-	iraf.datapars.setParam('obstime',"time-obs")
-	iraf.datapars.setParam('sigma',"INDEF")
-	iraf.photpars.setParam('zmag',0.)
-	iraf.centerpars.setParam('cbox',9.)
-	iraf.centerpars.setParam('maxshift',3.)
-	iraf.fitskypars.setParam('salgorithm',"median")
-	iraf.fitskypars.setParam('dannulus',10.)
-
-	iraf.datapars.setParam('airmass','airmass')
-	iraf.datapars.setParam('fwhmpsf',fwhm)
-	iraf.photpars.setParam('apertures',3.*fwhm) # use a big aperture for this
-	iraf.fitskypars.setParam('annulus',4.*fwhm)
-
-	if not os.path.isfile(output):
-		iraf.apphot.phot(image=image, coords=coords, output=output)
-	with open(phot_tbl,'w+') as txdump_out :
-		#iraf.ptools.txdump(textfiles=output, fields="id,mag,merr,msky,stdev,rapert,xcen,ycen,ifilter,xairmass,peak,flux,image", expr='MAG != INDEF && MERR != INDEF', headers='no', Stdout=txdump_out)
-		iraf.ptools.txdump(textfiles=output, fields="id,mag,merr,msky,stdev,rapert,xcen,ycen,ifilter,xairmass,peak,flux,image", expr='yes', headers='no', Stdout=txdump_out)
-	outputfile_clean = open(phot_tbl.replace('.sourcephot','_clean.sourcephot'),"w")
-	for line in open(phot_tbl,"r"):
-	    if not 'INDEF' in line:
-		outputfile_clean.write(line)
-	    if 'INDEF' in line:
-		outputfile_clean.write(line.replace('INDEF','999'))
-	outputfile_clean.close()
-	os.rename(phot_tbl.replace('.sourcephot','_clean.sourcephot'),phot_tbl)
-	return phot_tbl
+    if not os.path.isfile(output):
+        iraf.apphot.phot(image=image, coords=coords, output=output)
+    with open(phot_tbl,'w+') as txdump_out :
+        iraf.ptools.txdump(textfiles=output, fields="id,mag,merr,msky,stdev,rapert,xcen,ycen,ifilter,xairmass,peak,flux,image", expr='yes', headers='no', Stdout=txdump_out)
+    outputfile_clean = open(phot_tbl.replace('.sourcephot','_clean.sourcephot'),"w")
+    for line in open(phot_tbl,"r"):
+        if not 'INDEF' in line:
+            outputfile_clean.write(line)
+        if 'INDEF' in line:
+            outputfile_clean.write(line.replace('INDEF','999'))
+    outputfile_clean.close()
+    os.rename(phot_tbl.replace('.sourcephot','_clean.sourcephot'),phot_tbl)
+    return phot_tbl
     
 def phot_combine(img, ota):
     coords = odi.sourcepath+'source_'+ota+'.'+str(img[16:-5])+'.xy'
@@ -194,10 +189,10 @@ def source_scale(img,ref,filter):
     ref_sources = odi.sourcepath+ref_dither+filter+'.allsource'
     
     x_img, y_img, id_img,ra_icrs_centroid_img,dec_icrs_centroid_img,source_sum_img,max_value_img,elongation_img, MAG_img, MERR_img, SKY_img, SERR_img, RAPERT_img, XPOS_img, YPOS_img, fwhm_img,peak_img = np.loadtxt(
-	img_sources,usecols=(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16),unpack=True)
+        img_sources,usecols=(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16),unpack=True)
     
     x_ref, y_ref, id_ref,ra_icrs_centroid_ref,dec_icrs_centroid_ref,source_sum_ref,max_value_ref,elongation_ref, MAG_ref, MERR_ref, SKY_ref, SERR_ref, RAPERT_ref, XPOS_ref, YPOS_ref, fwhm_ref,peak_ref = np.loadtxt(
-	ref_sources,usecols=(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16),unpack=True)
+        ref_sources,usecols=(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16),unpack=True)
     
     img_catalog = SkyCoord(ra = ra_icrs_centroid_img*u.degree, dec = dec_icrs_centroid_img*u.degree)
     
@@ -257,23 +252,68 @@ def source_scale(img,ref,filter):
             scale = np.mean(rat)
             std = np.std(rat)
     else:
-	while sigTest > sigThreshold:
-	    magTempA = magA
+        while sigTest > sigThreshold:
+            magTempA = magA
             magTempRef = magRef
             magA = magTempA[np.where(abs(rat-np.median(rat))<sigTest)]
             magRef = magTempRef[np.where(abs(rat-np.median(rat))<sigTest)]
             rat = np.power(10.0,-0.4*(magA-magRef))/1.0
             #for i,r in enumerate(rat):
-		#print magA[i], magRef[i], r
-	    sigTest = np.std(rat)
+            #print magA[i], magRef[i], r
+            sigTest = np.std(rat)
             n = n + 1
             if n > 10:
-		print "Iteration did not converge to sigma <", repr(sigThreshold),"for", img
+                print "Iteration did not converge to sigma <", repr(sigThreshold),"for", img
                 print "Quitting..."
                 exit()
             #print len(rat), np.mean(rat), np.median(rat), np.std(rat), n
             #scale[img] = np.mean(rat)
             #std[img] = np.std(rat)
-	scale = np.mean(rat)
-	std = np.std(rat)
+        scale = np.mean(rat)
+        std = np.std(rat)
     return scale,std,len(rat)
+
+def sdss_source_props_ota(img,ota):
+    """
+    Use photutils to get the elongation of all of the sdss sources
+    can maybe use for point source filter
+    """
+    
+    image = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
+    hdulist = odi.fits.open(image)
+    data = hdulist[0].data
+    
+    sdss_source_file = odi.coordspath+'reproj_'+ota+'.'+str(img[16:-5])+'.sdssxy'
+    
+    x,y,ra,dec,g,g_err,r,r_err = np.loadtxt(sdss_source_file,usecols=(0,1,2,3,
+                                                                      6,7,8,9),unpack=True)
+    
+    box_centers = zip(y,x)
+    box_centers = np.reshape(box_centers,(len(box_centers),2))
+    source_dict = {}
+    for i,center in enumerate(box_centers):
+        x1 = center[0]-50
+        x2 = center[0]+50
+        y1 = center[1]-50
+        y2 = center[1]+50
+        
+        #print x1,x2,y1,y2,center
+        box = data[x1:x2,y1:y2]
+        odi.plt.imshow(box)
+        plt.show()
+        print hi
+        mean, median, std = odi.sigma_clipped_stats(box, sigma=3.0)
+        threshold = median + (std * 2.)
+        segm_img = odi.detect_sources(box, threshold, npixels=20)
+        source_props = odi.source_properties(box,segm_img)
+        if len(source_props) > 0:
+            columns = ['xcentroid', 'ycentroid','elongation','semimajor_axis_sigma','semiminor_axis_sigma']
+            if i == 0:
+                source_tbl = odi.properties_table(source_props,columns=columns)
+            else:
+                source_tbl.add_row((source_props[0].xcentroid,source_props[0].ycentroid, 
+                                    source_props[0].elongation,source_props[0].semimajor_axis_sigma,
+                                    source_props[0].semiminor_axis_sigma))
+    elong_med,elong_std = np.median(source_tbl['elongation']),np.std(source_tbl['elongation'])
+    hdulist.close()
+    return elong_med,elong_std

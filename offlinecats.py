@@ -33,9 +33,9 @@ def get_sdss_coords_offline(img, ota, inst,output='test.sdss'):
     ota_matches_df = sdss_cat_img_df.iloc[np.where(sdss_cat_img_df['ODI_OTA'] == ota)]
 
     needed_columns = ['SDSS_RA','SDSS_DEC','SDSS_MAG_U',
-		      'SDSS_ERR_U', u'SDSS_MAG_G', u'SDSS_ERR_G', u'SDSS_MAG_R',
-		      'SDSS_ERR_R', u'SDSS_MAG_I', u'SDSS_ERR_I', u'SDSS_MAG_Z',
-		      'SDSS_ERR_Z','ODI_OTA']
+                      'SDSS_ERR_U', u'SDSS_MAG_G', u'SDSS_ERR_G', u'SDSS_MAG_R',
+                      'SDSS_ERR_R', u'SDSS_MAG_I', u'SDSS_ERR_I', u'SDSS_MAG_Z',
+                      'SDSS_ERR_Z','ODI_OTA']
 
     output_df = ota_matches_df[needed_columns]
     output_df.to_csv(output,index=False)
