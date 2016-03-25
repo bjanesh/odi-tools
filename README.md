@@ -11,6 +11,15 @@ to run the scripts you'll need to install a number of dependencies:
 
 `pip install numpy scipy astropy photutils pyraf tqdm matplotlib pandas`
 
+It is possible to install these packages without root access by using the `--user` option:
+
+`pip install --user package-name`
+
+As noted on the [astropy website](http://astropy.readthedocs.org/en/stable/install.html), it might also be beneficial to use the `--no-deps` 
+option when installing astropy to stop pip from automatically upgrading any of your previously installed packages, such as numpy.
+
+`pip install --no-deps astropy`
+
 ### Usage
 All you need to do to get started is download your QR-ed data from the ODI-PPA using the `wget` download command, then follow these steps.
 
