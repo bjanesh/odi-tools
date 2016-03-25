@@ -15,6 +15,15 @@ import matplotlib.pyplot as plt
 from astropy.modeling import models, fitting
 
 def source_find(img,ota,inst):
+    """
+    This function will find sources on an OTA 
+    using the detect_sources module from photutils.
+    This will return of csv file of the sources found
+    with the x,y,Ra,Dec,source_sum,max_value, and 
+    elongation of the source. The elongation parameter is
+    semimajor_axis / semiminor_axis. This output is needed
+    for the source_xy function.
+    """
     image = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
     QR_raw = odi.fits.open(image)
     hdu_ota = QR_raw[0]
@@ -42,6 +51,11 @@ def source_find(img,ota,inst):
     QR_raw.close()
     
 def source_xy(img,ota,gapmask,filter,inst):
+    """
+    This function will return the x,y positions of 
+    sources found by source_find that are not too
+    close to gaps or the edges of the ota.
+    """
     image = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
     #image = odi.bgsubpath+'bgsub_'+ota+'.'+str(img[16:])
     input_xy = odi.sourcepath+'source_'+ota+'.'+str(img[16:-5])+'.csv'
@@ -74,10 +88,10 @@ def source_xy(img,ota,gapmask,filter,inst):
     fxy.close()
     
 def getfwhm_source(img, ota, radius=4.0, buff=7.0, width=5.0):
-    '''
-    Get a fwhm estimate for the image using the SDSS catalog stars and IRAF imexam (SLOW, but works)
-    Adapted from Kathy's getfwhm script (this implementation is simpler in practice)
-    '''
+    """
+    Measure the FWHM using IRAF at the x,y positions that are
+    returned by source_xy.
+    """
     image = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
     coords = odi.sourcepath+'source_'+ota+'.'+str(img[16:-5])+'.xy'
     print image, coords
@@ -112,8 +126,10 @@ def getfwhm_source(img, ota, radius=4.0, buff=7.0, width=5.0):
     return sfwhm
     
 def phot_sources(img, ota, fwhm):
+    """
+    Run IRAF phot on the the sources found.
+    """
     iraf.ptools(_doprint=0)
-    # otaext = {'33':1,'34':2,'44':3,'43':4,'42':5,'32':6,'22':7,'23':8,'24':9}
     # values determined by ralf/daniel @ wiyn
     kg = 0.20
     kr = 0.12
@@ -163,6 +179,11 @@ def phot_sources(img, ota, fwhm):
     return phot_tbl
     
 def phot_combine(img, ota):
+    """
+    Combine all of the information gather on the found sources.
+    These will be all of the values returned by source_find,
+    source_xy, getfwhm_source, phot_sources.
+    """
     coords = odi.sourcepath+'source_'+ota+'.'+str(img[16:-5])+'.xy'
     
     x, y, id,ra_icrs_centroid,dec_icrs_centroid,source_sum,max_value,elongation = np.loadtxt(coords,usecols=(0,1,2,3,4,5,6,7),unpack=True)
@@ -183,6 +204,13 @@ def phot_combine(img, ota):
     xy.close()
     
 def source_scale(img,ref,filter):
+    """
+    This function calculates the scaling based on a reference image.
+    The tables returned by phot_combine are used to match the sources
+    in the image and the reference image, as well as make cuts based
+    and other source properties. These values will likely have to
+    adjusted based on your data.
+    """
     img_dither = img.split('.')[1][0]+'_'
     ref_dither = ref.split('.')[1][0]+'_'
     
@@ -233,10 +261,8 @@ def source_scale(img,ref,filter):
     
     
     #keep = np.where((SKY_img>0.0) & (SKY_ref > 0.0) & (peak_img>200) & (peak_ref >200.0) & (45000.0>peak_img) & (45000.0>peak_ref) & (peak_img < 100) & (peak_ref < 100))
-    keep = np.where((np.array(peak_img)>1000.0) & (np.array(peak_ref) >1000.0)&(np.array(peak_img)<45000.0) & (np.array(peak_ref) <45000.0))
-    #print keep
-    
-    #print keep
+    keep = np.where((np.array(peak_img)>1000.0) & (np.array(peak_ref) >1000.0)&(np.array(peak_img)<45000.0) & (np.array(peak_ref) <45000.0) 
+                    & (np.array(fwhm_img)<900.0) & (np.array(fwhm_ref) <900.0))
     
     magA =  np.array(MAG_img[keep[0]])
     magRef =  np.array(MAG_ref[keep[0]])
