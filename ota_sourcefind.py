@@ -12,6 +12,7 @@ import astropy
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 import matplotlib.pyplot as plt
+from astropy.modeling import models, fitting
 
 def source_find(img,ota,inst):
     image = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
@@ -277,6 +278,8 @@ def sdss_source_props_ota(img,ota):
     """
     Use photutils to get the elongation of all of the sdss sources
     can maybe use for point source filter
+    Also fit a gaussian along a row and col of pixels passing 
+    through the center of the star 
     """
     
     image = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
@@ -291,6 +294,7 @@ def sdss_source_props_ota(img,ota):
     box_centers = zip(y,x)
     box_centers = np.reshape(box_centers,(len(box_centers),2))
     source_dict = {}
+    total_fwhm = []
     for i,center in enumerate(box_centers):
         x1 = center[0]-50
         x2 = center[0]+50
@@ -299,9 +303,22 @@ def sdss_source_props_ota(img,ota):
         
         #print x1,x2,y1,y2,center
         box = data[x1:x2,y1:y2]
-        odi.plt.imshow(box)
-        plt.show()
-        print hi
+        col = data[x1:x2,int(center[1]-0.5):int(center[1]+0.5)]
+        row = data[int(center[0]-0.5):int(center[0]+0.5),y1:y2]
+        row = np.squeeze(row) - np.median(row)
+        col = np.squeeze(col) - np.median(col)
+        g_init = models.Gaussian1D(amplitude=250., mean=50, stddev=2.)
+        fit_g = fitting.LevMarLSQFitter()
+        pix = np.linspace(0,100,num=100)
+        g_row = fit_g(g_init, pix, row)
+        g_col = fit_g(g_init, pix, col)
+        mean_fwhm = 0.5*(g_row.stddev*2.355+g_col.stddev*2.355)
+        total_fwhm.append(mean_fwhm)
+        #odi.plt.imshow(box)
+        #odi.plt.plot(row)
+        #odi.plt.plot(pix,g(pix))
+        #plt.imshow(row2)
+        #plt.show()
         mean, median, std = odi.sigma_clipped_stats(box, sigma=3.0)
         threshold = median + (std * 2.)
         segm_img = odi.detect_sources(box, threshold, npixels=20)
@@ -316,4 +333,4 @@ def sdss_source_props_ota(img,ota):
                                     source_props[0].semiminor_axis_sigma))
     elong_med,elong_std = np.median(source_tbl['elongation']),np.std(source_tbl['elongation'])
     hdulist.close()
-    return elong_med,elong_std
+    return elong_med,elong_std,np.mean(total_fwhm),np.std(total_fwhm)
