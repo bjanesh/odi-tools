@@ -3,27 +3,42 @@ import sys
 import numpy as np
 from astropy.io import fits
 from pyraf import iraf
+import warnings
 import odi_config as odi
 
 def find_ref_image(images):
-	# use photometry over the WHOLE image to calculate the scaling factors
-	imgs, fwhm, zp_med, zp_std, bg_mean, bg_median, bg_std = np.loadtxt('derived_props.txt', usecols=(0,3,4,5,6,7,8), unpack=True)
-
-	lvls = []
-	ams = []
-	#print images
-	for j,im in enumerate(images):
-		hdulist = fits.open(im)
-		airmass = hdulist[0].header['AIRMASS']
-		these = np.where(imgs.astype(int)==j+1)
-		bg_lvl = np.mean(bg_median[these])
-		lvls.append(bg_lvl)
-		ams.append(airmass)
-		hdulist.close()
-		print j+1, bg_lvl, airmass
-	ref_img = np.argmin(np.array(ams))
-	print 'reference image:',images[ref_img]
-	return ref_img	
+    # use photometry over the WHOLE image to calculate the scaling factors
+    imgs, fwhm, zp_med, zp_std, bg_mean, bg_median, bg_std = np.loadtxt('derived_props.txt', usecols=(0,3,4,5,6,7,8), unpack=True)
+    filter_string = np.loadtxt('derived_props.txt', usecols=(2,), unpack=True,dtype=str)
+    
+    lvls = []
+    ams = []
+    zps = []
+    #print images
+    print '#       bg        airmass       zp       zp_std        n_zps'
+    for j,im in enumerate(images):
+        hdulist = fits.open(im)
+        airmass = hdulist[0].header['AIRMASS']
+        filter  = hdulist[0].header['FILTER']
+        these = np.where((imgs.astype(int)==j+1) & (filter_string == filter))
+        zp_filter = np.where((imgs.astype(int)==j+1) & (filter_string == filter) & (zp_med < 900.0))
+        bg_lvl = np.mean(bg_median[these])
+        warnings.simplefilter("error")
+        try:
+            zp_lvl = np.mean(zp_med[zp_filter])
+            zp_lvl_std = np.std(zp_med[zp_filter])
+        except RuntimeWarning:
+            zp_lvl = 999
+            zp_lvl_std = 999
+        lvls.append(bg_lvl)
+        ams.append(airmass)
+        zps.append(zp_lvl)
+        hdulist.close()
+        print j+1, '%10.3f'%bg_lvl, '%10.3f'%airmass,'%10.3f'%zp_lvl,'%10.3f'%zp_lvl_std,'%10d'%int(len(zp_filter[0]))
+        ref_img = np.argmin(np.array(ams))
+    print 'reference image:',images[ref_img]
+    print np.argmin(np.array(zps))
+    return ref_img
 
 def getscale(images, refimg, verbose=True):
 	# img = bgsubpath+'bgsub_'+ota+'.'+str(img[16:])
