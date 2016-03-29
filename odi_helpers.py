@@ -172,6 +172,22 @@ def instrument(img):
         
     return instrument_name
 
+def qr_img_lists(odi_filter):
+    """
+    a function to build the image lists that will be fed into
+    odi_process.py and other routines. This will be based on
+    the filters provided.
+    
+    Filter example = odi_g
+    
+    """
+    glob_cmd = '*_'+odi_filter+'*.fits'
+    img_list = glob.glob(glob_cmd)
+    img_list.sort()
+    
+    return img_list
+    
+
 def main():
     pass
 
