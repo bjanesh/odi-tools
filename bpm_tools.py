@@ -27,14 +27,14 @@ def make_bpms(img, ota):
     if not os.path.isfile(BPM):
         mask,gaps = odi.mask_ota(img,ota)
         hdu = odi.fits.PrimaryHDU(mask.astype(float))
-    if not os.path.isfile(mask_name):
-        hdu.writeto(mask_name,clobber=True)
-    if not os.path.isfile(mask_name.replace('fits','pl')):
-        iraf.unlearn(iraf.imutil.imcopy)
-        iraf.imutil.imcopy.setParam('input',mask_name)
-        iraf.imutil.imcopy.setParam('output',mask_name.replace('fits','pl'))
-        iraf.imutil.imcopy.setParam('verbose','no')
-        iraf.imutil.imcopy(mode='h')
+        if not os.path.isfile(mask_name):
+            hdu.writeto(mask_name,clobber=True)
+        #if not os.path.isfile(mask_name.replace('fits','pl')):
+            iraf.unlearn(iraf.imutil.imcopy)
+            iraf.imutil.imcopy.setParam('input',mask_name)
+            iraf.imutil.imcopy.setParam('output',mask_name.replace('fits','pl'))
+            iraf.imutil.imcopy.setParam('verbose','no')
+            iraf.imutil.imcopy(mode='h')
     iraf.unlearn(iraf.imutil.hedit)
     iraf.imutil.hedit.setParam('images',img+'['+ota+']')
     iraf.imutil.hedit.setParam('fields','BPM')
