@@ -92,7 +92,7 @@ def full_sdssmatch(img1,img2,inst):
     
     return img1_match_df, img2_match_df
 
-def sdss_source_props(img):
+def sdss_source_props_full(img):
     """
     Use photutils to get the elongation of all of the sdss sources
     can maybe use for point source filter
@@ -234,7 +234,121 @@ def sdss_phot_full(img,fwhm,airmass):
                 outputfile_clean.write(line.replace('INDEF','999'))
         outputfile_clean.close()
         os.rename(phot_tbl.replace('.sdssphot','_clean.sdssphot'),phot_tbl)
+        
+def apcor_sdss(img,fwhm):
+    """
+    Use csv tables produced by full_sdssmatch
+    """
+    from pyraf import iraf
+    import matplotlib.pyplot as plt
+    from scipy import interpolate
+    iraf.ptools(_doprint=0)
+    sdss_source_file = img[:-5]+'.match.sdssxy'
+    
+    x,y,ra,dec,g,g_err,r,r_err = np.loadtxt(sdss_source_file,usecols=(0,1,2,3,
+                                                                      6,7,8,9),unpack=True)
+    aps = []
+    for i in np.arange(1,7.5,0.5):
+        aps.append(fwhm*i)
+    aps_str = str('"'+repr(aps[0])+','+repr(aps[1])+','
+                  +repr(aps[2])+','+repr(aps[3])+','
+                  +repr(aps[4])+','+repr(aps[5])+','
+                  +repr(aps[6])+','+repr(aps[7])+','
+                  +repr(aps[8])+','+repr(aps[9])+','
+                  +repr(aps[10])+','+repr(aps[11])+','
+                  +repr(aps[12])+'"')
 
+    hdulist = odi.fits.open(img)
+    hdr1 = hdulist[0].header
+    filter = hdr1['filter']
+    hdulist.close()
+    
+    iraf.unlearn(iraf.phot,iraf.datapars,iraf.photpars,iraf.centerpars,iraf.fitskypars)
+    iraf.apphot.phot.setParam('interactive',"no")
+    iraf.apphot.phot.setParam('verify',"no")
+    iraf.datapars.setParam('datamax',50000.)
+    iraf.datapars.setParam('gain',"gain")
+    iraf.datapars.setParam('ccdread','rdnoise')
+    iraf.datapars.setParam('exposure',"exptime")
+    #iraf.datapars.setParam('itime',2700.0)
+
+    iraf.datapars.setParam('filter',"filter")
+    iraf.datapars.setParam('obstime',"time-obs")
+    iraf.datapars.setParam('sigma',"INDEF")
+    iraf.photpars.setParam('zmag',0.)
+    iraf.centerpars.setParam('cbox',9.)
+    iraf.centerpars.setParam('maxshift',3.)
+    iraf.fitskypars.setParam('salgorithm',"median")
+    iraf.fitskypars.setParam('dannulus',10.)
+    
+    if not os.path.isfile(img[0:-5]+'.apcor'):
+        print 'running phot over', aps_str
+        iraf.datapars.setParam('fwhmpsf',fwhm)
+        iraf.photpars.setParam('apertures',aps_str)
+        iraf.fitskypars.setParam('annulus',6.5*fwhm)
+        iraf.apphot.phot(image=img, coords=sdss_source_file, output=img[0:-5]+'.apcor.1')
+        phot_tbl = img[0:-5]+'.apcor'
+        with open(phot_tbl,'w+') as txdump_out :
+            iraf.ptools.txdump(textfiles=img[0:-5]+'.apcor.1', fields="ID,RAPERT,XCEN,YCEN,FLUX,MAG,MERR", expr='yes', headers='no', Stdout=txdump_out)
+        txdump_out.close()
+    
+    star_flux = {}
+    star_mag_diff = {}
+    star_mag = {}
+    for i,line in enumerate(open(img[0:-5]+'.apcor',"r")):
+        flux = [float(x) for x in line.split()[15:29]]
+        #print flux[2]
+        if 500000.0 < flux[2] < 600000.0:
+            star_flux[i] = flux
+            mag = [float(x) for x in line.split()[30:42]]
+            star_mag[i] = mag
+    for key in star_mag:
+        diffs = []
+        for m in range(len(star_mag[key])-1):
+            diffs.append(star_mag[key][m+1] - star_mag[key][m])
+        star_mag_diff[key] = diffs
+    combine_mag_diffs = []
+    for key in star_mag_diff:
+        x = np.arange(1,6.5,0.5)
+        y = star_mag_diff[key]
+        #plt.plot(x,y,'o')
+        #plt.show()
+        combine_mag_diffs.append(y)
+        #tck = interpolate.splrep(x, y, s=0)
+        #xnew = np.arange(1,6,0.25)
+        #ynew = interpolate.splev(xnew,tck,der=1)
+        #print len(np.arange(1,6.5,0.5)),len(star_mag_diff[key])
+        #plt.plot(np.arange(1,6.5,0.5),star_mag_diff[key],'o')
+        #plt.plot(xnew,ynew,'-')
+        #plt.axhline(y=0)
+        #plt.show()
+    combine_mag_diffs = np.reshape(combine_mag_diffs,(len(star_mag_diff.keys()),11))
+    combine_mag_diffs_med = []
+    combine_mag_diffs_std = []
+    for j in range(len(x)):
+        combine_mag_diffs_med.append(np.median(combine_mag_diffs[:,j]))
+        combine_mag_diffs_std.append(np.std(combine_mag_diffs[:,j]))
+    
+    tck = interpolate.splrep(x, combine_mag_diffs_med, s=0)
+    xnew = np.arange(1,6.5,0.25)
+    ynew = interpolate.splev(xnew,tck,der=0)
+    ynew_der = interpolate.splev(xnew,tck,der=1)
+    plt.figure(figsize=(12,6))
+    ax1 = plt.subplot(121)
+    ax2 = plt.subplot(122)
+    ax1.errorbar(x,combine_mag_diffs_med,yerr=combine_mag_diffs_std,fmt='o',label='Median mag. Diff.')
+    ax1.plot(xnew,ynew,'r-',label='Spline fit')
+    ax1.set_ylabel('Mag(n+1) - Mag(n)')
+    ax1.set_xlabel('n $ \cdot $ fwhm')
+    ax2.plot(xnew,ynew_der,'r-')
+    ax2.axhline(y=0)
+    ax2.set_ylabel('Value of Spline 1st Derivative')
+    ax2.set_xlabel('n $ \cdot $ fwhm')
+    ax1.legend(loc=2)
+    plt.tight_layout()
+    plt.show()
+    
+        
 def calibrate_match(img1, img2, fwhm1, fwhm2, airmass1, airmass2):
     """
     Solve color equations
