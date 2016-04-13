@@ -15,11 +15,13 @@ import time
 images_g = glob.glob('*_odi_g*.fits')
 images_g.sort()
 #print images_g
-images_r = glob.glob('*_odi_i*.fits')
+images_r = glob.glob('*_odi_r*.fits')
 images_r.sort()
-filters = ['odi_g','odi_i']
+# images_i = glob.glob('*_odi_i*.fits')
+# images_i.sort()
+filters = ['odi_g','odi_r']#,'odi_i']
 
-images = images_g+images_r
+images = images_g+images_r#+images_i
 
 rad, decd = odi.get_targ_ra_dec(images[0], 'OTA33.SCI')
 
@@ -124,11 +126,11 @@ else:
                 if not os.path.isfile(odi.reprojpath+reprojed_image):
                     pixcrd3 = odi.list_wcs_coords(img, ota, gaps, inst,output=img[:-5]+'.'+ota+'.radec.coo', gmaglim=23., stars_only=True, offline = True, source = source)
                     try:
-                        odi.fix_wcs(img, ota, coords=img[:-5]+'.'+ota+'.radec.coo', iters=3)
+                        odi.fix_wcs(img, ota, coords=img[:-5]+'.'+ota+'.radec.coo', iters=1)
                     except:
                         print 'msccmatch failed, wait a second and try again'
                         time.sleep(1.0)
-                        odi.fix_wcs(img, ota, coords=img[:-5]+'.'+ota+'.radec.coo', iters=3)
+                        odi.fix_wcs(img, ota, coords=img[:-5]+'.'+ota+'.radec.coo', iters=1)
                     odi.reproject_ota(img, ota, rad, decd)
                 gaps = odi.get_gaps_rep(img, ota)
                 odi.refetch_sdss_coords(img, ota, gaps, inst,gmaglim=21.5,offline = True,source=source)

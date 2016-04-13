@@ -22,15 +22,15 @@ images = images_g+images_r
 
 
 source = 'sdss'
-inst = odi.instument(images[0])
+inst = odi.instrument(images[0])
 
 
-g_img = 'GCPair-F6_odi_g.fits'
-g_imgr = 'GCPair-F6_odi_g.trim.fits'
-odi.trim_img(g_img)
-r_img = 'GCPair-F6_odi_r.fits'
-r_imgr = 'GCPair-F6_odi_r.trim.fits'
-odi.trim_img(r_img)
+g_img = g_imgr = 'm13-12_odi_g.fits'
+# g_imgr = 'm13-12_odi_g.trim.fits'
+# odi.trim_img(g_img)
+r_img = r_imgr = 'm13-12_odi_r.fits'
+# r_imgr = 'm13-12_odi_r.trim.fits'
+# odi.trim_img(r_img)
 
 
 #Color eq steps
