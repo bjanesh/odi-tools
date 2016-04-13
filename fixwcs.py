@@ -84,7 +84,7 @@ def fix_wcs(img, ota, coords='radec.coo', iters=3):
       print fix[-3]
       print fix[-2]
       
-def fix_wcs_full(img, coords='radec.coo', iters=3):
+def fix_wcs_full(img, coords='radec.coo', iters=1):
     print coords 
     iraf.mscred(_doprint=0)
     iraf.unlearn(iraf.mscred.msccmatch)

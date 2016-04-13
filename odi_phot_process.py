@@ -64,6 +64,8 @@ r_img = r_imgr = objname+'_odi_r.fits'
 #Color eq steps
 #First find the sdss sources that are in each stacked image
 odi.full_sdssmatch(g_img,r_img,inst,gmaglim=19.0)
+odi.fix_wcs_full(g_img,coords=g_img[:-5]+'.wcs.coo')
+odi.fix_wcs_full(r_img,coords=r_img[:-5]+'.wcs.coo')
 
 #Get source and background characteristics from 'derived_props.txt'
 median_fwhm,median_bg_mean,median_bg_median,median_bg_std = odi.read_proc('derived_props.txt','odi_g')
@@ -72,18 +74,17 @@ median_fwhm,median_bg_mean,median_bg_median,median_bg_std = odi.read_proc('deriv
 airmass_g = odi.get_airmass(images_g)
 #Phot sdss g sources on stacked image
 odi.sdss_phot_full(g_img,median_fwhm,airmass_g)
-<<<<<<< HEAD
-odi.fix_wcs_full(g_img,coords=g_img[:-5]+'.wcs.coo')
-=======
-#This has failed for me
-odi.fix_wcs_full(g_img,coords='GCPair-F1_odi_g.wcs.coo')
->>>>>>> 8589278ac26e3b6557212c53ef349c0c48fea534
+# <<<<<<< HEAD
+
+# =======
+# #This has failed for me
+# odi.fix_wcs_full(g_img,coords='GCPair-F1_odi_g.wcs.coo')
+# >>>>>>> 8589278ac26e3b6557212c53ef349c0c48fea534
 
 #Repeat same steps above, but for the r stacked image
 median_fwhmr,median_bg_meanr,median_bg_medianr,median_bg_stdr = odi.read_proc('derived_props.txt','odi_r')
 airmass_r = odi.get_airmass(images_r)
 odi.sdss_phot_full(r_img,median_fwhmr,airmass_r)
-odi.fix_wcs_full(r_img,coords='GCPair-F1_odi_r.wcs.coo')
 
 #Solve the color equations using the pair of stacked images. This was just
 #taken odi_calibrate.
