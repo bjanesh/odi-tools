@@ -9,16 +9,16 @@ from astropy.coordinates import SkyCoord
 from astropy import units as u
 from collections import OrderedDict
 
-def full_sdssmatch(img1,img2,inst):
+def full_sdssmatch(img1,img2,inst,gmaglim=19):
     """
     Fetch sdss images in each final stacked image
     Then match the sources in common between each
     image based on ra and dec.
     """
-    odi.sdss_coords_full(img1,inst,gmaglim=19)
+    odi.sdss_coords_full(img1,inst,gmaglim=gmaglim)
     img1_sdss_cat = img1[:-5]+'.sdssxy'
     img1_match = img1[:-5]+'.match.sdssxy'
-    odi.sdss_coords_full(img2,inst,gmaglim=19)
+    odi.sdss_coords_full(img2,inst,gmaglim=gmaglim)
     img2_sdss_cat = img2[:-5]+'.sdssxy'
     img2_match = img2[:-5]+'.match.sdssxy'
     
@@ -281,26 +281,35 @@ def apcor_sdss(img,fwhm):
     iraf.fitskypars.setParam('salgorithm',"median")
     iraf.fitskypars.setParam('dannulus',10.)
     
-    if not os.path.isfile(img[0:-5]+'.apcor'):
+    phot_tbl = img[0:-5]+'.apcor'
+    if not os.path.isfile(phot_tbl):
         print 'running phot over', aps_str
         iraf.datapars.setParam('fwhmpsf',fwhm)
         iraf.photpars.setParam('apertures',aps_str)
         iraf.fitskypars.setParam('annulus',6.5*fwhm)
         iraf.apphot.phot(image=img, coords=sdss_source_file, output=img[0:-5]+'.apcor.1')
-        phot_tbl = img[0:-5]+'.apcor'
         with open(phot_tbl,'w+') as txdump_out :
-            iraf.ptools.txdump(textfiles=img[0:-5]+'.apcor.1', fields="ID,RAPERT,XCEN,YCEN,FLUX,MAG,MERR", expr='yes', headers='no', Stdout=txdump_out)
+            iraf.ptools.txdump(textfiles=img[0:-5]+'.apcor.1', fields="ID,RAPERT,XCEN,YCEN,FLUX,MAG,MERR", expr="yes", headers='no', Stdout=txdump_out)
         txdump_out.close()
-    
+        outputfile_clean = open(phot_tbl.replace('.apcor','_clean.apcor'),"w")
+        for line in open(phot_tbl,"r"):
+            if not 'INDEF' in line:
+                outputfile_clean.write(line)
+            if 'INDEF' in line:
+                outputfile_clean.write(line.replace('INDEF','999'))
+        outputfile_clean.close()
+        os.rename(phot_tbl.replace('.apcor','_clean.apcor'),phot_tbl)
+    flux_3fwhm = np.loadtxt(phot_tbl,usecols=(18,),unpack=True)
+    flux_3fwhm_fluxcut = np.percentile(flux_3fwhm,90)
+    print flux_3fwhm_fluxcut
     star_flux = {}
     star_mag_diff = {}
     star_mag = {}
     for i,line in enumerate(open(img[0:-5]+'.apcor',"r")):
         flux = [float(x) for x in line.split()[15:29]]
-        #print flux[2]
-        if 500000.0 < flux[2] < 600000.0:
+        mag = [float(x) for x in line.split()[30:42]]
+        if (flux[4] >= flux_3fwhm_fluxcut) and (mag[4] != 999.0):
             star_flux[i] = flux
-            mag = [float(x) for x in line.split()[30:42]]
             star_mag[i] = mag
     for key in star_mag:
         diffs = []
@@ -333,7 +342,7 @@ def apcor_sdss(img,fwhm):
     xnew = np.arange(1,6.5,0.25)
     ynew = interpolate.splev(xnew,tck,der=0)
     ynew_der = interpolate.splev(xnew,tck,der=1)
-    plt.figure(figsize=(12,6))
+    plt.figure(figsize=(14,7))
     ax1 = plt.subplot(121)
     ax2 = plt.subplot(122)
     ax1.errorbar(x,combine_mag_diffs_med,yerr=combine_mag_diffs_std,fmt='o',label='Median mag. Diff.')
@@ -344,7 +353,7 @@ def apcor_sdss(img,fwhm):
     ax2.axhline(y=0)
     ax2.set_ylabel('Value of Spline 1st Derivative')
     ax2.set_xlabel('n $ \cdot $ fwhm')
-    ax1.legend(loc=2)
+    ax1.legend(loc=4)
     plt.tight_layout()
     plt.show()
     
@@ -402,7 +411,6 @@ def calibrate_match(img1, img2, fwhm1, fwhm2, airmass1, airmass2):
     gID_keep = gID - 1
     iID_keep = iID - 1
     keep = list(set(gID_keep).intersection(iID_keep))
-    print keep
 
     # and keep the common elements between g and i using their list index
     keepg = [i for i,element in enumerate(gID) if element in iID]
