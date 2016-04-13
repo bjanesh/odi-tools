@@ -24,10 +24,18 @@ images = images_g+images_r
 source = 'sdss'
 inst = odi.instrument(images[0])
 
-g_img = g_imgr = 'm13-12_odi_g.fits'
+fitsref = odi.fits.open(images[0])
+hduref = fitsref[0]
+objname = hduref.header['object']
+fitsref.close()
+# filter_name = hduref.header['filter']
+# sky_med = hduref.header['skybg']
+# output = objname+'_'+filter_name+'.fits'
+
+g_img = g_imgr = objname+'_odi_g.fits'
 # g_imgr = 'm13-12_odi_g.trim.fits'
 # odi.trim_img(g_img)
-r_img = r_imgr = 'm13-12_odi_r.fits'
+r_img = r_imgr = objname+'_odi_r.fits'
 # r_imgr = 'm13-12_odi_r.trim.fits'
 # odi.trim_img(r_img)
 
@@ -39,7 +47,7 @@ median_fwhm,median_bg_mean,median_bg_median,median_bg_std = odi.read_proc('deriv
 #print median_fwhm,median_bg_mean,median_bg_median,median_bg_std
 airmass_g = odi.get_airmass(images_g)
 odi.sdss_phot_full(g_img,median_fwhm,airmass_g)
-odi.fix_wcs_full(g_img,coords='GCPair-F1_odi_g.wcs.coo')
+odi.fix_wcs_full(g_img,coords=g_img[:-5]+'.wcs.coo')
 
 median_fwhmr,median_bg_meanr,median_bg_medianr,median_bg_stdr = odi.read_proc('derived_props.txt','odi_r')
 print median_fwhmr,median_bg_meanr,median_bg_medianr,median_bg_stdr
