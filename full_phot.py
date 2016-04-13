@@ -35,7 +35,7 @@ def find_sources_full(img,fwhm,bg_std,threshold=4.0):
         iraf.apphot.daofind.setParam('output',output)
         iraf.apphot.daofind(image=img, verbose="no", verify='no')
         
-def phot_sources_full(img,fwhm,airmass):
+def phot_sources_full(img,fwhm,airmass,apfactor):
     iraf.ptools(_doprint=0)
     coords = img[:-10]+'_sources.coo'
     output = img[:-10]+'.phot.1'
@@ -60,8 +60,8 @@ def phot_sources_full(img,fwhm,airmass):
         iraf.fitskypars.setParam('dannulus',10.)
     
         iraf.datapars.setParam('fwhmpsf',fwhm)
-        iraf.photpars.setParam('apertures',2.*fwhm)
-        iraf.fitskypars.setParam('annulus',4.*fwhm)
+        iraf.photpars.setParam('apertures',apfactor*fwhm)
+        iraf.fitskypars.setParam('annulus',6.5*fwhm)
 
         iraf.apphot.phot(image=img, coords=coords, output=output)
         
@@ -136,9 +136,16 @@ def match_phot_srcs(img1,img2):
     serr_2    =    serr_2[id_img2]
     rapert_2  =    rapert_2[id_img2]
     
+    with open(img1_srsc_match,'w+') as m1:
+        with open(img2_srsc_match,'w+') as m2:
+            for i,s in enumerate(ra_1):
+                print >> m1,ra_1[i], dec_1[i],x_1[i],y_1[i],mag_1[i],merr_1[i],sky_1[i],serr_1[i],rapert_1[i]
+                print >> m2,ra_2[i], dec_2[i],x_2[i],y_2[i],mag_2[i],merr_2[i],sky_2[i],serr_2[i],rapert_2[i]
+    m1.close()
+    m2.close()
     junk = open('match.reg',"w")
     for i in range(len(ra_1)):
-	print >> junk, x_1[i], y_1[i]
+        print >> junk, x_2[i], y_2[i]
     junk.close()
     
     
