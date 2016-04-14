@@ -84,7 +84,7 @@ def fix_wcs(img, ota, coords='radec.coo', iters=3):
       print fix[-3]
       print fix[-2]
       
-def fix_wcs_full(img, coords='radec.coo', iters=3):
+def fix_wcs_full(img, coords='radec.coo', iters=1):
     print coords 
     iraf.mscred(_doprint=0)
     iraf.unlearn(iraf.mscred.msccmatch)
@@ -96,11 +96,38 @@ def fix_wcs_full(img, coords='radec.coo', iters=3):
         print fix[-5]
         print fix[-4]
         print fix[-3]
-        print fix[-2]	  
+        print fix[-2]	
+        
+def repair_bad_wcs(img, ota, refimg, refota):
+    print 'repairing bad wcs solution for',img+'['+ota+']...'
+    # get good CD matrix values from the reference image
+    # refimg = refimg+'['+refota+']'
+    refhdu = odi.fits.open(refimg)
+    pvlist = refhdu[refota].header['PV*']
+    for pv in pvlist:
+        tpv = 'T'+pv
+        refhdu[refota].header.rename_keyword(pv, tpv, force=False)
+    w_ref = odi.WCS(refhdu[refota].header)
+    print w_ref.wcs.cd, w_ref.wcs.crpix, w_ref.wcs.crval
+    
+    # get the bad WCS info so we can do some checking
+    # image = img+'['+ota+']'
+    hdu = odi.fits.open(img)
+    pvlist = hdu[refota].header['PV*']
+    for pv in pvlist:
+        tpv = 'T'+pv
+        hdu[refota].header.rename_keyword(pv, tpv, force=False)
+    w = odi.WCS(hdu[ota].header)
+    print w.wcs.cd, w.wcs.crpix, w.wcs.crval
+
 
 def main():
     pass
 
 if __name__ == '__main__':
-    main()
+    img = "20130509T031741.1_m13-se_odi_g.5869.fits"
+    ota = "OTA33.SCI"
+    refimg = "20130509T031515.2_m13-se_odi_g.5869.fits"
+    refota = "OTA33.SCI"
+    repair_bad_wcs(img, ota, refimg, refota)
     
