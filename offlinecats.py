@@ -57,13 +57,12 @@ def get_sdss_coords_offline(img, ota, inst,output='test.sdss'):
         needed_columns = np.insert(sdss_cat_img_df.columns.values,0,'ODI_OTA')
 
         full_df = matched_df[needed_columns]
-        print ota
         ota_matches_df = full_df.iloc[np.where(full_df['ODI_OTA'] == ota)]
         needed_columns = ['SDSS_RA','SDSS_DEC','SDSS_MAG_U',
                           'SDSS_ERR_U', u'SDSS_MAG_G', u'SDSS_ERR_G', u'SDSS_MAG_R',
                           'SDSS_ERR_R', u'SDSS_MAG_I', u'SDSS_ERR_I', u'SDSS_MAG_Z',
                           'SDSS_ERR_Z','ODI_OTA']
-        output_df = full_df[needed_columns]
+        output_df = ota_matches_df[needed_columns]
         output_df.to_csv(output,index=False)
     hdulist.close()   
     return xdim, ydim
