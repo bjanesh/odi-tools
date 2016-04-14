@@ -1,5 +1,4 @@
 from astropy.visualization.mpl_normalize import ImageNormalize
-from astropy.io import fits
 from astropy.wcs import WCS
 #from rand_bkg import bkg_boxes
 from astropy.convolution import Gaussian2DKernel
@@ -13,9 +12,10 @@ import os
 import glob
 from collections import OrderedDict
 from astropy.io import fits
+import odi_config as odi
 
 def get_sdss_coords_offline(img, ota, inst,output='test.sdss'):
-    hdulist = fits.open(img)
+    hdulist = odi.fits.open(img)
     hdu = hdulist[ota]
     
     if inst == 'podi':
