@@ -11,10 +11,11 @@ import pandas as pd
 import numpy as np
 import os
 import glob
-import odi_config as odi
+from collections import OrderedDict
+from astropy.io import fits
 
 def get_sdss_coords_offline(img, ota, inst,output='test.sdss'):
-    hdulist = odi.fits.open(img)
+    hdulist = fits.open(img)
     hdu = hdulist[ota]
     
     if inst == 'podi':
@@ -27,18 +28,44 @@ def get_sdss_coords_offline(img, ota, inst,output='test.sdss'):
     
     sdss_cat_img = hdulist['CAT.PHOTCALIB']
     sdss_cat_img_df = pd.DataFrame.from_dict(sdss_cat_img.data)
-    hdulist.close()
     
     ota = float(ota.strip('OTA.SCI'))
-    ota_matches_df = sdss_cat_img_df.iloc[np.where(sdss_cat_img_df['ODI_OTA'] == ota)]
+    try:
+        ota_matches_df = sdss_cat_img_df.iloc[np.where(sdss_cat_img_df['ODI_OTA'] == ota)]
+        needed_columns = ['SDSS_RA','SDSS_DEC','SDSS_MAG_U',
+                          'SDSS_ERR_U', u'SDSS_MAG_G', u'SDSS_ERR_G', u'SDSS_MAG_R',
+                          'SDSS_ERR_R', u'SDSS_MAG_I', u'SDSS_ERR_I', u'SDSS_MAG_Z',
+                          'SDSS_ERR_Z','ODI_OTA']
 
-    needed_columns = ['SDSS_RA','SDSS_DEC','SDSS_MAG_U',
-                      'SDSS_ERR_U', u'SDSS_MAG_G', u'SDSS_ERR_G', u'SDSS_MAG_R',
-                      'SDSS_ERR_R', u'SDSS_MAG_I', u'SDSS_ERR_I', u'SDSS_MAG_Z',
-                      'SDSS_ERR_Z','ODI_OTA']
+        output_df = ota_matches_df[needed_columns]
+        output_df.to_csv(output,index=False)
+    except KeyError:
+        oditable = hdulist['CAT.ODI'].data
+        oditalbe_df = pd.DataFrame.from_dict(oditable)
+        
+        ODI_RA = np.squeeze(np.array(oditalbe_df['RA']))
+        ODI_DEC = np.squeeze( np.array(oditalbe_df['DEC']))
+        ODI_OTA = np.squeeze( np.array(oditalbe_df['OTA']))
 
-    output_df = ota_matches_df[needed_columns]
-    output_df.to_csv(output,index=False)
+        junkdict = OrderedDict([('ODI_RA',ODI_RA),
+                                ('ODI_DEC',ODI_DEC),
+                                ('ODI_OTA',ODI_OTA.astype(float))])
+        junk_df = pd.DataFrame.from_dict(junkdict)
+
+        matched_df = pd.merge(sdss_cat_img_df,junk_df ,on = ['ODI_RA','ODI_DEC'],how='inner')
+
+        needed_columns = np.insert(sdss_cat_img_df.columns.values,0,'ODI_OTA')
+
+        full_df = matched_df[needed_columns]
+        print ota
+        ota_matches_df = full_df.iloc[np.where(full_df['ODI_OTA'] == ota)]
+        needed_columns = ['SDSS_RA','SDSS_DEC','SDSS_MAG_U',
+                          'SDSS_ERR_U', u'SDSS_MAG_G', u'SDSS_ERR_G', u'SDSS_MAG_R',
+                          'SDSS_ERR_R', u'SDSS_MAG_I', u'SDSS_ERR_I', u'SDSS_MAG_Z',
+                          'SDSS_ERR_Z','ODI_OTA']
+        output_df = full_df[needed_columns]
+        output_df.to_csv(output,index=False)
+    hdulist.close()   
     return xdim, ydim
 
 def get_2mass_coords_offline(img, ota, inst,output='test.mass'):
