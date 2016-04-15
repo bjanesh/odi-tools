@@ -22,7 +22,7 @@ def trim_img(img):
      
 
 def find_sources_full(img,fwhm,bg_std,threshold=4.0):
-    output = img[:-10]+'_sources.coo'
+    output = img[:-5]+'_sources.coo'
     if not os.path.isfile(output):
         print 'Locating sources on ',img
         print 'Will output to ',output
@@ -37,9 +37,9 @@ def find_sources_full(img,fwhm,bg_std,threshold=4.0):
         
 def phot_sources_full(img,fwhm,airmass,apfactor):
     iraf.ptools(_doprint=0)
-    coords = img[:-10]+'_sources.coo'
-    output = img[:-10]+'.phot.1'
-    phot_tbl = img[0:-10]+'.srcphot'
+    coords = img[:-5]+'_sources.coo'
+    output = img[:-5]+'.phot.1'
+    phot_tbl = img[:-5]+'.srcphot'
     if not os.path.isfile(phot_tbl) :
         print 'phot-ing ', img, ' from daofind'
         iraf.unlearn(iraf.apphot.phot,iraf.datapars,iraf.photpars,iraf.centerpars,iraf.fitskypars)
@@ -78,8 +78,8 @@ def phot_sources_full(img,fwhm,airmass,apfactor):
         os.rename(phot_tbl.replace('.srcphot','_clean.srcphot'),phot_tbl)
         
 def phot_sources_xy2sky(img,inst):
-    phot_tbl = img[0:-10]+'.srcphot'
-    outputradec = img[0:-10]+'.srcphotrd'
+    phot_tbl = img[0:-5]+'.srcphot'
+    outputradec = img[0:-5]+'.srcphotrd'
     hdulist= odi.fits.open(img)
     
     if inst == 'podi':
@@ -99,10 +99,10 @@ def phot_sources_xy2sky(img,inst):
     
 def match_phot_srcs(img1,img2):
 
-    img1_srcs =img1[0:-10]+'.srcphotrd'
-    img1_srsc_match = img1[:-10]+'.match.srscrd'
-    img2_srcs =img2[0:-10]+'.srcphotrd'
-    img2_srsc_match = img2[:-10]+'.match.srscrd'
+    img1_srcs =img1[:-5]+'.srcphotrd'
+    img1_srsc_match = img1[:-5]+'.match.srscrd'
+    img2_srcs =img2[:-5]+'.srcphotrd'
+    img2_srsc_match = img2[:-5]+'.match.srscrd'
     
     ra_1, dec_1,x_1,y_1,mag_1,merr_1,sky_1,serr_1,rapert_1 = np.loadtxt(img1_srcs,usecols=(0,1,2,3,4,5,6,7,8),unpack=True)
     ra_2, dec_2,x_2,y_2,mag_2,merr_2,sky_2,serr_2,rapert_2 = np.loadtxt(img2_srcs,usecols=(0,1,2,3,4,5,6,7,8),unpack=True)
@@ -112,7 +112,7 @@ def match_phot_srcs(img1,img2):
     
     img2_catalog = SkyCoord(ra = ra_2*u.degree, dec= dec_2*u.degree)
     
-    id_img1, id_img2, d2d, d3d = img2_catalog.search_around_sky(img1_catalog,0.00001*u.deg)
+    id_img1, id_img2, d2d, d3d = img2_catalog.search_around_sky(img1_catalog,0.00005*u.deg)
     
     print len(id_img1),len(id_img2),len(x_1),len(x_2)
     
@@ -138,9 +138,11 @@ def match_phot_srcs(img1,img2):
     
     with open(img1_srsc_match,'w+') as m1:
         with open(img2_srsc_match,'w+') as m2:
-            for i,s in enumerate(ra_1):
-                print >> m1,ra_1[i], dec_1[i],x_1[i],y_1[i],mag_1[i],merr_1[i],sky_1[i],serr_1[i],rapert_1[i]
-                print >> m2,ra_2[i], dec_2[i],x_2[i],y_2[i],mag_2[i],merr_2[i],sky_2[i],serr_2[i],rapert_2[i]
+            with open('calibration.dat','w+') as cal:
+                for i,s in enumerate(ra_1):
+                    print >> m1,ra_1[i], dec_1[i],x_1[i],y_1[i],mag_1[i],merr_1[i],sky_1[i],serr_1[i],rapert_1[i]
+                    print >> m2,ra_2[i], dec_2[i],x_2[i],y_2[i],mag_2[i],merr_2[i],sky_2[i],serr_2[i],rapert_2[i]
+                    print >> cal, i, x_1[i], y_1[i], rapert_1[i], mag_1[i], merr_1[i], x_2[i], y_2[i], rapert_2[i], mag_2[i], merr_2[i]
     m1.close()
     m2.close()
     junk = open('match.reg',"w")
@@ -148,4 +150,68 @@ def match_phot_srcs(img1,img2):
         print >> junk, x_2[i], y_2[i]
     junk.close()
     
+def calc_calibrated_mags(apcor_g, cal_A_g, apcor_r, cal_A_r):
+    from matplotlib import gridspec
+    kg = 0.200
+    kr = 0.12
+    ki = 0.058
+    rdnoise = 6.5
     
+    # get the photometric calibration coefficients from Steven's help file <--
+    # or from the image header/fits table/ whatever
+    photcalFile = open('m13-2_odi_help.txt')
+    photcal = photcalFile.read()
+    photcalLines = photcal.splitlines()
+    
+    mu_gr = float(photcalLines[28].split()[5])
+    zp_gr = float(photcalLines[30].split()[4])
+    eps_gr = float(photcalLines[34].split()[5])
+    zp_r = float(photcalLines[36].split()[4])
+    amg = float(photcalLines[25].split()[5])
+    amr = float(photcalLines[26].split()[5])
+    photcalFile.close()
+    
+    nid,gx,gy,g_i,g_ierr,rx,ry,r_i,r_ierr = np.loadtxt('calibration.dat',usecols=(0,1,2,4,5,6,7,9,10),unpack=True)
+    
+    g0 = g_i - (kg*amg) + apcor_g 
+    r0 = r_i - (kr*amr) + apcor_r
+    gmr = mu_gr*(g0-r0) + zp_gr
+    
+    r_mag = r0 + eps_gr*gmr + zp_r
+    g_mag = gmr + r_mag - cal_A_g 
+    r_mag = r_mag - cal_A_r
+    gmr = g_mag - r_mag
+    
+    print 'Median (g-r) :: g - r = {0:7.4f}'.format(np.median(gmr))
+    print 'Final number of phot-ed stars :: g = {0:5d} : r = {1:5d}'.format(len(g_mag),len(r_mag))
+    
+    g_mag_lims = [g_mag[i] for i in range(len(g_mag)) if (g_ierr[i] >= 0.2)]
+    r_mag_lims = [r_mag[i] for i in range(len(r_mag)) if (r_ierr[i] >= 0.2)]
+    with open('calibrated_mags.dat', 'w+') as f3:
+        for i in range(len(rx)) :
+            print >> f3, '{0:8.2f} {1:8.2f} {2:12.3f} {3:12.3f} {4:8.2f} {5:8.2f} {6:12.3f} {7:12.3f} {8:12.3f} '.format(gx[i],gy[i],g_mag[i],g_ierr[i],rx[i],ry[i],r_mag[i],r_ierr[i],gmr[i])
+        
+    plt.clf()
+    
+    fig = plt.figure(figsize=(10, 8)) 
+    fig.subplots_adjust(hspace=0)
+    gs = gridspec.GridSpec(1, 2, width_ratios=[3, 1]) 
+    ax0 = plt.subplot(gs[0])
+    
+    ax0.scatter(gmr, r_mag, s=2, color='black', marker='o', edgecolors='none')
+    ax0.set_ylabel('$r$')
+    ax0.set_xlabel('$(g-r)$')
+    ax0.set_ylim(24,10)
+    ax0.set_xlim(-1,2)
+    
+    ax1 = plt.subplot(gs[1])
+    
+    ax1.scatter(r_ierr, r_mag, s=2, color='black', marker='o', edgecolors='none')
+    # ax1.set_ylabel('$r$')
+    ax1.set_xlabel('inst $r$ err.')
+    ax1.set_ylim(24,10)
+    ax1.set_xlim(-0.002,0.05)
+    plt.setp(ax1.get_yticklabels(), visible=False)
+    
+    plt.tight_layout()
+    plt.savefig("m13-2_CMD.pdf")    

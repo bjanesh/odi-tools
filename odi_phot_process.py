@@ -94,16 +94,17 @@ odi.calibrate_match(g_img,r_img,median_fwhm,median_fwhmr,airmass_g,airmass_r)
 
 #Phot Steps g
 #Find all sources using daofind
-odi.find_sources_full(g_imgr,median_fwhm,median_bg_std,threshold=2.5)
+odi.find_sources_full(g_imgr,median_fwhm,median_bg_std,threshold=3.5)
 #Phot found sources
 odi.phot_sources_full(g_imgr,median_fwhm,airmass_g,4.5)
 #Convert xy positions of sources to Ra Dec
 odi.phot_sources_xy2sky(g_imgr,inst)
 
 #Phot Steps r
-odi.find_sources_full(r_imgr,median_fwhmr,median_bg_stdr,threshold=2.5)
+odi.find_sources_full(r_imgr,median_fwhmr,median_bg_stdr,threshold=3.5)
 odi.phot_sources_full(r_imgr,median_fwhmr,airmass_r,4.5)
 odi.phot_sources_xy2sky(r_imgr,inst)
 
 #Create a matched catalog of sources on the g and r frame
 odi.match_phot_srcs(g_imgr,r_imgr)
+odi.calc_calibrated_mags(0, 0, 0, 0)

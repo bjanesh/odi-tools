@@ -127,10 +127,13 @@ else:
                     pixcrd3 = odi.list_wcs_coords(img, ota, gaps, inst,output=img[:-5]+'.'+ota+'.radec.coo', gmaglim=23., stars_only=True, offline = True, source = source)
                     try:
                         odi.fix_wcs(img, ota, coords=img[:-5]+'.'+ota+'.radec.coo', iters=1)
+                    except IndexError:     
+                        print 'not enough stars to fix wcs, skipping for this ota:', img, ota
                     except:
                         print 'msccmatch failed, wait a second and try again'
                         time.sleep(1.0)
                         odi.fix_wcs(img, ota, coords=img[:-5]+'.'+ota+'.radec.coo', iters=1)
+                    
                     odi.reproject_ota(img, ota, rad, decd)
                 gaps = odi.get_gaps_rep(img, ota)
                 odi.refetch_sdss_coords(img, ota, gaps, inst,gmaglim=21.5,offline = True,source=source)
