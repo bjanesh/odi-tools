@@ -304,6 +304,7 @@ def apcor_sdss(img,fwhm):
     print flux_3fwhm_fluxcut
     star_flux = {}
     star_mag_diff = {}
+    star_mag_diff1x = {}
     star_mag = {}
     for i,line in enumerate(open(img[0:-5]+'.apcor',"r")):
         flux = [float(x) for x in line.split()[15:29]]
@@ -313,16 +314,22 @@ def apcor_sdss(img,fwhm):
             star_mag[i] = mag
     for key in star_mag:
         diffs = []
+        diffs1x = []
         for m in range(len(star_mag[key])-1):
             diffs.append(star_mag[key][m+1] - star_mag[key][m])
+            diffs1x.append(star_mag[key][m] - star_mag[key][0])
         star_mag_diff[key] = diffs
+        star_mag_diff1x[key] = diffs1x
     combine_mag_diffs = []
+    combine_mag_diffs1x = []
     for key in star_mag_diff:
         x = np.arange(1,6.5,0.5)
         y = star_mag_diff[key]
+        z = star_mag_diff1x[key]
         #plt.plot(x,y,'o')
         #plt.show()
         combine_mag_diffs.append(y)
+        combine_mag_diffs1x.append(z)
         #tck = interpolate.splrep(x, y, s=0)
         #xnew = np.arange(1,6,0.25)
         #ynew = interpolate.splev(xnew,tck,der=1)
@@ -334,9 +341,16 @@ def apcor_sdss(img,fwhm):
     combine_mag_diffs = np.reshape(combine_mag_diffs,(len(star_mag_diff.keys()),11))
     combine_mag_diffs_med = []
     combine_mag_diffs_std = []
+    combine_mag_diffs1x = np.reshape(combine_mag_diffs1x,(len(star_mag_diff1x.keys()),11))
+    combine_mag_diffs1x_mean = []
+    combine_mag_diffs1x_std = []
+    combine_mag_diffs1x_sem = []
     for j in range(len(x)):
         combine_mag_diffs_med.append(np.median(combine_mag_diffs[:,j]))
         combine_mag_diffs_std.append(np.std(combine_mag_diffs[:,j]))
+        combine_mag_diffs1x_mean.append(np.mean(combine_mag_diffs1x[:,j]))
+        combine_mag_diffs1x_std.append(np.std(combine_mag_diffs1x[:,j]))
+        combine_mag_diffs1x_sem.append(np.std(combine_mag_diffs1x[:,j])/np.sqrt(len(x)))
     
     tck = interpolate.splrep(x, combine_mag_diffs_med, s=0)
     xnew = np.arange(1,6.5,0.25)
@@ -357,6 +371,19 @@ def apcor_sdss(img,fwhm):
     plt.tight_layout()
     plt.show()
     
+    # print combine_mag_diffs1x_mean
+    # print combine_mag_diffs1x_std
+    # print combine_mag_diffs1x_sem
+    
+    apcor = combine_mag_diffs1x_mean[7]
+    apcor_std = combine_mag_diffs1x_std[7]
+    apcor_sem = combine_mag_diffs1x_sem[7]
+    
+    print 'aperture corr. = {0:6.3f}'.format(apcor)
+    print 'aperture corr. std = {0:6.3f}'.format(apcor_std)
+    print 'aperture corr. sem = {0:6.3f}'.format(apcor_sem)
+    
+    return apcor, apcor_std, apcor_sem
         
 def calibrate_match(img1, img2, fwhm1, fwhm2, airmass1, airmass2):
     """

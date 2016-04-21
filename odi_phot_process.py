@@ -63,9 +63,12 @@ r_img = r_imgr = objname+'_odi_r.fits'
 
 #Color eq steps
 #First find the sdss sources that are in each stacked image
-odi.full_sdssmatch(g_img,r_img,inst,gmaglim=19.0)
-odi.fix_wcs_full(g_img,coords=g_img[:-5]+'.wcs.coo')
-odi.fix_wcs_full(r_img,coords=r_img[:-5]+'.wcs.coo')
+if not os.path.isfile('full_wcs_fix.done'):
+    odi.full_sdssmatch(g_img,r_img,inst,gmaglim=19.0)
+    odi.fix_wcs_full(g_img,coords=g_img[:-5]+'.wcs.coo')
+    odi.fix_wcs_full(r_img,coords=r_img[:-5]+'.wcs.coo')
+    with open('full_wcs_fix.done','w+') as f:
+        print >> f, ''
 
 #Get source and background characteristics from 'derived_props.txt'
 median_fwhm,median_bg_mean,median_bg_median,median_bg_std = odi.read_proc('derived_props.txt','odi_g')
@@ -90,21 +93,22 @@ odi.sdss_phot_full(r_img,median_fwhmr,airmass_r)
 #taken odi_calibrate.
 odi.calibrate_match(g_img,r_img,median_fwhm,median_fwhmr,airmass_g,airmass_r)
 
-
+apcor_g, apcor_std_g, apcor_sem_g = odi.apcor_sdss(g_img, median_fwhm)
+apcor_r, apcor_std_r, apcor_sem_r = odi.apcor_sdss(r_img, median_fwhmr)
 
 #Phot Steps g
 #Find all sources using daofind
 odi.find_sources_full(g_imgr,median_fwhm,median_bg_std,threshold=3.5)
 #Phot found sources
-odi.phot_sources_full(g_imgr,median_fwhm,airmass_g,4.5)
+odi.phot_sources_full(g_imgr,median_fwhm,airmass_g,1.0)
 #Convert xy positions of sources to Ra Dec
 odi.phot_sources_xy2sky(g_imgr,inst)
 
 #Phot Steps r
 odi.find_sources_full(r_imgr,median_fwhmr,median_bg_stdr,threshold=3.5)
-odi.phot_sources_full(r_imgr,median_fwhmr,airmass_r,4.5)
+odi.phot_sources_full(r_imgr,median_fwhmr,airmass_r,1.0)
 odi.phot_sources_xy2sky(r_imgr,inst)
 
 #Create a matched catalog of sources on the g and r frame
 odi.match_phot_srcs(g_imgr,r_imgr)
-odi.calc_calibrated_mags(0, 0, 0, 0)
+odi.calc_calibrated_mags(apcor_g, 0, apcor_r, 0)
