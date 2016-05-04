@@ -156,9 +156,9 @@ def get_airmass(image_list):
     """
     airmasses = []
     for img in image_list:
-	hdulist = odi.fits.open(img)
-	airmasses.append(hdulist[0].header['airmass'])
-	hdulist.close()
+        hdulist = odi.fits.open(img)
+        airmasses.append(hdulist[0].header['airmass'])
+        hdulist.close()
     return np.median(airmasses)
 
 def calc_airmass():
@@ -234,6 +234,39 @@ def sdss_phot_full(img,fwhm,airmass):
                 outputfile_clean.write(line.replace('INDEF','999'))
         outputfile_clean.close()
         os.rename(phot_tbl.replace('.sdssphot','_clean.sdssphot'),phot_tbl)
+
+
+def getfwhm_full_sdss(img, radius=4.0, buff=7.0, width=5.0):
+    '''
+    Get a fwhm estimate for the image using the SDSS catalog stars and IRAF imexam (SLOW, but works)
+    Adapted from Kathy's getfwhm script (this implementation is simpler in practice)
+    '''
+    coords = img[:-5]+'.match.sdssxy'
+    outputfile = img[0:-5]+'.sdssmatch.fwhm.log'
+
+    iraf.tv.rimexam.setParam('radius',radius)
+    iraf.tv.rimexam.setParam('buffer',buff)
+    iraf.tv.rimexam.setParam('width',width)
+    iraf.tv.rimexam.setParam('rplot',20.)
+    iraf.tv.rimexam.setParam('center','yes')
+    iraf.tv.rimexam.setParam('fittype','gaussian')
+    iraf.tv.rimexam.setParam('iterati',1)
+
+    if not os.path.isfile(outputfile):
+        iraf.tv.imexamine(img, frame=10, logfile = outputfile, keeplog = 'yes', defkey = "a", nframes=0, imagecur = coords, wcs = "logical", use_display='no',  StdoutG='/dev/null',mode='h')
+    outputfile_clean = open(outputfile.replace('.log','_clean.log'),"w")
+    for line in open(outputfile,"r"):
+        if not 'INDEF' in line:
+            outputfile_clean.write(line)
+        if 'INDEF' in line:
+            outputfile_clean.write(line.replace('INDEF','999'))
+    outputfile_clean.close()
+    os.rename(outputfile.replace('.log','_clean.log'),outputfile)
+    peak,gfwhm = np.loadtxt(outputfile, usecols=(9,10), unpack=True)
+    
+    return peak,gfwhm
+
+
         
 def apcor_sdss(img,fwhm):
     """
@@ -245,8 +278,20 @@ def apcor_sdss(img,fwhm):
     iraf.ptools(_doprint=0)
     sdss_source_file = img[:-5]+'.match.sdssxy'
     
+    sdss_phot_file = img[0:-5]+'.sdssphot'
+    
+    sdss_MAG, sdss_MERR, sdss_SKY, sdss_SERR, sdss_RAPERT, sdss_XPOS, sdss_YPOS = np.loadtxt(img[0:-5]+'.sdssphot', 
+                                                                                             usecols=(1,2,3,4,5,6,7), 
+                                                                                             dtype=float, unpack=True)
+    
     x,y,ra,dec,g,g_err,r,r_err = np.loadtxt(sdss_source_file,usecols=(0,1,2,3,
                                                                       6,7,8,9),unpack=True)
+    peak,gfwhm = getfwhm_full_sdss(img)
+    
+    #plt.clf()
+    #plt.hist(peak[np.where(peak > 12000.0)])
+    #plt.show()
+    
     aps = []
     for i in np.arange(1,7.5,0.5):
         aps.append(fwhm*i)
@@ -300,16 +345,20 @@ def apcor_sdss(img,fwhm):
         outputfile_clean.close()
         os.rename(phot_tbl.replace('.apcor','_clean.apcor'),phot_tbl)
     flux_3fwhm = np.loadtxt(phot_tbl,usecols=(18,),unpack=True)
+
     flux_3fwhm_fluxcut = np.percentile(flux_3fwhm,90)
-    print flux_3fwhm_fluxcut
+    peak_top3per = np.percentile(peak[np.where(peak > 12000.0)],35.0)
+    peak_top1per = np.percentile(peak[np.where(peak > 12000.0)],55.0)
     star_flux = {}
     star_mag_diff = {}
     star_mag_diff1x = {}
     star_mag = {}
     for i,line in enumerate(open(img[0:-5]+'.apcor',"r")):
-        flux = [float(x) for x in line.split()[15:29]]
-        mag = [float(x) for x in line.split()[30:42]]
-        if (flux[4] >= flux_3fwhm_fluxcut) and (mag[4] != 999.0):
+        flux = [float(x) for x in line.split()[16:29]]
+        mag = [float(x) for x in line.split()[29:42]]
+        #if (flux[4] >= flux_3fwhm_fluxcut) and (mag[4] != 999.0):
+        if (peak[i] >= 30000.0 and peak[i] <= 40000.0 and gfwhm[i] < 900.0 
+            and np.max(mag) != 999.0 and g[i] <= 19.0 and sdss_MERR[i] <= 0.005):
             star_flux[i] = flux
             star_mag[i] = mag
     for key in star_mag:
@@ -323,7 +372,7 @@ def apcor_sdss(img,fwhm):
     combine_mag_diffs = []
     combine_mag_diffs1x = []
     for key in star_mag_diff:
-        x = np.arange(1,6.5,0.5)
+        x = np.arange(1,7.0,0.5)
         y = star_mag_diff[key]
         z = star_mag_diff1x[key]
         #plt.plot(x,y,'o')
@@ -338,22 +387,24 @@ def apcor_sdss(img,fwhm):
         #plt.plot(xnew,ynew,'-')
         #plt.axhline(y=0)
         #plt.show()
-    combine_mag_diffs = np.reshape(combine_mag_diffs,(len(star_mag_diff.keys()),11))
+    combine_mag_diffs = np.reshape(combine_mag_diffs,(len(star_mag_diff.keys()),len(x)))
     combine_mag_diffs_med = []
     combine_mag_diffs_std = []
-    combine_mag_diffs1x = np.reshape(combine_mag_diffs1x,(len(star_mag_diff1x.keys()),11))
+    combine_mag_diffs1x = np.reshape(combine_mag_diffs1x,(len(star_mag_diff1x.keys()),len(x)))
     combine_mag_diffs1x_mean = []
+    combine_mag_diffs1x_med = []
     combine_mag_diffs1x_std = []
     combine_mag_diffs1x_sem = []
     for j in range(len(x)):
         combine_mag_diffs_med.append(np.median(combine_mag_diffs[:,j]))
         combine_mag_diffs_std.append(np.std(combine_mag_diffs[:,j]))
         combine_mag_diffs1x_mean.append(np.mean(combine_mag_diffs1x[:,j]))
+        combine_mag_diffs1x_med.append(np.median(combine_mag_diffs1x[:,j]))
         combine_mag_diffs1x_std.append(np.std(combine_mag_diffs1x[:,j]))
-        combine_mag_diffs1x_sem.append(np.std(combine_mag_diffs1x[:,j])/np.sqrt(len(x)))
+        combine_mag_diffs1x_sem.append(np.std(combine_mag_diffs1x[:,j])/np.sqrt(len(combine_mag_diffs1x[:,j])))
     
     tck = interpolate.splrep(x, combine_mag_diffs_med, s=0)
-    xnew = np.arange(1,6.5,0.25)
+    xnew = np.arange(1,7.0,0.25)
     ynew = interpolate.splev(xnew,tck,der=0)
     ynew_der = interpolate.splev(xnew,tck,der=1)
     plt.figure(figsize=(14,7))
@@ -375,11 +426,22 @@ def apcor_sdss(img,fwhm):
     # print combine_mag_diffs1x_std
     # print combine_mag_diffs1x_sem
     
-    apcor = combine_mag_diffs1x_mean[7]
-    apcor_std = combine_mag_diffs1x_std[7]
-    apcor_sem = combine_mag_diffs1x_sem[7]
+    for i in range(len(x)):
+        plt.errorbar(x[i],combine_mag_diffs1x_mean[i],yerr=combine_mag_diffs1x_std[i],fmt='bo')
+    plt.ylim(-0.45,0.1)
+    plt.xlim(-0.1,7.5)
+    plt.xlabel('n fwhm')
+    plt.ylabel('ap correction')
+    plt.show()
+    
+    
+    apcor = combine_mag_diffs1x_mean[8]
+    apcor_std = combine_mag_diffs1x_std[8]
+    apcor_sem = combine_mag_diffs1x_sem[8]
+    apcor_med = combine_mag_diffs1x_med[8]
     
     print 'aperture corr. = {0:6.3f}'.format(apcor)
+    print 'aperture corr. med. = {0:6.3f}'.format(apcor_med)
     print 'aperture corr. std = {0:6.3f}'.format(apcor_std)
     print 'aperture corr. sem = {0:6.3f}'.format(apcor_sem)
     
