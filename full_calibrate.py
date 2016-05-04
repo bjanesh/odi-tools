@@ -435,10 +435,10 @@ def apcor_sdss(img,fwhm):
     plt.show()
     
     
-    apcor = combine_mag_diffs1x_mean[8]
-    apcor_std = combine_mag_diffs1x_std[8]
-    apcor_sem = combine_mag_diffs1x_sem[8]
-    apcor_med = combine_mag_diffs1x_med[8]
+    apcor = combine_mag_diffs1x_mean[7]
+    apcor_std = combine_mag_diffs1x_std[7]
+    apcor_sem = combine_mag_diffs1x_sem[7]
+    apcor_med = combine_mag_diffs1x_med[7]
     
     print 'aperture corr. = {0:6.3f}'.format(apcor)
     print 'aperture corr. med. = {0:6.3f}'.format(apcor_med)
