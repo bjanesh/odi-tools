@@ -16,49 +16,41 @@ import pandas as pd
 
 images_g = glob.glob('20*_odi_g*.fits')
 images_g.sort()
-#print images_g
 images_r = glob.glob('20*_odi_r*.fits')
 images_r.sort()
 filters = ['odi_g','odi_r']
 
 images = images_g+images_r
 
+# Get the airmass of reference image
+grefimg = odi.find_ref_image(images_g)
+ghduref = odi.fits.open(images_g[grefimg])
+airmass_g = ghduref[0].header['airmass']
+#airmass_g = 1.045
+#airmass_r = 1.161
+ghduref.close()
+
+rrefimg = odi.find_ref_image(images_r)
+rhduref = odi.fits.open(images_r[rrefimg])
+airmass_r = rhduref[0].header['airmass']
+rhduref.close()
+
 
 source = 'sdss'
 inst = odi.instrument(images[0])
-
-# <<<<<<< HEAD
 fitsref = odi.fits.open(images[0])
 hduref = fitsref[0]
 objname = hduref.header['object']
 fitsref.close()
-# filter_name = hduref.header['filter']
-# sky_med = hduref.header['skybg']
-# output = objname+'_'+filter_name+'.fits'
+#filter_name = hduref.header['filter']
+#sky_med = hduref.header['skybg']
+#output = objname+'_'+filter_name+'.fits'
 
 g_img = g_imgr = objname+'_odi_g.fits'
-# g_imgr = 'm13-12_odi_g.trim.fits'
-# odi.trim_img(g_img)
+print 'The g image is: ', g_img
+
 r_img = r_imgr = objname+'_odi_r.fits'
-# r_imgr = 'm13-12_odi_r.trim.fits'
-# odi.trim_img(r_img)
-# =======
-# 
-# 
-# # Name of final stacked g image
-# g_img = 'GCPair-F3_odi_g.fits'
-# # Name of the trimmed image
-# g_imgr = 'GCPair-F3_odi_g.trim.fits'
-# #Function to trim image
-# odi.trim_img(g_img)
-# 
-# # Name of final stacked g image
-# r_img = 'GCPair-F3_odi_r.fits'
-# # Name of the trimmed image
-# r_imgr = 'GCPair-F3_odi_r.trim.fits'
-# #Function to trim image
-# odi.trim_img(r_img)
-# >>>>>>> 8589278ac26e3b6557212c53ef349c0c48fea534
+print 'The r image is: ', r_img
 
 
 #Color eq steps
@@ -70,37 +62,39 @@ if not os.path.isfile('full_wcs_fix.done'):
     with open('full_wcs_fix.done','w+') as f:
         print >> f, ''
 
+odi.full_sdssmatch(g_img,r_img,inst,gmaglim=23.0)
 #Get source and background characteristics from 'derived_props.txt'
 median_fwhm,median_bg_mean,median_bg_median,median_bg_std = odi.read_proc('derived_props.txt','odi_g')
 
-#Median arimass of all dithers
-airmass_g = odi.get_airmass(images_g)
-#Phot sdss g sources on stacked image
-odi.sdss_phot_full(g_img,median_fwhm,airmass_g)
-# <<<<<<< HEAD
+# Measure gfwhm of sdss stars on combined image
+g_peaks,g_gfwhms = odi.getfwhm_full_sdss(g_img)
+median_fwhmg = np.median(g_gfwhms[np.where(g_gfwhms < 20.0)])
 
-# =======
-# #This has failed for me
-# odi.fix_wcs_full(g_img,coords='GCPair-F1_odi_g.wcs.coo')
-# >>>>>>> 8589278ac26e3b6557212c53ef349c0c48fea534
+#Phot sdss g sources on stacked image
+odi.sdss_phot_full(g_img,median_fwhmg,airmass_g)
+
 
 #Repeat same steps above, but for the r stacked image
 median_fwhmr,median_bg_meanr,median_bg_medianr,median_bg_stdr = odi.read_proc('derived_props.txt','odi_r')
-airmass_r = odi.get_airmass(images_r)
+
+# Measure gfwhm of sdss stars on combined image
+r_peaks,r_gfwhms = odi.getfwhm_full_sdss(r_img)
+median_fwhmr = np.median(r_gfwhms[np.where(r_gfwhms < 20.0)])
+
 odi.sdss_phot_full(r_img,median_fwhmr,airmass_r)
 
 #Solve the color equations using the pair of stacked images. This was just
 #taken odi_calibrate.
-odi.calibrate_match(g_img,r_img,median_fwhm,median_fwhmr,airmass_g,airmass_r)
+odi.calibrate_match(g_img,r_img,median_fwhmg,median_fwhmr,airmass_g,airmass_r)
 
-apcor_g, apcor_std_g, apcor_sem_g = odi.apcor_sdss(g_img, median_fwhm)
-apcor_r, apcor_std_r, apcor_sem_r = odi.apcor_sdss(r_img, median_fwhmr)
+apcor_g, apcor_std_g, apcor_sem_g = odi.apcor_sdss(g_img, median_fwhmg,inspect=True)
+apcor_r, apcor_std_r, apcor_sem_r = odi.apcor_sdss(r_img, median_fwhmr,inspect=True)
 
 #Phot Steps g
 #Find all sources using daofind
-odi.find_sources_full(g_imgr,median_fwhm,median_bg_std,threshold=3.5)
+odi.find_sources_full(g_imgr,median_fwhmg,median_bg_std,threshold=3.5)
 #Phot found sources
-odi.phot_sources_full(g_imgr,median_fwhm,airmass_g,1.0)
+odi.phot_sources_full(g_imgr,median_fwhmg,airmass_g,1.0)
 #Convert xy positions of sources to Ra Dec
 odi.phot_sources_xy2sky(g_imgr,inst)
 
@@ -112,3 +106,4 @@ odi.phot_sources_xy2sky(r_imgr,inst)
 #Create a matched catalog of sources on the g and r frame
 odi.match_phot_srcs(g_imgr,r_imgr)
 odi.calc_calibrated_mags(apcor_g, 0, apcor_r, 0)
+
