@@ -35,7 +35,7 @@ def full_sdssmatch(img1,img2,inst,gmaglim=19):
     
     img2_catalog = SkyCoord(ra = ras_2*u.degree, dec= decs_2*u.degree)
     
-    id_img1, id_img2, d2d, d3d = img2_catalog.search_around_sky(img1_catalog,0.00001*u.deg)
+    id_img1, id_img2, d2d, d3d = img2_catalog.search_around_sky(img1_catalog,0.0001*u.deg)
     
     x_1              = x_1[id_img1]              
     y_1              = y_1[id_img1]              
@@ -268,13 +268,16 @@ def getfwhm_full_sdss(img, radius=4.0, buff=7.0, width=5.0):
 
 
         
-def apcor_sdss(img,fwhm):
+def apcor_sdss(img,fwhm,inspect=False):
     """
     Use csv tables produced by full_sdssmatch
     """
     from pyraf import iraf
     import matplotlib.pyplot as plt
     from scipy import interpolate
+    from matplotlib.colors import LogNorm
+    from astropy.visualization import *
+    from astropy.visualization.mpl_normalize import ImageNormalize
     iraf.ptools(_doprint=0)
     sdss_source_file = img[:-5]+'.match.sdssxy'
     
@@ -305,6 +308,7 @@ def apcor_sdss(img,fwhm):
 
     hdulist = odi.fits.open(img)
     hdr1 = hdulist[0].header
+    data = hdulist[0].data
     filter = hdr1['filter']
     hdulist.close()
     
@@ -344,23 +348,43 @@ def apcor_sdss(img,fwhm):
                 outputfile_clean.write(line.replace('INDEF','999'))
         outputfile_clean.close()
         os.rename(phot_tbl.replace('.apcor','_clean.apcor'),phot_tbl)
-    flux_3fwhm = np.loadtxt(phot_tbl,usecols=(18,),unpack=True)
-
-    flux_3fwhm_fluxcut = np.percentile(flux_3fwhm,90)
-    peak_top3per = np.percentile(peak[np.where(peak > 12000.0)],35.0)
-    peak_top1per = np.percentile(peak[np.where(peak > 12000.0)],55.0)
+        
+    peak_top1per = 49000.0
     star_flux = {}
     star_mag_diff = {}
     star_mag_diff1x = {}
     star_mag = {}
+    star_positions = {}
     for i,line in enumerate(open(img[0:-5]+'.apcor',"r")):
         flux = [float(x) for x in line.split()[16:29]]
         mag = [float(x) for x in line.split()[29:42]]
-        #if (flux[4] >= flux_3fwhm_fluxcut) and (mag[4] != 999.0):
-        if (peak[i] >= 30000.0 and peak[i] <= 40000.0 and gfwhm[i] < 900.0 
-            and np.max(mag) != 999.0 and g[i] <= 19.0 and sdss_MERR[i] <= 0.005):
-            star_flux[i] = flux
-            star_mag[i] = mag
+        err = [float(x) for x in line.split()[42:55]]
+        position = [float(x) for x in line.split()[14:16]]
+        if (peak[i] >= 18000.0 and peak[i] <= 45000.0  and 
+            (np.abs(gfwhm[i] - np.median(gfwhm[np.where(gfwhm < 20.0)])) < np.std(gfwhm[np.where(gfwhm < 20.0)]))
+            and np.max(mag) != 999.0 and g[i] <= 17):
+            if inspect == True:
+                center = position
+                x1 = center[0]-75
+                x2 = center[0]+75
+                y1 = center[1]-75
+                y2 = center[1]+75
+                box = data[y1:y2,x1:x2]
+                plt.figure()
+                norm = ImageNormalize(stretch=LogStretch())
+                odi.plt.imshow(box,norm=norm)
+                max_count = np.max(box)
+                odi.plt.title('max counts ='+str(max_count))
+                plt.show()
+                star_check = raw_input('Use star for ap correction: (y/n) ')
+                if star_check == 'y':
+                    star_flux[i] = flux
+                    star_mag[i] = mag
+                    star_positions[i] = position
+            else:
+                star_positions[i] = position
+                star_flux[i] = flux
+                star_mag[i] = mag
     for key in star_mag:
         diffs = []
         diffs1x = []
@@ -396,12 +420,28 @@ def apcor_sdss(img,fwhm):
     combine_mag_diffs1x_std = []
     combine_mag_diffs1x_sem = []
     for j in range(len(x)):
+        if j !=0 :
+            star_test = combine_mag_diffs1x[:,j]
+            sig_test = np.std(combine_mag_diffs1x[:,j])
+            #print sig_test,len(star_test)
+            med_test = np.median(combine_mag_diffs1x[:,j])
+            keep = star_test[np.where( np.abs(star_test-med_test) < 0.010)]
+            #plt.hist(keep)
+            #plt.show()
+            combine_mag_diffs1x_mean.append(np.mean(keep))
+            combine_mag_diffs1x_med.append(np.median(keep))
+            combine_mag_diffs1x_std.append(np.std(keep))
+            combine_mag_diffs1x_sem.append(np.std(keep)/np.sqrt(len(keep)))
+            if j == 7:
+                print 'using ',len(keep), 'stars in ap correction'
+        else:
+            combine_mag_diffs1x_mean.append(np.mean(combine_mag_diffs1x[:,j]))
+            combine_mag_diffs1x_med.append(np.median(combine_mag_diffs1x[:,j]))
+            combine_mag_diffs1x_std.append(np.std(combine_mag_diffs1x[:,j]))
+            combine_mag_diffs1x_sem.append(np.std(combine_mag_diffs1x[:,j])/np.sqrt(len(combine_mag_diffs1x[:,j])))
+        
         combine_mag_diffs_med.append(np.median(combine_mag_diffs[:,j]))
         combine_mag_diffs_std.append(np.std(combine_mag_diffs[:,j]))
-        combine_mag_diffs1x_mean.append(np.mean(combine_mag_diffs1x[:,j]))
-        combine_mag_diffs1x_med.append(np.median(combine_mag_diffs1x[:,j]))
-        combine_mag_diffs1x_std.append(np.std(combine_mag_diffs1x[:,j]))
-        combine_mag_diffs1x_sem.append(np.std(combine_mag_diffs1x[:,j])/np.sqrt(len(combine_mag_diffs1x[:,j])))
     
     tck = interpolate.splrep(x, combine_mag_diffs_med, s=0)
     xnew = np.arange(1,7.0,0.25)
@@ -434,8 +474,7 @@ def apcor_sdss(img,fwhm):
     plt.ylabel('ap correction')
     plt.show()
     
-    
-    apcor = combine_mag_diffs1x_mean[7]
+    apcor = np.median(combine_mag_diffs1x_mean[5:10:1])
     apcor_std = combine_mag_diffs1x_std[7]
     apcor_sem = combine_mag_diffs1x_sem[7]
     apcor_med = combine_mag_diffs1x_med[7]
