@@ -12,16 +12,18 @@ import shutil
 import pandas as pd
 import time
 
-images_g = glob.glob('*_odi_g*.fits')
+images_g = glob.glob('*_KPNO_Ha_8nm*.fits')
 images_g.sort()
 #print images_g
 images_r = glob.glob('*_odi_r*.fits')
 images_r.sort()
 # images_i = glob.glob('*_odi_i*.fits')
 # images_i.sort()
-filters = ['odi_g','odi_r']#,'odi_i']
+filters = ['KPNO_Ha_8nm','odi_r']#,'odi_i']
+# filters = ['odi_r']
 
 images = images_g+images_r#+images_i
+# images = images_r
 
 rad, decd = odi.get_targ_ra_dec(images[0], 'OTA33.SCI')
 
@@ -82,18 +84,23 @@ if not os.path.isfile('derived_props.txt'):
                 try:
                     odi.fix_wcs(img, ota, coords=img[:-5]+'.'+ota+'.radec.coo', iters=3)
                 except:
-                    print 'msccmatch failed, wait a second and try again'
-                    time.sleep(1.0)
-                    odi.fix_wcs(img, ota, coords=img[:-5]+'.'+ota+'.radec.coo', iters=3)
+                    try:
+                        print 'msccmatch failed, wait a second and try again'
+                        time.sleep(1.0)
+                        odi.fix_wcs(img, ota, coords=img[:-5]+'.'+ota+'.radec.coo', iters=3)
+                    except:
+                        print 'there might be too few stars for msccmatch, just skip it.'
                 odi.reproject_ota(img, ota, rad, decd)
             gaps = odi.get_gaps_rep(img, ota)
             odi.refetch_sdss_coords(img, ota, gaps, inst,gmaglim=21.5,offline = True,source=source)
             #run an additional refetch to get the xy for 2mass so they can be used for scaling
             odi.repoxy_offline(img, ota, gaps, inst,gmaglim=21.5,source='twomass')
             fwhm = odi.getfwhm_ota(img, ota)
-            if source == 'sdss':
+            if 'KPNO_Ha_8nm' in filters:
+                zp_med, zp_std = 99.99,99.99
+            elif source == 'sdss':
                 zp_med, zp_std, phot_tbl = odi.zeropoint_ota(img, ota, fwhm)
-            if source == 'twomass':
+            elif source == 'twomass':
                 zp_med, zp_std = 99.99,99.99
             if not os.path.isfile(odi.bgsubpath+'bgsub_'+ota+'.'+str(img[16:])):
                 bg_mean, bg_median, bg_std = odi.bgsub_ota(img, ota, apply=True)

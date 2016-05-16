@@ -166,7 +166,8 @@ def instrument(img):
     print 'Setting instrument to: ', instrument_name 
 
     if instrument_name == '5odi':
-        odi.OTA_dictionary = odi.odi5_dictionary
+        odi.OTA_dictionary = odi.odi5narrow_dictionary
+        # odi.OTA_dictionary = odi.odi5_dictionary
     else :
         odi.OTA_dictionary = odi.podi_dictionary
         

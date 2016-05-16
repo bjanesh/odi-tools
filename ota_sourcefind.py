@@ -78,7 +78,7 @@ def source_xy(img,ota,gapmask,filter,inst):
         for i,c in enumerate(xcentroid):
             coords2 = [[xcentroid[i],ycentroid[i]]]
             pixcrd2 = coords2
-            if  100.0 <= pixcrd2[0][0] < xdim-100.0 and 100.0 <= pixcrd2[0][1] < ydim-100.0 and elongation[i] <=1.25:
+            if  100.0 <= pixcrd2[0][0] < xdim-100.0 and 100.0 <= pixcrd2[0][1] < ydim-100.0:# and elongation[i] <=1.75:
                 # make an image cutout of the gap mask
                 x, y = int(round(pixcrd2[0][0])), int(round(pixcrd2[0][1]))
                 cutout = gapmask[y-30:y+30,x-30:x+30]

@@ -61,6 +61,18 @@ odi5_dictionary = {
 	30:'OTA16.SCI'	
 }
 
+odi5narrow_dictionary = {
+    1 :'OTA33.SCI',
+    2 :'OTA34.SCI',
+    3 :'OTA43.SCI',
+    4 :'OTA44.SCI',
+    5 :'OTA32.SCI',
+    6 :'OTA23.SCI',
+    7 :'OTA24.SCI',
+    8 :'OTA42.SCI',
+    13:'OTA22.SCI',
+}
+
 bpmdirectory = 'bpmasks'
 if not os.path.exists(bpmdirectory):
     print 'Creating directory for bad pixel masks...'
