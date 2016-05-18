@@ -9,7 +9,7 @@ def get_sdss_coords(img, ota, inst,output='test.sdss'):
     formats = ['csv','xml','html']
 
     astro_url='http://skyserver.sdss3.org/public/en/tools/search/x_sql.aspx'
-    public_url='http://skyserver.sdss3.org/public/en/tools/search/x_sql.aspx'
+    public_url='http://skyserver.sdss.org/SkyserverWS/dr12/ImagingQuery/Cone?'
 
     default_url=public_url
     default_fmt='csv'
@@ -72,7 +72,7 @@ def get_sdss_coords(img, ota, inst,output='test.sdss'):
         sizeam = 1.414*(xam+yam)/4
         print sizeam
 
-        qry = "select O.ra, O.dec, O.psfMag_u, O.psfMagErr_u, O.psfMag_g, \nO.psfMagErr_g, O.psfMag_r, O.psfMagErr_r, O.psfMag_i, \nO.psfMagErr_i, O.psfMag_z, O.psfMagErr_z, O.probPSF \nfrom \ndbo.fGetNearbyObjEq("+repr(rac)+","+repr(decc)+","+repr(sizeam)+") \nas N inner join PhotoObjAll as O on O.objID = N.objID order by N.distance"
+        qry = "limit=5000&format=csv&imgparams=ra,dec,u,err_u,g,err_g,r,err_r,i,err_i,z,err_z,probPSF&specparams=none&ra="+repr(rac)+"&dec="+repr(decc)+"&radius="+repr(sizeam)+"&magType=psf"
 
         #print 'with query\n-->', qry
         print 'fetching SDSS sources around',rac,decc,'with radius',sizeam,'arcmin'
@@ -84,7 +84,7 @@ def get_sdss_coords(img, ota, inst,output='test.sdss'):
         ofp = open(output,'w+')
         if verbose:
             odi.write_header(ofp,'#',url,qry)
-        file_ = odi.query(qry,url,fmt)
+        file_ = odi.httpquery(qry,url,fmt)
         # Output line by line (in case it's big)
         line = file_.readline()
         if line.startswith("ERROR"): # SQL Statement Error -> stderr
@@ -118,7 +118,7 @@ def refetch_sdss_coords(img, ota, gapmask, inst,gmaglim=19.,offline = False,sour
     if offline == False:
         formats = ['csv','xml','html']
         astro_url='http://skyserver.sdss3.org/public/en/tools/search/x_sql.aspx'
-        public_url='http://skyserver.sdss3.org/public/en/tools/search/x_sql.aspx'
+        public_url='http://skyserver.sdss.org/SkyserverWS/dr12/ImagingQuery/Cone?'
         default_url=public_url
         default_fmt='csv'
         if not os.path.isfile(outcoords):
@@ -165,7 +165,7 @@ def refetch_sdss_coords(img, ota, gapmask, inst,gmaglim=19.,offline = False,sour
             sizeam = 1.414*(xam+yam)/4
             print sizeam
             
-            qry = "select O.ra, O.dec, O.psfMag_u, O.psfMagErr_u, O.psfMag_g, \nO.psfMagErr_g, O.psfMag_r, O.psfMagErr_r, O.psfMag_i, \nO.psfMagErr_i, O.psfMag_z, O.psfMagErr_z, O.probPSF \nfrom \ndbo.fGetNearbyObjEq("+repr(rac)+","+repr(decc)+","+repr(sizeam)+") \nas N inner join PhotoObjAll as O on O.objID = N.objID order by N.distance"
+            qry = "limit=5000&format=csv&imgparams=ra,dec,u,err_u,g,err_g,r,err_r,i,err_i,z,err_z,probPSF&specparams=none&ra="+repr(rac)+"&dec="+repr(decc)+"&radius="+repr(sizeam)+"&magType=psf"
             
             #print 'with query\n-->', qry
             print 'fetching SDSS sources around',rac,decc,'with radius',sizeam,'arcmin'
@@ -177,7 +177,7 @@ def refetch_sdss_coords(img, ota, gapmask, inst,gmaglim=19.,offline = False,sour
             ofp = open(outcoords,'w+')
             if verbose:
                 odi.write_header(ofp,'#',url,qry)
-            file_ = odi.query(qry,url,fmt)
+            file_ = odi.httpquery(qry,url,fmt)
             # Output line by line (in case it's big)
             line = file_.readline()
             if line.startswith("ERROR"): # SQL Statement Error -> stderr
@@ -298,7 +298,7 @@ def sdss_coords_full(img, inst,gmaglim=19.):
     formats = ['csv','xml','html']
 
     astro_url='http://skyserver.sdss3.org/public/en/tools/search/x_sql.aspx'
-    public_url='http://skyserver.sdss3.org/public/en/tools/search/x_sql.aspx'
+    public_url='http://skyserver.sdss.org/SkyserverWS/dr12/ImagingQuery/Cone?'
 
     default_url=public_url
     default_fmt='csv'
@@ -365,7 +365,7 @@ def sdss_coords_full(img, inst,gmaglim=19.):
       sizeam = 1.414*(xam+yam)/4
       print sizeam
 
-      qry = "select O.ra, O.dec, O.psfMag_u, O.psfMagErr_u, O.psfMag_g, \nO.psfMagErr_g, O.psfMag_r, O.psfMagErr_r, O.psfMag_i, \nO.psfMagErr_i, O.psfMag_z, O.psfMagErr_z, O.probPSF \nfrom \ndbo.fGetNearbyObjEq("+repr(rac)+","+repr(decc)+","+repr(sizeam)+") \nas N inner join PhotoObjAll as O on O.objID = N.objID order by N.distance"
+      qry = "limit=5000&format=csv&imgparams=ra,dec,u,err_u,g,err_g,r,err_r,i,err_i,z,err_z,probPSF&specparams=none&ra="+repr(rac)+"&dec="+repr(decc)+"&radius="+repr(sizeam)+"&magType=psf"
 
       #print 'with query\n-->', qry
       print 'fetching SDSS sources around',rac,decc,'with radius',sizeam,'arcmin'
@@ -377,7 +377,7 @@ def sdss_coords_full(img, inst,gmaglim=19.):
       ofp = open(outcoords,'w+')
       if verbose:
           odi.write_header(ofp,'#',url,qry)
-      file_ = odi.query(qry,url,fmt)
+      file_ = odi.httpquery(qry,url,fmt)
       # Output line by line (in case it's big)
       line = file_.readline()
       if line.startswith("ERROR"): # SQL Statement Error -> stderr

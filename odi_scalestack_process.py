@@ -29,44 +29,44 @@ source = 'sdss'
 inst = odi.instrument(images[0])
 
 # Scaling with all sources
-for img in images_g:
-    dither  = img.split('.')[1][0]+'_'
-    for key in tqdm(odi.OTA_dictionary):
-        ota = odi.OTA_dictionary[key]
-        if not os.path.isfile(odi.sourcepath+'source_'+ota+'.'+str(img[16:-5])+'.csv'):
-            odi.source_find(img,ota,inst)
-            gaps = odi.get_gaps_rep(img, ota)
-            odi.source_xy(img,ota,gaps,filters[0],inst)
-            fwhm = odi.getfwhm_source(img,ota)
-            print fwhm
-            odi.phot_sources(img, ota, fwhm)
-            odi.phot_combine(img, ota)
-    if not os.path.isfile(odi.sourcepath+dither+filters[0]+'.allsource'):
-        dither_total = odi.sourcepath+dither+filters[0]+'.allsource' 
-        cat_command = 'cat' + ' ' + 'sources/'+'*'+dither+'*_'+filters[0]+'*.totphot' + '>'+dither_total
-        os.system(cat_command)
-
-refimg_g = odi.find_ref_image(images_g)
-ref_img = images_g[refimg_g]
-
-scales_g = {}
-stds_g = {}
-n_g = {}
-for img in images_g:
-    scale,std,n = odi.source_scale(img,ref_img,filters[0])
-    scales_g[img] = scale
-    stds_g[img] = std
-    n_g[img] = n
-
-for img in images_g:
-    for key in odi.OTA_dictionary:
-        ota = odi.OTA_dictionary[key]
-        if not os.path.isfile(odi.scaledpath+'scaled_'+ota+'.'+str(img[16:])):
-            gaps = odi.get_gaps_rep(img, ota)
-            odi.scale_ota(img, ota, scales_g[img])
-            odi.force_update_bpm(img, ota)
-
-g_img = odi.stack_images(ref_img)
+# for img in images_g:
+#     dither  = img.split('.')[1][0]+'_'
+#     for key in tqdm(odi.OTA_dictionary):
+#         ota = odi.OTA_dictionary[key]
+#         if not os.path.isfile(odi.sourcepath+'source_'+ota+'.'+str(img[16:-5])+'.csv'):
+#             odi.source_find(img,ota,inst)
+#             gaps = odi.get_gaps_rep(img, ota)
+#             odi.source_xy(img,ota,gaps,filters[0],inst)
+#             fwhm = odi.getfwhm_source(img,ota)
+#             print fwhm
+#             odi.phot_sources(img, ota, fwhm)
+#             odi.phot_combine(img, ota)
+#     if not os.path.isfile(odi.sourcepath+dither+filters[0]+'.allsource'):
+#         dither_total = odi.sourcepath+dither+filters[0]+'.allsource' 
+#         cat_command = 'cat' + ' ' + 'sources/'+'*'+dither+'*_'+filters[0]+'*.totphot' + '>'+dither_total
+#         os.system(cat_command)
+# 
+# refimg_g = odi.find_ref_image(images_g)
+# ref_img = images_g[refimg_g]
+# 
+# scales_g = {}
+# stds_g = {}
+# n_g = {}
+# for img in images_g:
+#     scale,std,n = odi.source_scale(img,ref_img,filters[0])
+#     scales_g[img] = scale
+#     stds_g[img] = std
+#     n_g[img] = n
+# 
+# for img in images_g:
+#     for key in odi.OTA_dictionary:
+#         ota = odi.OTA_dictionary[key]
+#         if not os.path.isfile(odi.scaledpath+'scaled_'+ota+'.'+str(img[16:])):
+#             gaps = odi.get_gaps_rep(img, ota)
+#             odi.scale_ota(img, ota, scales_g[img])
+#             odi.force_update_bpm(img, ota)
+# 
+# g_img = odi.stack_images(ref_img)
 
 for img in images_r:
     dither  = img.split('.')[1][0]+'_'
