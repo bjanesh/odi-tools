@@ -34,7 +34,7 @@ def source_find(img,ota,inst):
             tpv = 'T'+pv
             hdu_ota.header.rename_keyword(pv, tpv, force=False)
     w = odi.WCS(hdu_ota.header)
-    w.wcs.ctype = ["RA---LINEAR", "DEC--LINEAR"]
+    w.wcs.ctype = ["RA---TAN", "DEC--TAN"]
     bg_mean,bg_median,bg_std = odi.mask_ota(img,ota,reproj=True)
     threshold = bg_median + (bg_std * 5.)
     print bg_mean,bg_median,bg_std
