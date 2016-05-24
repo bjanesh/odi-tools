@@ -28,7 +28,10 @@ def bkg_boxes(hdu,nboxes,length,sources):
   
   #generate the centers of 1000 random boxes.
   #np.random.seed(1234)
-  box_centers = np.random.random_integers(0,np.min([naxis1,naxis2]),size=(nboxes,2))
+  # box_centers = np.random.random_integers(0,np.min([naxis1,naxis2]),size=(nboxes,2))
+  
+  # use np.random.randint() instead due to deprecation error on wopr
+  box_centers = np.random.randint(0,np.min([naxis1,naxis2]),size=(nboxes,2))
   
   #divide length by 2
   side = float(length)/2.0
