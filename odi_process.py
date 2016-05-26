@@ -12,17 +12,17 @@ import shutil
 import pandas as pd
 import time
 
-images_g = glob.glob('*_KPNO_Ha_8nm*.fits')
+images_g = glob.glob('*_odi_g*.fits')
 images_g.sort()
 #print images_g
 images_r = glob.glob('*_odi_r*.fits')
 images_r.sort()
-# images_i = glob.glob('*_odi_i*.fits')
-# images_i.sort()
-filters = ['KPNO_Ha_8nm','odi_r']#,'odi_i']
+images_i = glob.glob('*_odi_i*.fits')
+images_i.sort()
+filters = ['odi_g','odi_r','odi_i']
 # filters = ['odi_r']
 
-images = images_g+images_r#+images_i
+images = images_g+images_r+images_i
 # images = images_r
 
 rad, decd = odi.get_targ_ra_dec(images[0], 'OTA33.SCI')

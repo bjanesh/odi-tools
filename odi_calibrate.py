@@ -98,6 +98,10 @@ def query(sql,url=default_url,fmt=default_fmt):
     params = urllib.urlencode({'cmd': fsql, 'format': fmt})
     return urllib.urlopen(url+'?%s' % params)    
 
+def httpquery(params, url=default_url, fmt=default_fmt):
+    import urllib
+    return urllib.urlopen(url+params) 
+
 def write_header(ofp,pre,url,qry):
     import  time
     ofp.write('%s SOURCE: %s\n' % (pre,url))

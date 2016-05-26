@@ -23,15 +23,20 @@ def bkg_boxes(hdu,nboxes,length,sources):
   
   
   #Get length of image in each axis
-  naxis1 = float(hdu.header['NAXIS1'])
-  naxis2 = float(hdu.header['NAXIS2'])
+  naxis1 = hdu.header['NAXIS1']
+  naxis2 = hdu.header['NAXIS2']
   
   #generate the centers of 1000 random boxes.
   #np.random.seed(1234)
-  box_centers = np.random.random_integers(0,np.min([naxis1,naxis2]),size=(nboxes,2))
+  # box_centers = np.random.random_integers(0,np.min([naxis1,naxis2]),size=(nboxes,2))
+  
+  # use np.random.randint() instead due to deprecation error on wopr
+  box_centers = np.random.randint(0,np.min([naxis1,naxis2]),size=(nboxes,2))
   
   #divide length by 2
-  side = float(length)/2.0
+  # side = float(length)/2.0
+  # another numpy error on wopr (can't convert to integer), so don't worry about integer arithmetic
+  side = length/2
   
   bg_stats = []
   centers = []

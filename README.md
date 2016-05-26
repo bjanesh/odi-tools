@@ -44,14 +44,14 @@ All you need to do to get started is download your QR-ed data from the ODI-PPA u
 6. You need to rename your files to match the appropriate dither pointing identification. for example, QR files are named by the pattern `OBSID_OBJECT_FILTER.JOBID.fits`. The final digit of the OBSID `e.g. 20151008T195949.1` needs to match the number sequence of the dithers 1-9. _Your data may not match this pattern_ due to restarted observations, multiple night observations, etc. Support will be added in the future for FITS header keywords providing this functionality without user interaction.
 7. Once your files are uncompressed and renamed, run `odi_process.py` in the folder with the images. This script will do the following (most of these steps are applied on an OTA by OTA basis, not the entire image at once):
   1. create catalogs of SDSS and 2MASS stars from the QuickReduce header tables. These will be used later for a bunch of things.
-  2. create lists of all science data
-  3. open each science image and create a mask of bad pixels _and a mask of all objects_ in the image, write the name of these masks to the header.
-  4. take the science images and the bad pixel/object masks and do a masked median combine to create a dark sky flat (one per filter).
-  5. illumination correction -- divide each science image by its filter's dark sky flat.
+  2. create lists of all object images
+  3. open each object image and create a mask of bad pixels _and a mask of all objects_ in the image, write the name of these masks to the header.
+  4. take the object images and the bad pixel/object masks and do a masked median combine to create a dark sky flat (one per filter).
+  5. illumination correction -- divide each object image by its filter's dark sky flat.
   6. use the SDSS coordinates from before to select bright stars and use them to correct the WCS in each image using `iraf.mscred.msccmatch` (this works poorly in crowded fields at the moment). Do three iterations of `fix_wcs`.
-  7. now that the WCS is good in each image, reproject each image to a common system, using the _target_ RA and Dec as the reference point. (using `iraf.mscred.mscimage`)
+  7. now that the WCS is good in each image, reproject each image of the object in all filters to a common system, using the _target_ RA and Dec as the reference point. (using `iraf.mscred.mscimage`)
   8. measure the mean stellar fwhm in each OTA using `iraf.imexam`
-  9. measure and subtract the median background in each image. Put down 100 random boxes around the image, find the *median* value and subtract. This takes advantage of the object masks created earlier.
+  9. measure and subtract the median background in each image. Put down 100 random boxes around the image, find the *median* value and subtract. This takes advantage of the object masks created earlier to know where objects are.
   10. write out all the measured properties into a table so we know what happened and can see if anything went wrong. 
 8. Run `odi_scalestack_process.py` in the top-level folder. This will determine scaling factors, scale the image, and stack them into single images per filter.
   1. find sources in the image using `daofind`

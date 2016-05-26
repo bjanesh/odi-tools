@@ -116,6 +116,14 @@ def deep_obj_mask(img, ota, apply=False):
     # plt.show()
     return mean, median, std
 
+def find_new_bg(refimg, filter):
+    img, ota, filt, fwhm, zp_med, zp_std, bg_mean, bg_med, bg_std = np.loadtxt('derived_props.txt', usecols=(0,1,2,3,4,5,6,7,8), dtype=str, unpack=True)
+    keep = np.where((img == refimg[16]) & (filt==filter))
+    
+    sky_med = np.median(bg_med[keep].astype(float))
+    print 'calculated sky median to re-add:', sky_med
+    return sky_med
+
 def stack_images(refimg):
     from astropy.io import fits
     from pyraf import iraf
@@ -124,7 +132,8 @@ def stack_images(refimg):
     hduref = fitsref[0]
     objname = hduref.header['object']
     filter_name = hduref.header['filter']
-    sky_med = hduref.header['skybg']
+    sky_med = odi.find_new_bg(refimg, filter_name)
+    # sky_med = hduref.header['skybg']
     output = objname+'_'+filter_name+'.fits'
     output_bpm = objname+'_'+filter_name+'_bpm.pl'
     iraf.unlearn(iraf.immatch.imcombine, iraf.imutil.imarith)
