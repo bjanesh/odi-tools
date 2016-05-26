@@ -21,8 +21,8 @@ def dark_sky_flat(filter):
         iraf.immatch.imcombine.setParam('masktype','goodvalue')
         iraf.immatch.imcombine.setParam('maskvalue',0)
         iraf.immatch.imcombine.setParam('scale','median')
-        iraf.immatch.imcombine.setParam('zero','none')
-        # iraf.immatch.imcombine.setParam('zero','median')
+        # iraf.immatch.imcombine.setParam('zero','none')
+        iraf.immatch.imcombine.setParam('zero','median')
         iraf.immatch.imcombine(logfile='', mode='h')
         if key == 1:
             data,header = odi.fits.getdata(odi.skyflatpath+med_out,header=True)
