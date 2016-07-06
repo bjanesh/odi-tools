@@ -1,0 +1,53 @@
+# odi-tools configuration file
+basic:
+  object: M53                           # the name of your object
+  filters: [odi_g, odi_r, odi_i]        # correct filter strings required
+  instrument: 5odi                      # podi | 5odi | mosaic; script will verify using image header info
+
+processing: # optional steps performed in odi_process.py
+  illumination_correction: yes          # if yes, set dark sky flat source below
+  dark_sky_flat_source: object          # object | master
+  wcs_correction: yes
+  reproject: yes
+  scale_images: yes
+  stack_images: yes
+
+# list the images you want to process
+# be sure to associate the filename with the correct dither pointing!
+# OBSID and image header are NOT always an accurate reflection of the absolute dither position
+# so you must use your notes / observing log to define them here
+# sections must be named according to the filter names
+
+odi_g:
+  1: 20130510T002928.1_m13-9_odi_g.5869.fits
+  2: 20130510T002928.2_m13-9_odi_g.5869.fits
+  3: 20130510T002928.3_m13-9_odi_g.5869.fits
+  4: 20130510T002928.4_m13-9_odi_g.5869.fits
+  5: 20130510T002928.5_m13-9_odi_g.5869.fits
+  6: 20130510T002928.6_m13-9_odi_g.5869.fits
+  7: 20130510T002928.7_m13-9_odi_g.5869.fits
+  8: 20130510T002928.8_m13-9_odi_g.5869.fits
+  9: 20130510T002928.9_m13-9_odi_g.5869.fits
+
+odi_r:
+  1: 20130510T002928.1_m13-9_odi_r.5869.fits
+  2: 20130510T002928.2_m13-9_odi_r.5869.fits
+  3: 20130510T002928.3_m13-9_odi_r.5869.fits
+  4: 20130510T002928.4_m13-9_odi_r.5869.fits
+  5: 20130510T002928.5_m13-9_odi_r.5869.fits
+  6: 20130510T002928.6_m13-9_odi_r.5869.fits
+  7: 20130510T002928.7_m13-9_odi_r.5869.fits
+  8: 20130510T002928.8_m13-9_odi_r.5869.fits
+  9: 20130510T002928.9_m13-9_odi_r.5869.fits
+
+odi_i:
+  1: 20130510T002928.1_m13-9_odi_i.5869.fits
+  2: 20130510T002928.2_m13-9_odi_i.5869.fits
+  3: 20130510T002928.3_m13-9_odi_i.5869.fits
+  4: 20130510T002928.4_m13-9_odi_i.5869.fits
+  5: 20130510T002928.5_m13-9_odi_i.5869.fits
+  6: 20130510T002928.6_m13-9_odi_i.5869.fits
+  7: 20130510T002928.7_m13-9_odi_i.5869.fits
+  8: 20130510T002928.8_m13-9_odi_i.5869.fits
+  9: 20130510T002928.9_m13-9_odi_i.5869.fits
+

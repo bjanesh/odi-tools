@@ -9,6 +9,22 @@ from astropy.coordinates import SkyCoord
 from astropy import units as u
 from collections import OrderedDict
 
+def tpv_remove(img):
+    """
+    Remove the PV keywords from the final stacked
+    image
+    """
+    if not os.path.isfile(img[:-5]+'-nopv.fits'):
+        print 'Removing PV keywords from: ',img
+        hdulist = odi.fits.open(img)
+        header = hdulist[0].header
+        pvlist = header['PV*']
+        for pv in pvlist:
+            header.remove(pv)
+        hdulist.writeto(img[:-5]+'-nopv.fits')
+
+    return img[:-5]+'-nopv.fits'
+
 def full_sdssmatch(img1,img2,inst,gmaglim=19):
     """
     Fetch sdss images in each final stacked image
@@ -21,37 +37,37 @@ def full_sdssmatch(img1,img2,inst,gmaglim=19):
     odi.sdss_coords_full(img2,inst,gmaglim=gmaglim)
     img2_sdss_cat = img2[:-5]+'.sdssxy'
     img2_match = img2[:-5]+'.match.sdssxy'
-    
+
     x_1, y_1, ras_1,decs_1,psfMag_u_1,psfMagErr_u_1,psfMag_g_1,psfMagErr_g_1,psfMag_r_1,psfMagErr_r_1,psfMag_i_1,psfMagErr_i_1,psfMag_z_1,psfMagErr_z_1 = np.loadtxt(img1_sdss_cat,
                                                                                                                                                                      usecols=(0,1,2,3,4,5,6,7,8,9,10,11,12,13),
                                                                                                                                                                      unpack=True)
-    
+
     x_2, y_2, ras_2,decs_2,psfMag_u_2,psfMagErr_u_2,psfMag_g_2,psfMagErr_g_2,psfMag_r_2,psfMagErr_r_2,psfMag_i_2,psfMagErr_i_2,psfMag_z_2,psfMagErr_z_2 = np.loadtxt(img2_sdss_cat,
                                                                                                                                                                      usecols=(0,1,2,3,4,5,6,7,8,9,10,11,12,13),
                                                                                                                                                                      unpack=True)
-    
+
 
     img1_catalog = SkyCoord(ra = ras_1*u.degree, dec= decs_1*u.degree)
-    
+
     img2_catalog = SkyCoord(ra = ras_2*u.degree, dec= decs_2*u.degree)
-    
-    id_img1, id_img2, d2d, d3d = img2_catalog.search_around_sky(img1_catalog,0.0001*u.deg)
-    
-    x_1              = x_1[id_img1]              
-    y_1              = y_1[id_img1]              
-    ras_1            = ras_1[id_img1]            
-    decs_1           = decs_1[id_img1]           
-    psfMag_u_1       = psfMag_u_1[id_img1]       
-    psfMagErr_u_1    = psfMagErr_u_1[id_img1]    
-    psfMag_g_1       = psfMag_g_1[id_img1]       
-    psfMagErr_g_1    = psfMagErr_g_1[id_img1]    
-    psfMag_r_1       = psfMag_r_1[id_img1]       
-    psfMagErr_r_1    = psfMagErr_r_1[id_img1]    
-    psfMag_i_1       = psfMag_i_1[id_img1]       
-    psfMagErr_i_1    = psfMagErr_i_1[id_img1]    
-    psfMag_z_1       = psfMag_z_1[id_img1]       
+
+    id_img1, id_img2, d2d, d3d = img2_catalog.search_around_sky(img1_catalog,0.000001*u.deg)
+
+    x_1              = x_1[id_img1]
+    y_1              = y_1[id_img1]
+    ras_1            = ras_1[id_img1]
+    decs_1           = decs_1[id_img1]
+    psfMag_u_1       = psfMag_u_1[id_img1]
+    psfMagErr_u_1    = psfMagErr_u_1[id_img1]
+    psfMag_g_1       = psfMag_g_1[id_img1]
+    psfMagErr_g_1    = psfMagErr_g_1[id_img1]
+    psfMag_r_1       = psfMag_r_1[id_img1]
+    psfMagErr_r_1    = psfMagErr_r_1[id_img1]
+    psfMag_i_1       = psfMag_i_1[id_img1]
+    psfMagErr_i_1    = psfMagErr_i_1[id_img1]
+    psfMag_z_1       = psfMag_z_1[id_img1]
     psfMagErr_z_1    = psfMagErr_z_1[id_img1]
-    
+
     img1_match_dict = OrderedDict([('x_1',x_1),('y_1',y_1),('ras_1',ras_1),
                                    ('decs_1',decs_1),('psfMag_u_1',psfMag_u_1),
                                    ('psfMagErr_u_1',psfMagErr_u_1),
@@ -63,22 +79,22 @@ def full_sdssmatch(img1,img2,inst,gmaglim=19):
     img1_match_df = pd.DataFrame.from_dict(img1_match_dict)
     img1_match_df.to_csv(img1_match,index=False,sep= ' ',header=False)
 
-    x_2              = x_2[id_img2]              
-    y_2              = y_2[id_img2]              
-    ras_2            = ras_2[id_img2]            
-    decs_2           = decs_2[id_img2]           
-    psfMag_u_2       = psfMag_u_2[id_img2]       
-    psfMagErr_u_2    = psfMagErr_u_2[id_img2]    
-    psfMag_g_2       = psfMag_g_2[id_img2]       
-    psfMagErr_g_2    = psfMagErr_g_2[id_img2]    
-    psfMag_r_2       = psfMag_r_2[id_img2]       
-    psfMagErr_r_2    = psfMagErr_r_2[id_img2]    
-    psfMag_i_2       = psfMag_i_2[id_img2]       
-    psfMagErr_i_2    = psfMagErr_i_2[id_img2]    
-    psfMag_z_2       = psfMag_z_2[id_img2]       
-    psfMagErr_z_2    = psfMagErr_z_2[id_img2] 
-    
-    
+    x_2              = x_2[id_img2]
+    y_2              = y_2[id_img2]
+    ras_2            = ras_2[id_img2]
+    decs_2           = decs_2[id_img2]
+    psfMag_u_2       = psfMag_u_2[id_img2]
+    psfMagErr_u_2    = psfMagErr_u_2[id_img2]
+    psfMag_g_2       = psfMag_g_2[id_img2]
+    psfMagErr_g_2    = psfMagErr_g_2[id_img2]
+    psfMag_r_2       = psfMag_r_2[id_img2]
+    psfMagErr_r_2    = psfMagErr_r_2[id_img2]
+    psfMag_i_2       = psfMag_i_2[id_img2]
+    psfMagErr_i_2    = psfMagErr_i_2[id_img2]
+    psfMag_z_2       = psfMag_z_2[id_img2]
+    psfMagErr_z_2    = psfMagErr_z_2[id_img2]
+
+
     img2_match_dict = OrderedDict([('x_2',x_2),('y_2',y_2),('ras_2',ras_2),
                                    ('decs_2',decs_2),('psfMag_u_2',psfMag_u_2),
                                    ('psfMagErr_u_2',psfMagErr_u_2),
@@ -86,10 +102,10 @@ def full_sdssmatch(img1,img2,inst,gmaglim=19):
                                    ('psfMag_r_2',psfMag_r_2),('psfMagErr_r_2',psfMagErr_r_2),
                                    ('psfMag_i_2',psfMag_i_2),('psfMagErr_i_2',psfMagErr_i_2),
                                    ('psfMag_z_2',psfMag_z_2),('psfMagErr_z_2',psfMagErr_z_2)])
-    
+
     img2_match_df = pd.DataFrame.from_dict(img2_match_dict)
     img2_match_df.to_csv(img2_match,index=False,sep= ' ',header=False)
-    
+
     return img1_match_df, img2_match_df
 
 def sdss_source_props_full(img):
@@ -99,12 +115,12 @@ def sdss_source_props_full(img):
     """
     hdulist = odi.fits.open(img)
     data = hdulist[0].data
-    
+
     sdss_source_file = img[:-5]+'.match.sdssxy'
-    
+
     x,y,ra,dec,g,g_err,r,r_err = np.loadtxt(sdss_source_file,usecols=(0,1,2,3,
                                                                       6,7,8,9),unpack=True)
-    
+
     box_centers = zip(y,x)
     box_centers = np.reshape(box_centers,(len(box_centers),2))
     source_dict = {}
@@ -113,7 +129,7 @@ def sdss_source_props_full(img):
         x2 = center[0]+50
         y1 = center[1]-50
         y2 = center[1]+50
-        
+
         #print x1,x2,y1,y2,center
         box = data[x1:x2,y1:y2]
         #odi.plt.imshow(box)
@@ -126,7 +142,7 @@ def sdss_source_props_full(img):
         if i == 0:
             source_tbl = odi.properties_table(source_props,columns=columns)
         else:
-            source_tbl.add_row((source_props[0].xcentroid,source_props[0].ycentroid, 
+            source_tbl.add_row((source_props[0].xcentroid,source_props[0].ycentroid,
                                 source_props[0].elongation,source_props[0].semimajor_axis_sigma,
                                 source_props[0].semiminor_axis_sigma))
     elong_med,elong_std = np.median(source_tbl['elongation']),np.std(source_tbl['elongation'])
@@ -140,12 +156,12 @@ def read_proc(file,filter):
     """
     filter_str = np.loadtxt(file,usecols=(2,),unpack=True,dtype=str)
     fwhm,bg_mean,bg_med,bg_std = np.loadtxt(file,usecols=(3,6,7,8),unpack=True)
-    
+
     median_fwhm = np.median(fwhm[np.where(filter_str == filter)])
     median_bg_mean = np.median(bg_mean[np.where(filter_str == filter)])
     median_bg_median = np.median(bg_med[np.where(filter_str == filter)])
     median_bg_std = np.median(bg_std[np.where(filter_str == filter)])
-    
+
     return median_fwhm,median_bg_mean,median_bg_median,median_bg_std
 
 def get_airmass(image_list):
@@ -185,7 +201,7 @@ def calc_airmass():
 	    print >> f1, True
     else:
 	print 'setairmass already done'
-    
+
 def sdss_phot_full(img,fwhm,airmass):
     """
     Run phot on the matches sdss stars
@@ -197,7 +213,7 @@ def sdss_phot_full(img,fwhm,airmass):
     hdr1 = hdulist[0].header
     filter = hdr1['filter']
     hdulist.close()
-    
+
     iraf.unlearn(iraf.phot,iraf.datapars,iraf.photpars,iraf.centerpars,iraf.fitskypars)
     iraf.apphot.phot.setParam('interactive',"no")
     iraf.apphot.phot.setParam('verify',"no")
@@ -214,7 +230,7 @@ def sdss_phot_full(img,fwhm,airmass):
     iraf.centerpars.setParam('maxshift',3.)
     iraf.fitskypars.setParam('salgorithm',"median")
     iraf.fitskypars.setParam('dannulus',10.)
-    
+
     if not os.path.isfile(img[0:-5]+'.sdssphot'): # only do this once
         print 'phot-ing the sdss sources in ', filter
         iraf.datapars.setParam('xairmass',float(airmass))
@@ -225,7 +241,7 @@ def sdss_phot_full(img,fwhm,airmass):
         phot_tbl = img[0:-5]+'.sdssphot'
         with open(phot_tbl,'w+') as txdump_out :
             iraf.ptools.txdump(textfiles=img[0:-5]+'.phot.1', fields="id,mag,merr,msky,stdev,rapert,xcen,ycen,ifilter,xairmass,image",expr='yes', headers='no', Stdout=txdump_out)
-    
+
         outputfile_clean = open(phot_tbl.replace('.sdssphot','_clean.sdssphot'),"w")
         for line in open(phot_tbl,"r"):
             if not 'INDEF' in line:
@@ -263,11 +279,11 @@ def getfwhm_full_sdss(img, radius=4.0, buff=7.0, width=5.0):
     outputfile_clean.close()
     os.rename(outputfile.replace('.log','_clean.log'),outputfile)
     peak,gfwhm = np.loadtxt(outputfile, usecols=(9,10), unpack=True)
-    
+
     return peak,gfwhm
 
 
-        
+
 def apcor_sdss(img,fwhm,inspect=False):
     """
     Use csv tables produced by full_sdssmatch
@@ -280,24 +296,31 @@ def apcor_sdss(img,fwhm,inspect=False):
     from astropy.visualization.mpl_normalize import ImageNormalize
     iraf.ptools(_doprint=0)
     sdss_source_file = img[:-5]+'.match.sdssxy'
-    
+
     sdss_phot_file = img[0:-5]+'.sdssphot'
-    
-    sdss_MAG, sdss_MERR, sdss_SKY, sdss_SERR, sdss_RAPERT, sdss_XPOS, sdss_YPOS = np.loadtxt(img[0:-5]+'.sdssphot', 
-                                                                                             usecols=(1,2,3,4,5,6,7), 
+
+    sdss_MAG, sdss_MERR, sdss_SKY, sdss_SERR, sdss_RAPERT, sdss_XPOS, sdss_YPOS = np.loadtxt(img[0:-5]+'.sdssphot',
+                                                                                             usecols=(1,2,3,4,5,6,7),
                                                                                              dtype=float, unpack=True)
-    
+
     x,y,ra,dec,g,g_err,r,r_err = np.loadtxt(sdss_source_file,usecols=(0,1,2,3,
                                                                       6,7,8,9),unpack=True)
     peak,gfwhm = getfwhm_full_sdss(img)
-    
+
+    #odi.plt.figure()
+    #odi.plt.hist(peak[np.where(g < 19)])
+    #odi.plt.figure()
+    #odi.plt.hist(gfwhm[np.where(g < 19)])
+    #odi.plt.show()
+
     #plt.clf()
     #plt.hist(peak[np.where(peak > 12000.0)])
     #plt.show()
-    
+
     aps = []
     for i in np.arange(1,7.5,0.5):
         aps.append(fwhm*i)
+    #aps = np.ones(13)*5.0
     aps_str = str('"'+repr(aps[0])+','+repr(aps[1])+','
                   +repr(aps[2])+','+repr(aps[3])+','
                   +repr(aps[4])+','+repr(aps[5])+','
@@ -311,7 +334,7 @@ def apcor_sdss(img,fwhm,inspect=False):
     data = hdulist[0].data
     filter = hdr1['filter']
     hdulist.close()
-    
+
     iraf.unlearn(iraf.phot,iraf.datapars,iraf.photpars,iraf.centerpars,iraf.fitskypars)
     iraf.apphot.phot.setParam('interactive',"no")
     iraf.apphot.phot.setParam('verify',"no")
@@ -329,13 +352,13 @@ def apcor_sdss(img,fwhm,inspect=False):
     iraf.centerpars.setParam('maxshift',3.)
     iraf.fitskypars.setParam('salgorithm',"median")
     iraf.fitskypars.setParam('dannulus',10.)
-    
+
     phot_tbl = img[0:-5]+'.apcor'
     if not os.path.isfile(phot_tbl):
         print 'running phot over', aps_str
         iraf.datapars.setParam('fwhmpsf',fwhm)
         iraf.photpars.setParam('apertures',aps_str)
-        iraf.fitskypars.setParam('annulus',6.5*fwhm)
+        iraf.fitskypars.setParam('annulus',6.*float(fwhm))
         iraf.apphot.phot(image=img, coords=sdss_source_file, output=img[0:-5]+'.apcor.1')
         with open(phot_tbl,'w+') as txdump_out :
             iraf.ptools.txdump(textfiles=img[0:-5]+'.apcor.1', fields="ID,RAPERT,XCEN,YCEN,FLUX,MAG,MERR", expr="yes", headers='no', Stdout=txdump_out)
@@ -348,7 +371,7 @@ def apcor_sdss(img,fwhm,inspect=False):
                 outputfile_clean.write(line.replace('INDEF','999'))
         outputfile_clean.close()
         os.rename(phot_tbl.replace('.apcor','_clean.apcor'),phot_tbl)
-        
+
     peak_top1per = 49000.0
     star_flux = {}
     star_mag_diff = {}
@@ -360,7 +383,8 @@ def apcor_sdss(img,fwhm,inspect=False):
         mag = [float(x) for x in line.split()[29:42]]
         err = [float(x) for x in line.split()[42:55]]
         position = [float(x) for x in line.split()[14:16]]
-        if (peak[i] >= 18000.0 and peak[i] <= 45000.0  and 
+        #print i,peak[i],gfwhm[i],g[i]
+        if (peak[i] >= np.percentile(peak,70) and peak[i] <= 55000.0  and
             (np.abs(gfwhm[i] - np.median(gfwhm[np.where(gfwhm < 20.0)])) < np.std(gfwhm[np.where(gfwhm < 20.0)]))
             and np.max(mag) != 999.0 and g[i] <= 17):
             if inspect == True:
@@ -391,6 +415,7 @@ def apcor_sdss(img,fwhm,inspect=False):
         for m in range(len(star_mag[key])-1):
             diffs.append(star_mag[key][m+1] - star_mag[key][m])
             diffs1x.append(star_mag[key][m] - star_mag[key][0])
+        #print star_mag[key][8],star_mag[key][0]
         star_mag_diff[key] = diffs
         star_mag_diff1x[key] = diffs1x
     combine_mag_diffs = []
@@ -425,24 +450,24 @@ def apcor_sdss(img,fwhm,inspect=False):
             sig_test = np.std(combine_mag_diffs1x[:,j])
             #print sig_test,len(star_test)
             med_test = np.median(combine_mag_diffs1x[:,j])
-            keep = star_test[np.where( np.abs(star_test-med_test) < 0.010)]
+            keep = star_test[np.where( np.abs(star_test-med_test) < 0.01)]
             #plt.hist(keep)
             #plt.show()
             combine_mag_diffs1x_mean.append(np.mean(keep))
             combine_mag_diffs1x_med.append(np.median(keep))
             combine_mag_diffs1x_std.append(np.std(keep))
             combine_mag_diffs1x_sem.append(np.std(keep)/np.sqrt(len(keep)))
-            if j == 7:
+            if j == 8:
                 print 'using ',len(keep), 'stars in ap correction'
         else:
             combine_mag_diffs1x_mean.append(np.mean(combine_mag_diffs1x[:,j]))
             combine_mag_diffs1x_med.append(np.median(combine_mag_diffs1x[:,j]))
             combine_mag_diffs1x_std.append(np.std(combine_mag_diffs1x[:,j]))
             combine_mag_diffs1x_sem.append(np.std(combine_mag_diffs1x[:,j])/np.sqrt(len(combine_mag_diffs1x[:,j])))
-        
+
         combine_mag_diffs_med.append(np.median(combine_mag_diffs[:,j]))
         combine_mag_diffs_std.append(np.std(combine_mag_diffs[:,j]))
-    
+
     tck = interpolate.splrep(x, combine_mag_diffs_med, s=0)
     xnew = np.arange(1,7.0,0.25)
     ynew = interpolate.splev(xnew,tck,der=0)
@@ -461,11 +486,11 @@ def apcor_sdss(img,fwhm,inspect=False):
     ax1.legend(loc=4)
     plt.tight_layout()
     plt.show()
-    
+
     # print combine_mag_diffs1x_mean
     # print combine_mag_diffs1x_std
     # print combine_mag_diffs1x_sem
-    
+
     for i in range(len(x)):
         plt.errorbar(x[i],combine_mag_diffs1x_mean[i],yerr=combine_mag_diffs1x_std[i],fmt='bo')
     plt.ylim(-0.45,0.1)
@@ -473,19 +498,20 @@ def apcor_sdss(img,fwhm,inspect=False):
     plt.xlabel('n fwhm')
     plt.ylabel('ap correction')
     plt.show()
-    
-    apcor = np.median(combine_mag_diffs1x_mean[5:10:1])
-    apcor_std = combine_mag_diffs1x_std[7]
-    apcor_sem = combine_mag_diffs1x_sem[7]
-    apcor_med = combine_mag_diffs1x_med[7]
-    
+
+    #apcor = np.median(combine_mag_diffs1x_mean[5:10:1])
+    apcor = combine_mag_diffs1x_mean[8]
+    apcor_std = combine_mag_diffs1x_std[8]
+    apcor_sem = combine_mag_diffs1x_sem[8]
+    apcor_med = combine_mag_diffs1x_med[8]
+
     print 'aperture corr. = {0:6.3f}'.format(apcor)
     print 'aperture corr. med. = {0:6.3f}'.format(apcor_med)
     print 'aperture corr. std = {0:6.3f}'.format(apcor_std)
     print 'aperture corr. sem = {0:6.3f}'.format(apcor_sem)
-    
+
     return apcor, apcor_std, apcor_sem
-        
+
 def calibrate_match(img1, img2, fwhm1, fwhm2, airmass1, airmass2):
     """
     Solve color equations
@@ -502,7 +528,7 @@ def calibrate_match(img1, img2, fwhm1, fwhm2, airmass1, airmass2):
         print "Try 'pip install astropy numpy scipy matplotlib pyraf' and try again"
 
     img_root = img1[:-7]
-    
+
     # values determined by ralf/daniel @ wiyn
     kg = 0.20
     kr = 0.12
@@ -528,7 +554,7 @@ def calibrate_match(img1, img2, fwhm1, fwhm2, airmass1, airmass2):
 
     gXAIRMASS = np.loadtxt(img1[0:-5]+'.sdssphot', usecols=(9,), dtype=str, unpack=True)
     iXAIRMASS = np.loadtxt(img2[0:-5]+'.sdssphot', usecols=(9,), dtype=str, unpack=True)
-    
+
     gFILTER = np.loadtxt(img1[0:-5]+'.sdssphot', usecols=(8,), dtype=str, unpack=True)
     iFILTER = np.loadtxt(img2[0:-5]+'.sdssphot', usecols=(8,), dtype=str, unpack=True)
 
@@ -554,10 +580,10 @@ def calibrate_match(img1, img2, fwhm1, fwhm2, airmass1, airmass2):
     x, y, ra, dec, u, ue, g, ge, r, re, i, ie, z, ze = np.loadtxt(img1[:-5]+'.match.sdssxy', usecols=(0,1,2,3,4,5,6,7,8,9,10,11,12,13), unpack=True)
 
     # pick out the ones that match the good phot stars
-    g, ge, r, re, i, ie = np.array(g[keep]), np.array(ge[keep]), np.array(r[keep]), np.array(re[keep]), np.array(i[keep]), np.array(ie[keep])
+    #g, ge, r, re, i, ie = np.array(g[keep]), np.array(ge[keep]), np.array(r[keep]), np.array(re[keep]), np.array(i[keep]), np.array(ie[keep])
 
     # and reduce the other vectors
-    gXPOS, gYPOS, gMAG, gMERR, gSKY, gSERR, iMAG, iMERR, iSKY, iSERR = np.array(gXPOS[keepg]), np.array(gYPOS[keepg]), np.array(gMAG[keepg]), np.array(gMERR[keepg]), np.array(gSKY[keepg]), np.array(gSERR[keepg]), np.array(iMAG[keepi]), np.array(iMERR[keepi]), np.array(iSKY[keepi]), np.array(iSERR[keepi])
+    #gXPOS, gYPOS, gMAG, gMERR, gSKY, gSERR, iMAG, iMERR, iSKY, iSERR = np.array(gXPOS[keepg]), np.array(gYPOS[keepg]), np.array(gMAG[keepg]), np.array(gMERR[keepg]), np.array(gSKY[keepg]), np.array(gSERR[keepg]), np.array(iMAG[keepi]), np.array(iMERR[keepi]), np.array(iSKY[keepi]), np.array(iSERR[keepi])
 
     # keep the airmasses and aperture radii as single values
     if gXAIRMASS[0] != 'INDEF':
@@ -577,7 +603,7 @@ def calibrate_match(img1, img2, fwhm1, fwhm2, airmass1, airmass2):
         gie = np.sqrt(ge**2 + ie**2)
     elif iFILTER[0].endswith('r'):
         print 'you gave me an r-band image, proceeding...'
-        i0 = iMAG - kr*iXAIRMASS    
+        i0 = iMAG - kr*iXAIRMASS
         filterName = 'r'
         # determine catalog color and error
         i = r
@@ -594,15 +620,16 @@ def calibrate_match(img1, img2, fwhm1, fwhm2, airmass1, airmass2):
     di = i - i0
     die = np.sqrt(ie**2 + iMERR**2)
 
-    podicut, sdsscut = 0.01, 0.03
+    podicut, sdsscut = 0.005, 0.025
     print np.median(gSERR), np.median(iSERR)
     # cuts for better fits go here
     errcut = [j for j in range(len(gMERR)) if (gMERR[j] < podicut and iMERR[j] < podicut and ge[j] < sdsscut and ie[j] < sdsscut and gSKY[j] > np.median(gSERR) and iSKY[j] > np.median(iSERR))]
+    print errcut
 
     with open('photcal_stars.pos','w+') as f1:
-        for i, xp in enumerate(gXPOS[errcut]):
-            print >> f1, xp, gYPOS[i]
-            
+        for s, xp in enumerate(errcut):
+            print >> f1, gXPOS[xp], gYPOS[xp]
+
     print len(gi0[errcut])
 
     # fit color term
@@ -628,7 +655,7 @@ def calibrate_match(img1, img2, fwhm1, fwhm2, airmass1, airmass2):
     p, pcov = np.polyfit(gi0_2, gi_2, 1, cov=True)
     perr = np.sqrt(np.diag(pcov))
     mu_gi, zp_gi, std_mu_gi, std_zp_gi = p[0], p[1], perr[0], perr[1]
-    
+
     # set up 95% confidence interval calculation
     conf = 0.95
     alpha=1.-conf	# significance
@@ -639,10 +666,10 @@ def calibrate_match(img1, img2, fwhm1, fwhm2, airmass1, airmass2):
     stdev = np.sqrt(mse)
     sxd=np.sum((gi0_2-gi0_2.mean())**2) # standard deviation of data
     sx=(x-gi0_2.mean())**2	# fit residuals
-    
+
     # Quantile of Student's t distribution for p=1-alpha/2
     q=stats.t.ppf(1.-alpha/2.,n-2)
-    
+
     # 95% Confidence band
     dy=q*np.sqrt(mse*(1./n + sx/sxd ))
     mu_ucb=mu_gi*x + zp_gi +dy	# Upper confidence band
@@ -681,7 +708,7 @@ def calibrate_match(img1, img2, fwhm1, fwhm2, airmass1, airmass2):
     eps_gi, zp_i, std_eps_gi, std_zp_i = p[0], p[1], perr[0], perr[1]
     print 'eps_g'+filterName+'     std_eps_g'+filterName+' zp_'+filterName+'        std_zp_'+filterName
     print '{0:10.7f} {1:10.7f} {2:10.7f} {3:10.7f}'.format(eps_gi, std_eps_gi, zp_i, std_zp_i)
-    
+
     #zp_check=[]
     #for i in [2,3,4]:
         #for j in [2,3,4]:
@@ -692,7 +719,7 @@ def calibrate_match(img1, img2, fwhm1, fwhm2, airmass1, airmass2):
                 #zp_check.append(0.0)
     #print np.std(np.array(zp_check))
     #print zp_check
-    
+
     # set up 95% confidence interval calculation
     conf = 0.95
     alpha=1.-conf	# significance
@@ -703,10 +730,10 @@ def calibrate_match(img1, img2, fwhm1, fwhm2, airmass1, airmass2):
     stdev = np.sqrt(mse)
     sxd=np.sum((gi_3-gi_3.mean())**2) # standard deviation of data
     sx=(x-gi_3.mean())**2	# fit residuals
-    
+
     # Quantile of Student's t distribution for p=1-alpha/2
     q=stats.t.ppf(1.-alpha/2.,n-2)
-    
+
     # 95% Confidence band
     dy=q*np.sqrt(mse*(1./n + sx/sxd ))
     eps_ucb=eps_gi*x + zp_i +dy	# Upper confidence band
@@ -746,7 +773,7 @@ def calibrate_match(img1, img2, fwhm1, fwhm2, airmass1, airmass2):
     plt.text(-0.9, zp_i-0.6, '$\mathrm{zp}_{'+filterName+'} = %.5f \pm %.5f$'%(zp_i,std_zp_i))
     plt.tight_layout()
     plt.savefig(img_root+'_photcal.pdf')
-    
+
     plt.clf()
     plt.scatter(gXPOS, gYPOS, c='red', edgecolor='none')
     plt.xlabel('X pixel')
@@ -754,15 +781,15 @@ def calibrate_match(img1, img2, fwhm1, fwhm2, airmass1, airmass2):
     plt.xlim(0,13500)
     plt.ylim(0,13500)
     plt.savefig(img_root+'_photmap.pdf')
-    
+
     # make a cmd of the ODI photometry of all the SDSS stars for reference
     g0 = gMAG - (kg*gXAIRMASS)
     i0 = iMAG - (ki*iXAIRMASS)
     gmi = mu_gi*(g0-i0) + zp_gi
-    
-    i_mag = i0 + eps_gi*gmi + zp_i #- cal_A_i 
+
+    i_mag = i0 + eps_gi*gmi + zp_i #- cal_A_i
     g_mag = gmi + i_mag
-    
+
     plt.clf()
     plt.scatter(gmi, i_mag, c='red', s=3, edgecolor='none')
     plt.xlabel('$g-r$')
@@ -770,6 +797,11 @@ def calibrate_match(img1, img2, fwhm1, fwhm2, airmass1, airmass2):
     plt.xlim(-1,2)
     plt.ylim(24,14)
     plt.savefig(img_root+'_photcmd.pdf')
+
+    sdss_cal_calibrated_mags = open(img1[:-5]+'.calibsdss',"w")
+    for m in range(len(g0)):
+        print >> sdss_cal_calibrated_mags,g_mag[m],i_mag[m],g_mag[m]-i_mag[m],ra[m],dec[m],gXPOS[m],gYPOS[m]
+    sdss_cal_calibrated_mags.close()
 
     # print out a steven style help file, no writing to headers YET
     with open(img_root+'_help.txt','w+') as f1:

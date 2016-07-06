@@ -269,11 +269,11 @@ def source_scale(img,ref,filter):
     magRef =  np.array(MAG_ref[keep[0]])
     raA, decA = ra_icrs_centroid_img[keep], dec_icrs_centroid_img[keep]
     raRef, decRef = ra_icrs_centroid_ref[keep], dec_icrs_centroid_ref[keep]
-    
+
     with open('scale_stars.pos','w+') as f:
         for i,m in enumerate(magA):
             print >> f, raA[i], decA[i], raRef[i], decRef[i], magA[i], magRef[i]
-
+            
     rat = np.power(10.0,-0.4*(magA-magRef))/1.0
 
     #print np.mean(rat),np.std(rat),len(rat)
