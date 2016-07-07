@@ -162,8 +162,8 @@ def phot_sources(img, ota, fwhm):
 
     iraf.datapars.setParam('airmass','airmass')
     iraf.datapars.setParam('fwhmpsf',fwhm)
-    iraf.photpars.setParam('apertures',3.*fwhm) # use a big aperture for this
-    iraf.fitskypars.setParam('annulus',4.*fwhm)
+    iraf.photpars.setParam('apertures',5.*fwhm) # use a big aperture for this
+    iraf.fitskypars.setParam('annulus',6.*fwhm)
 
     if not os.path.isfile(output):
         iraf.apphot.phot(image=image, coords=coords, output=output)
@@ -263,7 +263,7 @@ def source_scale(img,ref,filter):
 
     #keep = np.where((SKY_img>0.0) & (SKY_ref > 0.0) & (peak_img>200) & (peak_ref >200.0) & (45000.0>peak_img) & (45000.0>peak_ref) & (peak_img < 100) & (peak_ref < 100))
     keep = np.where((np.array(peak_img)>1000.0) & (np.array(peak_ref) >1000.0)&(np.array(peak_img)<45000.0) & (np.array(peak_ref) <45000.0)
-                    & (np.array(fwhm_img)<900.0) & (np.array(fwhm_ref) <900.0))
+                    & (np.array(fwhm_img)<900.0) & (np.array(fwhm_ref) <900.0) & (np.array(MAG_img)<900.0) & (np.array(MAG_ref) <900.0))
 
     magA =  np.array(MAG_img[keep[0]])
     magRef =  np.array(MAG_ref[keep[0]])
@@ -273,7 +273,7 @@ def source_scale(img,ref,filter):
     with open('scale_stars.pos','w+') as f:
         for i,m in enumerate(magA):
             print >> f, raA[i], decA[i], raRef[i], decRef[i], magA[i], magRef[i]
-            
+
     rat = np.power(10.0,-0.4*(magA-magRef))/1.0
 
     #print np.mean(rat),np.std(rat),len(rat)
