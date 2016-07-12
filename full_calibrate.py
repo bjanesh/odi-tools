@@ -593,6 +593,9 @@ def calibrate_match(img1, img2, fwhm1, fwhm2, airmass1, airmass2):
     # find the difference between instrumental i or r and catalog value & error
     di = i - i0
     die = np.sqrt(ie**2 + iMERR**2)
+    
+    dg = g - g0
+    dge = np.sqrt(ge**2 + gMERR**2)
 
     podicut, sdsscut = 0.01, 0.03
     print np.median(gSERR), np.median(iSERR)
@@ -607,169 +610,375 @@ def calibrate_match(img1, img2, fwhm1, fwhm2, airmass1, airmass2):
 
     # fit color term
     # linear lsq with numpy.polyfit
-    p, pcov = np.polyfit(gi0[errcut], gi[errcut], 1, cov=True)
-    perr = np.sqrt(np.diag(pcov))
-    mu_gi, zp_gi, std_mu_gi, std_zp_gi = p[0], p[1], perr[0], perr[1]
-
+    
+    # p, pcov = np.polyfit(gi0[errcut], gi[errcut], 1, cov=True)
+    # perr = np.sqrt(np.diag(pcov))
+    # mu_gi, zp_gi, std_mu_gi, std_zp_gi = p[0], p[1], perr[0], perr[1]
+    
     # print mu_gi, zp_gi, std_mu_gi, std_zp_gi
 
     # do a sigma clip based on the rms of the data from the first fit
-    xplt1 = gi0[errcut]
-    yplt1 = mu_gi*xplt1 + zp_gi
-
-    dy1 = yplt1 - gi[errcut]
-
-    # print std_zp_i
-    # this actually pulls out the clipped values
-    gi0_2 = np.array([col for j,col in enumerate(gi0[errcut]) if (abs(dy1[j]) < dy1.std())])
-    gi_2 = np.array([col for j,col in enumerate(gi[errcut]) if (abs(dy1[j]) < dy1.std())])
-
-    # linear lsq with numpy.polyfit
-    p, pcov = np.polyfit(gi0_2, gi_2, 1, cov=True)
-    perr = np.sqrt(np.diag(pcov))
-    mu_gi, zp_gi, std_mu_gi, std_zp_gi = p[0], p[1], perr[0], perr[1]
+    # xplt1 = gi0[errcut]
+    # yplt1 = mu_gi*xplt1 + zp_gi
+    # 
+    # dy1 = yplt1 - gi[errcut]
+    # 
+    # # print std_zp_i
+    # # this actually pulls out the clipped values
+    # gi0_2 = np.array([col for j,col in enumerate(gi0[errcut]) if (abs(dy1[j]) < dy1.std())])
+    # gi_2 = np.array([col for j,col in enumerate(gi[errcut]) if (abs(dy1[j]) < dy1.std())])
+    # 
+    # # linear lsq with numpy.polyfit
+    # p, pcov = np.polyfit(gi0_2, gi_2, 1, cov=True)
+    # perr = np.sqrt(np.diag(pcov))
+    # mu_gi, zp_gi, std_mu_gi, std_zp_gi = p[0], p[1], perr[0], perr[1]
+    # 
+    # # set up 95% confidence interval calculation
+    # conf = 0.95
+    # alpha=1.-conf	# significance
+    # n=gi0_2.size	# data sample size
+    # x = np.arange(-1.0,3.5,0.025)
+    # # Auxiliary definitions
+    # mse=1./(n-2.)* np.sum((gi_2-(mu_gi*gi0_2 + zp_gi))**2)	# Scatter of data about the model (mean square error)
+    # stdev = np.sqrt(mse)
+    # sxd=np.sum((gi0_2-gi0_2.mean())**2) # standard deviation of data
+    # sx=(x-gi0_2.mean())**2	# fit residuals
+    # 
+    # # Quantile of Student's t distribution for p=1-alpha/2
+    # q=stats.t.ppf(1.-alpha/2.,n-2)
+    # 
+    # # 95% Confidence band
+    # dy=q*np.sqrt(mse*(1./n + sx/sxd ))
+    # mu_ucb=mu_gi*x + zp_gi +dy	# Upper confidence band
+    # mu_lcb=mu_gi*x + zp_gi -dy	# Lower confidence band
+    # 
+    # 
+    # print '--------------------------------------------------------------------------'
+    # print 'Here are the fit values:'
+    # print 'mu_g'+filterName+'      std_mu_g'+filterName+'  zp_g'+filterName+'      std_zp_g'+filterName
+    # print '{0:10.7f} {1:10.7f} {2:10.7f} {3:10.7f}'.format(mu_gi, std_mu_gi, zp_gi, std_zp_gi)
     
+    p, pcov = np.polyfit(gi[errcut], dg[errcut], 1, cov=True)
+    perr = np.sqrt(np.diag(pcov))
+    eps_g, zp_g, std_eps_g, std_zp_g = p[0], p[1], perr[0], perr[1]
+
     # set up 95% confidence interval calculation
     conf = 0.95
     alpha=1.-conf	# significance
-    n=gi0_2.size	# data sample size
+    n=gi[errcut].size	# data sample size
     x = np.arange(-1.0,3.5,0.025)
     # Auxiliary definitions
-    mse=1./(n-2.)* np.sum((gi_2-(mu_gi*gi0_2 + zp_gi))**2)	# Scatter of data about the model (mean square error)
+    mse=1./(n-2.)* np.sum((dg[errcut]-(eps_g*gi[errcut] + zp_g))**2)	# Scatter of data about the model (mean square error)
     stdev = np.sqrt(mse)
-    sxd=np.sum((gi0_2-gi0_2.mean())**2) # standard deviation of data
-    sx=(x-gi0_2.mean())**2	# fit residuals
+    sxd=np.sum((gi-gi.mean())**2) # standard deviation of data
+    sx=(x-gi.mean())**2	# fit residuals
     
     # Quantile of Student's t distribution for p=1-alpha/2
     q=stats.t.ppf(1.-alpha/2.,n-2)
     
     # 95% Confidence band
     dy=q*np.sqrt(mse*(1./n + sx/sxd ))
-    mu_ucb=mu_gi*x + zp_gi +dy	# Upper confidence band
-    mu_lcb=mu_gi*x + zp_gi -dy	# Lower confidence band
-
-
+    epsg_ucb=eps_g*x + zp_g +dy	# Upper confidence band
+    epsg_lcb=eps_g*x + zp_g -dy	# Lower confidence band
+    
     print '--------------------------------------------------------------------------'
     print 'Here are the fit values:'
-    print 'mu_g'+filterName+'      std_mu_g'+filterName+'  zp_g'+filterName+'      std_zp_g'+filterName
-    print '{0:10.7f} {1:10.7f} {2:10.7f} {3:10.7f}'.format(mu_gi, std_mu_gi, zp_gi, std_zp_gi)
+    print 'eps_g'+'      std_eps_g'+'  zp_g'+'         std_zp_g'
+    print '{0:10.7f} {1:10.7f} {2:10.7f} {3:10.7f}'.format(eps_g, std_eps_g, zp_g, std_zp_g)
+    star_zp_g = g - g0 - eps_g*gi
+    print 'std. dev. in ZP per star (not fit): {0:10.7f}'.format(np.std(star_zp_g[errcut]))
 
+    # # fit zero point
+    # # linear lsq with numpy.polyfit
+    # p, pcov = np.polyfit(gi[errcut], di[errcut], 1, cov=True)
+    # perr = np.sqrt(np.diag(pcov))
+    # eps_gi, zp_i, std_eps_gi, std_zp_i = p[0], p[1], perr[0], perr[1]
+    # 
+    # # print eps_gi, zp_i, std_eps_gi, std_zp_i
+    # 
+    # # do a sigma clip based on the rms of the data from the first fit
+    # xplt2 = gi[errcut]
+    # yplt2 = eps_gi*xplt2 + zp_i
+    # 
+    # dy2 = yplt2 - di[errcut]
+    # 
+    # # print std_zp_i
+    # # this actually pulls out the clipped values
+    # gi_3 = np.array([col for j,col in enumerate(gi[errcut]) if (abs(dy2[j]) < dy2.std())])
+    # di_3 = np.array([col for j,col in enumerate(di[errcut]) if (abs(dy2[j]) < dy2.std())])
+    # gX_3 = np.array([col for j,col in enumerate(gXPOS[errcut]) if (abs(dy2[j]) < dy2.std())])
+    # gY_3 = np.array([col for j,col in enumerate(gYPOS[errcut]) if (abs(dy2[j]) < dy2.std())])
+    # 
+    # # linear lsq with numpy.polyfit
+    # p, pcov = np.polyfit(gi_3, di_3, 1, cov=True)
+    # perr = np.sqrt(np.diag(pcov))
+    # eps_gi, zp_i, std_eps_gi, std_zp_i = p[0], p[1], perr[0], perr[1]
+    # print 'eps_g'+filterName+'     std_eps_g'+filterName+' zp_'+filterName+'        std_zp_'+filterName
+    # print '{0:10.7f} {1:10.7f} {2:10.7f} {3:10.7f}'.format(eps_gi, std_eps_gi, zp_i, std_zp_i)
+    # 
+    # #zp_check=[]
+    # #for i in [2,3,4]:
+    #     #for j in [2,3,4]:
+    #         #try:
+    #             #zp_chk = ota_zp(gX_3, gY_3, gi_3, di_3, i, j)
+    #             #zp_check.append(zp_chk)
+    #         #except:
+    #             #zp_check.append(0.0)
+    # #print np.std(np.array(zp_check))
+    # #print zp_check
+    # 
+    # # set up 95% confidence interval calculation
+    # conf = 0.95
+    # alpha=1.-conf	# significance
+    # n=gi_3.size	# data sample size
+    # x = np.arange(-1.0,3.5,0.025)
+    # # Auxiliary definitions
+    # mse=1./(n-2.)* np.sum((di_3-(eps_gi*gi_3 + zp_i))**2)	# Scatter of data about the model (mean square error)
+    # stdev = np.sqrt(mse)
+    # sxd=np.sum((gi_3-gi_3.mean())**2) # standard deviation of data
+    # sx=(x-gi_3.mean())**2	# fit residuals
+    # 
+    # # Quantile of Student's t distribution for p=1-alpha/2
+    # q=stats.t.ppf(1.-alpha/2.,n-2)
+    # 
+    # # 95% Confidence band
+    # dy=q*np.sqrt(mse*(1./n + sx/sxd ))
+    # eps_ucb=eps_gi*x + zp_i +dy	# Upper confidence band
+    # eps_lcb=eps_gi*x + zp_i -dy	# Lower confidence band
+    # 
+    # # make a diagnostic plot
+    # xplt = np.arange(-2,6,0.1)
+    # yplt = mu_gi*xplt + zp_gi
+    
     # fit zero point
     # linear lsq with numpy.polyfit
     p, pcov = np.polyfit(gi[errcut], di[errcut], 1, cov=True)
     perr = np.sqrt(np.diag(pcov))
-    eps_gi, zp_i, std_eps_gi, std_zp_i = p[0], p[1], perr[0], perr[1]
-
-    # print eps_gi, zp_i, std_eps_gi, std_zp_i
-
-    # do a sigma clip based on the rms of the data from the first fit
-    xplt2 = gi[errcut]
-    yplt2 = eps_gi*xplt2 + zp_i
-
-    dy2 = yplt2 - di[errcut]
-
-    # print std_zp_i
-    # this actually pulls out the clipped values
-    gi_3 = np.array([col for j,col in enumerate(gi[errcut]) if (abs(dy2[j]) < dy2.std())])
-    di_3 = np.array([col for j,col in enumerate(di[errcut]) if (abs(dy2[j]) < dy2.std())])
-    gX_3 = np.array([col for j,col in enumerate(gXPOS[errcut]) if (abs(dy2[j]) < dy2.std())])
-    gY_3 = np.array([col for j,col in enumerate(gYPOS[errcut]) if (abs(dy2[j]) < dy2.std())])
-
-    # linear lsq with numpy.polyfit
-    p, pcov = np.polyfit(gi_3, di_3, 1, cov=True)
-    perr = np.sqrt(np.diag(pcov))
-    eps_gi, zp_i, std_eps_gi, std_zp_i = p[0], p[1], perr[0], perr[1]
-    print 'eps_g'+filterName+'     std_eps_g'+filterName+' zp_'+filterName+'        std_zp_'+filterName
-    print '{0:10.7f} {1:10.7f} {2:10.7f} {3:10.7f}'.format(eps_gi, std_eps_gi, zp_i, std_zp_i)
-    
-    #zp_check=[]
-    #for i in [2,3,4]:
-        #for j in [2,3,4]:
-            #try:
-                #zp_chk = ota_zp(gX_3, gY_3, gi_3, di_3, i, j)
-                #zp_check.append(zp_chk)
-            #except:
-                #zp_check.append(0.0)
-    #print np.std(np.array(zp_check))
-    #print zp_check
-    
+    eps_i, zp_i, std_eps_i, std_zp_i = p[0], p[1], perr[0], perr[1]
+        
     # set up 95% confidence interval calculation
     conf = 0.95
     alpha=1.-conf	# significance
-    n=gi_3.size	# data sample size
+    n=gi[errcut].size	# data sample size
     x = np.arange(-1.0,3.5,0.025)
     # Auxiliary definitions
-    mse=1./(n-2.)* np.sum((di_3-(eps_gi*gi_3 + zp_i))**2)	# Scatter of data about the model (mean square error)
+    mse=1./(n-2.)* np.sum((di[errcut]-(eps_i*gi[errcut] + zp_i))**2)	# Scatter of data about the model (mean square error)
     stdev = np.sqrt(mse)
-    sxd=np.sum((gi_3-gi_3.mean())**2) # standard deviation of data
-    sx=(x-gi_3.mean())**2	# fit residuals
+    sxd=np.sum((gi-gi.mean())**2) # standard deviation of data
+    sx=(x-gi.mean())**2	# fit residuals
     
     # Quantile of Student's t distribution for p=1-alpha/2
     q=stats.t.ppf(1.-alpha/2.,n-2)
     
     # 95% Confidence band
     dy=q*np.sqrt(mse*(1./n + sx/sxd ))
-    eps_ucb=eps_gi*x + zp_i +dy	# Upper confidence band
-    eps_lcb=eps_gi*x + zp_i -dy	# Lower confidence band
-
-    # make a diagnostic plot
-    xplt = np.arange(-2,6,0.1)
-    yplt = mu_gi*xplt + zp_gi
-
+    epsi_ucb=eps_i*x + zp_i +dy	# Upper confidence band
+    epsi_lcb=eps_i*x + zp_i -dy	# Lower confidence band
+    
+    print 'eps_'+filterName+'      std_eps_'+filterName+'   zp_'+filterName+'        std_zp_'+filterName
+    print '{0:10.7f} {1:10.7f} {2:10.7f} {3:10.7f}'.format(eps_i, std_eps_i, zp_i, std_zp_i)
+    star_zp_i = i - i0 - eps_i*gi
+    print 'std. dev. in ZP per star (not fit): {0:10.7f}'.format(np.std(star_zp_i[errcut]))
+    
+    plt.figure(1)
     plt.subplot(211)
-    plt.scatter(gi0[errcut], gi[errcut], facecolor='red', edgecolor='none', s=3)
-    plt.scatter(gi0_2, gi_2, facecolor='black', edgecolor='none', s=3)
-    plt.plot(xplt, yplt, 'r-', lw=1, alpha=1, label='fit')
-    # put 2xRMS on the plot
-    plt.fill_between(x, mu_ucb, mu_lcb, facecolor='blue', edgecolor='none', alpha=0.2, label='2x RMS sigma clipping region')
+    xplt = np.arange(-2,6,0.1)
+    yplt = eps_g*xplt + zp_g
+    # plt.plot([-2,-2],[0,0], 'k--')
+    plt.scatter(gi[errcut], dg[errcut], facecolor='black', edgecolor='none', s=3)
+    # plt.scatter(gi_3, di_3, facecolor='black', edgecolor='none', s=3)
+    # plt.plot(xplt, yplt, 'r-', lw=1, alpha=1, label='fit')
+    plt.fill_between(x, epsg_ucb, epsg_lcb, facecolor='red', edgecolor='none', alpha=0.9)
     plt.xlim(-1,3.5)
-    plt.xlabel('$g_0 - '+filterName+'_0$ (ODI)')
-    plt.ylim(-1,3.5)
-    plt.ylabel('$g - '+filterName+'$ (SDSS)')
-    plt.text(-0.9, 3.0, '$\mu_{g'+filterName+'} = %.7f \pm %.7f$'%(mu_gi,std_mu_gi))
-    plt.text(-0.9, 2.5, '$\mathrm{zp}_{g'+filterName+'} = %.7f \pm %.7f$'%(zp_gi,std_zp_gi))
+    plt.ylim(zp_g+1.0,zp_g-1.0)
+    plt.xlabel('$g - '+filterName+'$ (SDSS)')
+    plt.ylabel('$g - g_0$ (SDSS - ODI)')
+    plt.text(-0.9, zp_g-0.8, '$\epsilon_{g} = %.4f \pm %.4f$'%(eps_g,std_eps_g))
+    plt.text(-0.9, zp_g-0.6, '$\mathrm{zp}_{g} = %.4f \pm %.4f$'%(zp_g,std_zp_g))
     # plt.legend(loc=3)
-
+    
     plt.subplot(212)
     xplt = np.arange(-2,6,0.1)
-    yplt = eps_gi*xplt + zp_i
+    yplt = eps_i*xplt + zp_i
     # plt.plot([-2,-2],[0,0], 'k--')
-    plt.scatter(gi[errcut], di[errcut], facecolor='red', edgecolor='none', s=3)
-    plt.scatter(gi_3, di_3, facecolor='black', edgecolor='none', s=3)
-    plt.plot(xplt, yplt, 'r-', lw=1, alpha=1, label='fit')
-    plt.fill_between(x, eps_ucb, eps_lcb, facecolor='blue', edgecolor='none', alpha=0.2, label='2x RMS sigma clipping region')
+    plt.scatter(gi[errcut], di[errcut], facecolor='black', edgecolor='none', s=3)
+    # plt.scatter(gi_3, di_3, facecolor='black', edgecolor='none', s=3)
+    # plt.plot(xplt, yplt, 'r-', lw=1, alpha=1, label='fit')
+    plt.fill_between(x, epsi_ucb, epsi_lcb, facecolor='red', edgecolor='none', alpha=0.9)
     plt.xlim(-1,3.5)
     plt.ylim(zp_i+1.0,zp_i-1.0)
     plt.xlabel('$g - '+filterName+'$ (SDSS)')
     plt.ylabel('$'+filterName+' - '+filterName+'_0$ (SDSS - ODI)')
-    plt.text(-0.9, zp_i-0.8, '$\epsilon_{g'+filterName+'} = %.5f \pm %.5f$'%(eps_gi,std_eps_gi))
-    plt.text(-0.9, zp_i-0.6, '$\mathrm{zp}_{'+filterName+'} = %.5f \pm %.5f$'%(zp_i,std_zp_i))
+    plt.text(-0.9, zp_i-0.8, '$\epsilon_{'+filterName+'} = %.4f \pm %.4f$'%(eps_i,std_eps_i))
+    plt.text(-0.9, zp_i-0.6, '$\mathrm{zp}_{'+filterName+'} = %.4f \pm %.4f$'%(zp_i,std_zp_i))
     plt.tight_layout()
-    plt.savefig(img_root+'_photcal.pdf')
+    plt.savefig(img_root+'_photcal_js.pdf')
     
-    plt.clf()
-    plt.scatter(gXPOS, gYPOS, c='red', edgecolor='none')
-    plt.xlabel('X pixel')
-    plt.ylabel('Y pixel')
-    plt.xlim(0,13500)
-    plt.ylim(0,13500)
-    plt.savefig(img_root+'_photmap.pdf')
+    tolerance = 0.0001
+    g_mag = []
+    i_mag = []
+    for j,mag in enumerate(g0):
+        g_0 = g0[j]
+        i_0 = i0[j]
+        color_guess = 0.0
+        color_diff = 1.0
+        while abs(color_diff) > tolerance:
+            g_cal = g_0 + eps_g*color_guess + zp_g
+            i_cal = i_0 + eps_i*color_guess + zp_i
     
-    # make a cmd of the ODI photometry of all the SDSS stars for reference
-    g0 = gMAG - (kg*gXAIRMASS)
-    i0 = iMAG - (ki*iXAIRMASS)
-    gmi = mu_gi*(g0-i0) + zp_gi
+            color_new = g_cal - i_cal
+            color_diff = color_guess-color_new
+            color_guess = color_new
+            # print j, g_cal, i_cal, color_new
+        g_mag.append(g_cal)
+        i_mag.append(i_cal)
     
-    i_mag = i0 + eps_gi*gmi + zp_i #- cal_A_i 
-    g_mag = gmi + i_mag
+    g_mag = np.array(g_mag)
+    i_mag = np.array(i_mag)
+    # g_mag = g_mag - cal_A_g 
+    # i_mag = i_mag - cal_A_i
+    gmi = g_mag - i_mag
     
-    plt.clf()
-    plt.scatter(gmi, i_mag, c='red', s=3, edgecolor='none')
-    plt.xlabel('$g-r$')
-    plt.ylabel('$r$')
-    plt.xlim(-1,2)
-    plt.ylim(24,14)
-    plt.savefig(img_root+'_photcmd.pdf')
+    # podicut, sdsscut = 0.003, 0.04
+    # errcutzp = np.where((ge < 0.02) & (gMERR <0.003))
+    # # print np.median(gSERR), np.median(iSERR)
+    # # cuts for better fits go here
+    # # errcut = [j for j in range(len(gMERR)) if (gMERR[j] < podicut and iMERR[j] < podicut and ge[j] < sdsscut and ie[j] < sdsscut and gSKY[j] > np.median(gSERR) and iSKY[j] > np.median(iSERR))]
+    # plt.clf()
+    # hdulist1 = ast.io.fits.open(img1)
+    # hdulist2 = ast.io.fits.open(img1)
+    # ax1 = plt.subplot(2,2,1, projection=ast.wcs.WCS(hdulist1[0].header))
+    # # plt.imshow(hdulist[0].data, origin='lower', cmap='Greys_r', vmin=500., vmax=2000.)
+    # plt.scatter(gXPOS[errcut], gYPOS[errcut], c=star_zp_g[errcut]-np.median(star_zp_g[errcut]), edgecolor='none', alpha=1.0, cmap=cm.rainbow)
+    # 
+    # plt.xlabel('ra (SDSS $g$)')
+    # plt.ylabel('dec')
+    # plt.xlim(0,11000)
+    # plt.ylim(0,11000)
+    # cb = plt.colorbar()
+    # sig = np.std(star_zp_g[errcut])
+    # cb.set_label('diff.from median ZP ({0:5.2f})'.format(np.median(star_zp_g[errcut])))
+    # # cb.set_ticks([-7.0*sig,-6.0*sig,-5.0*sig,-4.0*sig,-3.0*sig,-2.0*sig,-1.0*sig,0.0,sig,2.0*sig,3.0*sig,4.0*sig,5.0*sig,6.0*sig,7.0*sig,8.0*sig])
+    # # cb.set_ticklabels(['{0:5.2f}'.format(-7.0*sig),'{0:5.2f}'.format(-6.0*sig),'{0:5.2f}'.format(-5.0*sig),'{0:5.2f}'.format(-4.0*sig),'{0:5.2f}'.format(-3.0*sig),'{0:5.2f}'.format(-2.0*sig),'{0:5.2f}'.format(-1.0*sig),'{0:5.2f}'.format(0.0),'{0:5.2f}'.format(sig), '{0:5.2f}'.format(2.0*sig), '{0:5.2f}'.format(3.0*sig), '{0:5.2f}'.format(4.0*sig), '{0:5.2f}'.format(5.0*sig), '{0:5.2f}'.format(6.0*sig), '{0:5.2f}'.format(7.0*sig), '{0:5.2f}'.format(8.0*sig)])
+    # 
+    # ax2 = plt.subplot(2,2,2)
+    # ax2.get_xaxis().set_visible(False)
+    # ax2.get_yaxis().set_visible(False)
+    # ota_mean, ota_x, ota_y, ota_id = stats.binned_statistic_2d(gXPOS[errcut], gYPOS[errcut], star_zp_g[errcut], statistic='mean', bins=[3,3])
+    # ota_median, ota_x, ota_y, ota_id = stats.binned_statistic_2d(gXPOS[errcut], gYPOS[errcut], star_zp_g[errcut], statistic='median', bins=[3,3])
+    # ota_count, ota_x, ota_y, ota_id = stats.binned_statistic_2d(gXPOS[errcut], gYPOS[errcut], star_zp_g[errcut], statistic='count', bins=[3,3])
+    # ota_std, ota_x, ota_y, ota_id = stats.binned_statistic_2d(gXPOS[errcut], gYPOS[errcut], star_zp_g[errcut], statistic=np.std, bins=[3,3])
+    # print ota_mean, ota_median, ota_count, ota_std
+    # 
+    # for j in range(3):
+    #     for k in range(3):
+    #         plt.text(ota_x[j]+300, ota_y[k]+3100, 'mean = {0:5.2f}'.format(ota_mean[j,k]), fontsize=6)
+    #         plt.text(ota_x[j]+300, ota_y[k]+2400, 'median = {0:5.2f}'.format(ota_median[j,k]), fontsize=6)
+    #         plt.text(ota_x[j]+300, ota_y[k]+1700, 'ota - global = {0:5.2f}'.format(ota_median[j,k]-np.median(star_zp_g[errcut])), fontsize=6)
+    #         plt.text(ota_x[j]+300, ota_y[k]+1000, 'std = {0:5.2f}'.format(ota_std[j,k]), fontsize=6)
+    #         plt.text(ota_x[j]+300, ota_y[k]+300,  'N = {0:5d}'.format(int(ota_count[j,k])), fontsize=6)
+    # 
+    # plt.hlines(ota_y[1:3],0,11000,linestyles='dashed')
+    # plt.vlines(ota_x[1:3],0,11000,linestyles='dashed')
+    # plt.xlim(0,11000)
+    # plt.ylim(0,11000)
+    # 
+    # ax3 = plt.subplot(2,2,3, projection=ast.wcs.WCS(hdulist2[0].header))
+    # # plt.imshow(hdulist[0].data, origin='lower', cmap='Greys_r', vmin=500., vmax=2000.)
+    # plt.scatter(gXPOS[errcut], gYPOS[errcut], c=star_zp_i[errcut]-np.median(star_zp_i[errcut]), edgecolor='none', alpha=1.0, cmap=cm.rainbow)
+    # 
+    # plt.xlabel('ra (SDSS $i$)')
+    # plt.ylabel('dec')
+    # plt.xlim(0,11000)
+    # plt.ylim(0,11000)
+    # cb = plt.colorbar()
+    # sig = np.std(star_zp_i[errcut])
+    # cb.set_label('diff.from median ZP ({0:5.2f})'.format(np.median(star_zp_i[errcut])))
+    # # cb.set_ticks([-1.0*sig,0.0,sig,2.0*sig,3.0*sig,4.0*sig,5.0*sig,6.0*sig,7.0*sig,8.0*sig])
+    # # cb.set_ticklabels(['{0:5.2f}'.format(-1.0*sig),'{0:5.2f}'.format(0.0),'{0:5.2f}'.format(sig), '{0:5.2f}'.format(2.0*sig), '{0:5.2f}'.format(3.0*sig), '{0:5.2f}'.format(4.0*sig), '{0:5.2f}'.format(5.0*sig), '{0:5.2f}'.format(6.0*sig), '{0:5.2f}'.format(7.0*sig), '{0:5.2f}'.format(8.0*sig)])
+    # 
+    # ax4 = plt.subplot(2,2,4)
+    # ax4.get_xaxis().set_visible(False)
+    # ax4.get_yaxis().set_visible(False)
+    # ota_mean, ota_x, ota_y, ota_id = stats.binned_statistic_2d(gXPOS[errcut], gYPOS[errcut], star_zp_i[errcut], statistic='mean', bins=[3,3])
+    # ota_median, ota_x, ota_y, ota_id = stats.binned_statistic_2d(gXPOS[errcut], gYPOS[errcut], star_zp_i[errcut], statistic='median', bins=[3,3])
+    # ota_count, ota_x, ota_y, ota_id = stats.binned_statistic_2d(gXPOS[errcut], gYPOS[errcut], star_zp_i[errcut], statistic='count', bins=[3,3])
+    # ota_std, ota_x, ota_y, ota_id = stats.binned_statistic_2d(gXPOS[errcut], gYPOS[errcut], star_zp_i[errcut], statistic=np.std, bins=[3,3])
+    # 
+    # for j in range(3):
+    #     for k in range(3):
+    #         plt.text(ota_x[j]+300, ota_y[k]+3100, 'mean = {0:5.2f}'.format(ota_mean[j,k]), fontsize=6)
+    #         plt.text(ota_x[j]+300, ota_y[k]+2400, 'median = {0:5.2f}'.format(ota_median[j,k]), fontsize=6)
+    #         plt.text(ota_x[j]+300, ota_y[k]+1700, 'ota - global = {0:5.2f}'.format(ota_median[j,k]-np.median(star_zp_i[errcut])), fontsize=6)
+    #         plt.text(ota_x[j]+300, ota_y[k]+1000, 'std = {0:5.2f}'.format(ota_std[j,k]), fontsize=6)
+    #         plt.text(ota_x[j]+300, ota_y[k]+300,  'N = {0:5d}'.format(int(ota_count[j,k])), fontsize=6)
+    # 
+    # plt.hlines(ota_y[1:3],0,11000,linestyles='dashed')
+    # plt.vlines(ota_x[1:3],0,11000,linestyles='dashed')
+    # plt.xlim(0,11000)
+    # plt.ylim(0,11000)
+    # # plt.tight_layout()
+    # 
+    # 
+    # plt.savefig(img_root+'_photmap_js.pdf')
+    # hdulist1.close()
+    # hdulist2.close()
+    
+    
+    # plt.subplot(211)
+    # plt.scatter(gi0[errcut], gi[errcut], facecolor='red', edgecolor='none', s=3)
+    # plt.scatter(gi0_2, gi_2, facecolor='black', edgecolor='none', s=3)
+    # plt.plot(xplt, yplt, 'r-', lw=1, alpha=1, label='fit')
+    # # put 2xRMS on the plot
+    # plt.fill_between(x, mu_ucb, mu_lcb, facecolor='blue', edgecolor='none', alpha=0.2, label='2x RMS sigma clipping region')
+    # plt.xlim(-1,3.5)
+    # plt.xlabel('$g_0 - '+filterName+'_0$ (ODI)')
+    # plt.ylim(-1,3.5)
+    # plt.ylabel('$g - '+filterName+'$ (SDSS)')
+    # plt.text(-0.9, 3.0, '$\mu_{g'+filterName+'} = %.7f \pm %.7f$'%(mu_gi,std_mu_gi))
+    # plt.text(-0.9, 2.5, '$\mathrm{zp}_{g'+filterName+'} = %.7f \pm %.7f$'%(zp_gi,std_zp_gi))
+    # # plt.legend(loc=3)
+    # 
+    # plt.subplot(212)
+    # xplt = np.arange(-2,6,0.1)
+    # yplt = eps_gi*xplt + zp_i
+    # # plt.plot([-2,-2],[0,0], 'k--')
+    # plt.scatter(gi[errcut], di[errcut], facecolor='red', edgecolor='none', s=3)
+    # plt.scatter(gi_3, di_3, facecolor='black', edgecolor='none', s=3)
+    # plt.plot(xplt, yplt, 'r-', lw=1, alpha=1, label='fit')
+    # plt.fill_between(x, eps_ucb, eps_lcb, facecolor='blue', edgecolor='none', alpha=0.2, label='2x RMS sigma clipping region')
+    # plt.xlim(-1,3.5)
+    # plt.ylim(zp_i+1.0,zp_i-1.0)
+    # plt.xlabel('$g - '+filterName+'$ (SDSS)')
+    # plt.ylabel('$'+filterName+' - '+filterName+'_0$ (SDSS - ODI)')
+    # plt.text(-0.9, zp_i-0.8, '$\epsilon_{g'+filterName+'} = %.5f \pm %.5f$'%(eps_gi,std_eps_gi))
+    # plt.text(-0.9, zp_i-0.6, '$\mathrm{zp}_{'+filterName+'} = %.5f \pm %.5f$'%(zp_i,std_zp_i))
+    # plt.tight_layout()
+    # plt.savefig(img_root+'_photcal.pdf')
+    # 
+    # plt.clf()
+    # plt.scatter(gXPOS, gYPOS, c='red', edgecolor='none')
+    # plt.xlabel('X pixel')
+    # plt.ylabel('Y pixel')
+    # plt.xlim(0,13500)
+    # plt.ylim(0,13500)
+    # plt.savefig(img_root+'_photmap.pdf')
+    # 
+    # # make a cmd of the ODI photometry of all the SDSS stars for reference
+    # g0 = gMAG - (kg*gXAIRMASS)
+    # i0 = iMAG - (ki*iXAIRMASS)
+    # gmi = mu_gi*(g0-i0) + zp_gi
+    # 
+    # i_mag = i0 + eps_gi*gmi + zp_i #- cal_A_i 
+    # g_mag = gmi + i_mag
+    # 
+    # plt.clf()
+    # plt.scatter(gmi, i_mag, c='red', s=3, edgecolor='none')
+    # plt.xlabel('$g-r$')
+    # plt.ylabel('$r$')
+    # plt.xlim(-1,2)
+    # plt.ylim(24,14)
+    # plt.savefig(img_root+'_photcmd.pdf')
 
     # print out a steven style help file, no writing to headers YET
     with open(img_root+'_help.txt','w+') as f1:
@@ -780,14 +989,14 @@ def calibrate_match(img1, img2, fwhm1, fwhm2, airmass1, airmass2):
         print >> f1, ""
         print >> f1, "it follows the extremely standard method of photometric calibrations:"
         print >> f1, ""
-        print >> f1, "g-i = mu_gi ( g0 - i0 ) + ZP_gi"
-        print >> f1, "i = i0 + eps_gi ( g - i ) + ZP_i"
+        print >> f1, "g = g0 + eps_g ( g - "+filterName+" ) + ZP_g"
+        print >> f1, filterName+" = "+filterName+"0 + eps_"+filterName+" ( g - "+filterName+" ) + ZP_"+filterName+""
         print >> f1, ""
         print >> f1, "   where g0 = g_i - k_g * X_g  include airmass extinction"
-        print >> f1, "         i0 = i_i - k_i * X_i"
+        print >> f1, "         "+filterName+"0 = "+filterName+"_i - k_"+filterName+" * X_"+filterName+""
         print >> f1, "Fits generate errors on mu/eps/ZP and also rms for both"
         print >> f1, ""
-        print >> f1, "g_i/i_i are instrumental magnitudes, measured in apertures 5x FWHM"
+        print >> f1, "g_i/"+filterName+"_i are instrumental magnitudes, measured in apertures 5x FWHM"
         print >> f1, ""
         print >> f1, "all of these coefficients are saved to both g&i image headers,"
         print >> f1, "    and are reproduced below."
@@ -797,34 +1006,39 @@ def calibrate_match(img1, img2, fwhm1, fwhm2, airmass1, airmass2):
         print >> f1, "  name          symbol     IMHEAD     value"
         print >> f1, "----------------------------------------------------"
         print >> f1, "  extn coeff      k_g      F_KG       {0:.7f}".format(kg)
+        print >> f1, "  extn coeff      k_r      F_KR       {0:.7f}".format(kr)
         print >> f1, "  extn coeff      k_i      F_KI       {0:.7f}".format(ki)
         print >> f1, "  airmass in g    X_g      F_XG       {0:.7f}".format(gXAIRMASS)
-        print >> f1, "  airmass in i    X_i      F_XI       {0:.7f}".format(iXAIRMASS)
+        print >> f1, "  airmass in "+filterName+"    X_"+filterName+"      F_X"+filterName.upper()+"       {0:.7f}".format(iXAIRMASS)
         print >> f1, " - - - - - - - - - - - - - - - - - - - - - - - - - -"
-        print >> f1, "  g-i color term  mu_gi    F_MU_GI    {0:.7f}".format(mu_gi)
-        print >> f1, "  g-i c.t. err    mue_gi   F_MUE_GI   {0:.7f}".format(std_mu_gi)
-        print >> f1, "  g-i zeropoint   ZP_gi    F_ZP_GI    {0:.7f}".format(zp_gi)
-        print >> f1, "  g-i ZP err      ZPE_gi   F_ZPE_GI   {0:.7f}".format(std_zp_gi)
-        print >> f1, "  g-i fit RMS     rms      F_RMS_GI   {0:.7f}".format(dy1.std())
+        print >> f1, "  g color term    eps_g    F_EPS_G    {0:.7f}".format(eps_g)
+        print >> f1, "  g c.t. err      epse_g   F_EPSE_G   {0:.7f}".format(std_eps_g)
+        print >> f1, "  g zeropoint     ZP_g     F_ZP_G     {0:.7f}".format(zp_g)
+        print >> f1, "  g ZP err        ZPe_g    F_ZPE_G    {0:.7f}".format(std_zp_g)
+        # print >> f1, "  g-i color term  mu_gi    F_MU_GI    {0:.7f}".format(mu_gi)
+        # print >> f1, "  g-i c.t. err    mue_gi   F_MUE_GI   {0:.7f}".format(std_mu_gi)
+        # print >> f1, "  g-i zeropoint   ZP_gi    F_ZP_GI    {0:.7f}".format(zp_gi)
+        # print >> f1, "  g-i ZP err      ZPE_gi   F_ZPE_GI   {0:.7f}".format(std_zp_gi)
+        # print >> f1, "  g-i fit RMS     rms      F_RMS_GI   {0:.7f}".format(dy1.std())
         print >> f1, " - - - - - - - - - - - - - - - - - - - - - - - - - -"
-        print >> f1, "  i color term    eps_gi   F_EPS_GI   {0:.7f}".format(eps_gi)
-        print >> f1, "  i c.t. err      epse_gi  F_EPSE_GI  {0:.7f}".format(std_eps_gi)
-        print >> f1, "  i zeropoint     ZP_i     F_ZP_I     {0:.7f}".format(zp_i)
-        print >> f1, "  i ZP err        ZPe_i    F_ZPE_I    {0:.7f}".format(std_zp_i)
-        print >> f1, "  i fit RMS       rms      F_RMS_I    {0:.7f}".format(dy2.std())
+        print >> f1, "  "+filterName+" color term    eps_"+filterName+"   F_EPS_"+filterName.upper()+"     {0:.7f}".format(eps_i)
+        print >> f1, "  "+filterName+" c.t. err      epse_"+filterName+"  F_EPSE_"+filterName.upper()+"    {0:.7f}".format(std_eps_i)
+        print >> f1, "  "+filterName+" zeropoint     ZP_"+filterName+"     F_ZP_"+filterName.upper()+"     {0:.7f}".format(zp_i)
+        print >> f1, "  "+filterName+" ZP err        ZPe_"+filterName+"    F_ZPE_"+filterName.upper()+"    {0:.7f}".format(std_zp_i)
+        # print >> f1, "  i fit RMS       rms      F_RMS_I    {0:.7f}".format(dy2.std())
         print >> f1, "----------------------------------------------------"
         print >> f1, "other details:"
         print >> f1, "  FWHM PSF [px]   fwhm    FWHMPSF    [see header]"
         print >> f1, "  FWHM [arcsec] g fwhm    F_AVGSEE   {0:.5f}".format(0.11*gRAPERT/5)
-        print >> f1, "  FWHM [arcsec] i fwhm    F_AVGSEE   {0:.5f}".format(0.11*iRAPERT/5)
+        print >> f1, "  FWHM [arcsec] "+filterName+" fwhm    F_AVGSEE   {0:.5f}".format(0.11*iRAPERT/5)
         print >> f1, "  phot aperture (5xFWHM) g [arcsec]  {0:.5f}".format(0.11*gRAPERT)
-        print >> f1, "  phot aperture (5xFWHM) i [arcsec]  {0:.5f}".format(0.11*iRAPERT)
+        print >> f1, "  phot aperture (5xFWHM) "+filterName+" [arcsec]  {0:.5f}".format(0.11*iRAPERT)
         print >> f1, "----------------------------------------------------"
         print >> f1, "photometric error cuts:"
         print >> f1, "  maximum acceptable pODI PHOT error: {0:.4f}".format(podicut)
         print >> f1, "  maximum acceptable sdss phot error: {0:.4f}".format(sdsscut)
-        print >> f1, "  N_stars surviving error cuts: {0:4d}".format(len(gi[errcut]))
-        print >> f1, "    N_stars surviving sigma clip (i-i0 vs g-i plot): {0:4d}".format(len(gi_3))
+        # print >> f1, "  N_stars surviving error cuts: {0:4d}".format(len(gi[errcut]))
+        # print >> f1, "  N_stars surviving sigma clip ("+filterName+"-"+filterName+"0 vs g-"+filterName+" plot): {0:4d}".format(len(gi_3))
     print '--------------------------------------------------------------------------'
     print 'Done! I saved some important information in the following files for you:'
     print 'SDSS raw catalog values (csv):         ', img_root+'.sdss'
@@ -832,6 +1046,81 @@ def calibrate_match(img1, img2, fwhm1, fwhm2, airmass1, airmass2):
     print 'Instrumental ODI magnitudes per image: ', img_root+'*.sdssphot'
     print 'Calibration fit diagnostic plots:      ', img_root+'_photcal.pdf'
     print 'Final calibration values:              ', img_root+'_help.txt'
+    return eps_g, std_eps_g, zp_g, std_zp_g, eps_i, std_eps_i, zp_i, std_zp_i
+
+def make_catalog(data, fits_g, fits_i, apcor_g, apcor_i):
+    # values determined by ralf/daniel @ wiyn
+    from pyraf import iraf
+    from astropy.io import fits
+    import astropy as ast
+    import numpy as np
+    from scipy import stats
+    import scipy.optimize as opt
+    import matplotlib.pyplot as plt
+    import matplotlib.cm as cm
+    kg = 0.20
+    kr = 0.12
+    ki = 0.058
+    nid,gx,gy,am_g,g_i,g_ierr, ix,iy,am_i,i_i,i_ierr = np.loadtxt(data, usecols=(0,1,2,3,4,5,6,7,8,9,10),unpack=True)
+    amg = am_g[0]
+    ami = am_i[0]
+    # apcor_g = -0.3849
+    # apcor_i = -0.1201
+    g0 = g_i - (kg*amg) + apcor_g 
+    i0 = i_i - (ki*ami) + apcor_i
+
+    # download_sdss(fits_g, fits_i, gmaglim = 24.0)
+    eps_g, std_eps_g, zp_g, std_zp_g, eps_i, std_eps_i, zp_i, std_zp_i = calibrate_match(img1 = fits_g, img2 = fits_i)
+
+    # use the instrumental magnitude and initial color guess to ITERATE 
+    # until you reach a converged calibrated magnitude/color
+    tolerance = 0.0001
+    g_mag = []
+    i_mag = []
+    for j,mag in enumerate(g0):
+        g_0 = g0[j]
+        i_0 = i0[j]
+        color_guess = 0.0
+        color_diff = 1.0
+        while abs(color_diff) > tolerance:
+            g_cal = g_0 + eps_g*color_guess + zp_g
+            i_cal = i_0 + eps_i*color_guess + zp_i
+
+            color_new = g_cal - i_cal
+            color_diff = color_guess-color_new
+            color_guess = color_new
+            # print j, g_cal, i_cal, color_new
+        g_mag.append(g_cal)
+        i_mag.append(i_cal)
+
+    g_mag = np.array(g_mag)
+    i_mag = np.array(i_mag)
+    # g_mag = g_mag - cal_A_g 
+    # i_mag = i_mag - cal_A_i
+    gmi = g_mag - i_mag
+
+    hdu = ast.io.fits.open(fits_i)
+    pixcrd = zip(ix,iy)
+    # Parse the WCS keywords in the primary HDU
+    w = ast.wcs.WCS(hdu[0].header)
+
+    # Convert pixel coordinates to world coordinates
+    # The second argument is "origin" -- in this case we're declaring we
+    # have 1-based (Fortran-like) coordinates.
+    world = w.all_pix2world(pixcrd, 1)
+
+    f3 = open('calibrated_mags.dat', 'w+')
+    for i in range(len(ix)) :
+        print >> f3, '{0:8.2f} {1:8.2f} {2:12.3f} {3:12.3f} {4:8.2f} {5:8.2f} {6:12.3f} {7:12.3f} {8:12.3f} {9:12.8f} {10:12.8f}'.format(gx[i],gy[i],g_mag[i],g_ierr[i],ix[i],iy[i],i_mag[i],i_ierr[i],gmi[i], world[i,0],world[i,1])
+    f3.close()
+
+    plt.clf()
+    plt.scatter(gmi, i_mag, s=2, color='black', marker='o', edgecolors='none')
+    plt.ylabel('$i$')
+    plt.xlabel('$(g-i)$')
+    plt.ylim(27,15)
+    plt.xlim(-1,4)
+    plt.savefig("test_CMD.pdf")
 
 
 # How to use in odi_process
