@@ -46,12 +46,16 @@ def dark_sky_flat(filter):
 
     return normalization_factor
 
-def illumination_corrections(image_to_correct, correction_image, corrected_image):
+def illumination_corrections(image_to_correct, correction_image, corrected_image,do_correction=True):
     #print image_to_correct,correction_image,corrected_image
     iraf.unlearn(iraf.imutil.imarith,iraf.imfilter.median)
     iraf.imutil.imarith.setParam('operand1',image_to_correct)
     iraf.imutil.imarith.setParam('op','/')
-    iraf.imutil.imarith.setParam('operand2',odi.skyflatpath+correction_image)
+    if do_correction == True:
+        iraf.imutil.imarith.setParam('operand2',odi.skyflatpath+correction_image)
+    else:
+        print 'not applying illcor'
+        iraf.imutil.imarith.setParam('operand2',1.0)
     iraf.imutil.imarith.setParam('result',odi.illcorpath+corrected_image)
     iraf.imutil.imarith(mode='h')
 
@@ -60,4 +64,3 @@ def main():
 
 if __name__ == '__main__':
 	main()
-
