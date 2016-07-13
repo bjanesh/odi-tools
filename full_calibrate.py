@@ -620,7 +620,7 @@ def calibrate_match(img1, img2, fwhm1, fwhm2, airmass1, airmass2):
     di = i - i0
     die = np.sqrt(ie**2 + iMERR**2)
 
-    podicut, sdsscut = 0.005, 0.025
+    podicut, sdsscut = 0.01, 0.03
     print np.median(gSERR), np.median(iSERR)
     # cuts for better fits go here
     errcut = [j for j in range(len(gMERR)) if (gMERR[j] < podicut and iMERR[j] < podicut and ge[j] < sdsscut and ie[j] < sdsscut and gSKY[j] > np.median(gSERR) and iSKY[j] > np.median(iSERR))]
