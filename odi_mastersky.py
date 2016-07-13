@@ -31,38 +31,39 @@ if not os.path.isfile('bpms.done'):
             ota = odi.OTA_dictionary[key]
             odi.make_bpms(img, ota)
 
-med_otalist = []
-print 'making master dark sky flats for',filter
-for key in tqdm(odi.OTA_dictionary):
-    image_list = odi.OTA_dictionary[key]+'.'+filter+'.lis'
-    med_out = image_list.replace('.lis','.mastersflat.fits')
-    med_otalist.append(med_out)
-    iraf.unlearn(iraf.immatch.imcombine)
-    iraf.immatch.imcombine.setParam('input','@'+str(image_list))
-    iraf.immatch.imcombine.setParam('output',med_out)
-    iraf.immatch.imcombine.setParam('combine','median')
-    iraf.immatch.imcombine.setParam('masktype','goodvalue')
-    iraf.immatch.imcombine.setParam('maskvalue',0)
-    iraf.immatch.imcombine.setParam('scale','median')
-    # iraf.immatch.imcombine.setParam('zero','none')
-    iraf.immatch.imcombine.setParam('zero','median')
-    iraf.immatch.imcombine(logfile='imcombine.log.txt', mode='h')
-    if key == 1:
-        data,header = odi.fits.getdata(med_out,header=True)
-        mean, median, std = odi.sigma_clipped_stats(data, sigma=3.0)
-        normalization_factor = median
-iraf.set(clobber = 'yes')
-print 'smoothing dark sky flats for',filter
-for i in tqdm(range(len(med_otalist))):
-    iraf.unlearn(iraf.imutil.imarith,iraf.imfilter.median)
-    iraf.imutil.imarith.setParam('operand1',med_otalist[i])
-    iraf.imutil.imarith.setParam('op','/')
-    iraf.imutil.imarith.setParam('operand2',normalization_factor)
-    iraf.imutil.imarith.setParam('result',med_otalist[i])
-    iraf.imutil.imarith(verbose='no', mode='h')
-    iraf.imfilter.median.setParam('input',med_otalist[i])
-    iraf.imfilter.median.setParam('output',med_otalist[i])
-    iraf.imfilter.median.setParam('xwindow',3)
-    iraf.imfilter.median.setParam('ywindow',3)
-    iraf.imfilter.median(verbose='no', mode='h')
+for filt in filters:
+    med_otalist = []
+    print 'making master dark sky flats for',filt
+    for key in tqdm(odi.OTA_dictionary):
+        image_list = odi.OTA_dictionary[key]+'.'+filt+'.lis'
+        med_out = image_list.replace('.lis','.mastersflat.fits')
+        med_otalist.append(med_out)
+        iraf.unlearn(iraf.immatch.imcombine)
+        iraf.immatch.imcombine.setParam('input','@'+str(image_list))
+        iraf.immatch.imcombine.setParam('output',med_out)
+        iraf.immatch.imcombine.setParam('combine','median')
+        iraf.immatch.imcombine.setParam('masktype','goodvalue')
+        iraf.immatch.imcombine.setParam('maskvalue',0)
+        iraf.immatch.imcombine.setParam('scale','median')
+        # iraf.immatch.imcombine.setParam('zero','none')
+        iraf.immatch.imcombine.setParam('zero','median')
+        iraf.immatch.imcombine(logfile='imcombine.log.txt', mode='h')
+        if key == 1:
+            data,header = odi.fits.getdata(med_out,header=True)
+            mean, median, std = odi.sigma_clipped_stats(data, sigma=3.0)
+            normalization_factor = median
+    iraf.set(clobber = 'yes')
+    print 'smoothing dark sky flats for',filt
+    for i in tqdm(range(len(med_otalist))):
+        iraf.unlearn(iraf.imutil.imarith,iraf.imfilter.median)
+        iraf.imutil.imarith.setParam('operand1',med_otalist[i])
+        iraf.imutil.imarith.setParam('op','/')
+        iraf.imutil.imarith.setParam('operand2',normalization_factor)
+        iraf.imutil.imarith.setParam('result',med_otalist[i])
+        iraf.imutil.imarith(verbose='no', mode='h')
+        iraf.imfilter.median.setParam('input',med_otalist[i])
+        iraf.imfilter.median.setParam('output',med_otalist[i])
+        iraf.imfilter.median.setParam('xwindow',3)
+        iraf.imfilter.median.setParam('ywindow',3)
+        iraf.imfilter.median(verbose='no', mode='h')
 iraf.set(clobber = 'no')
