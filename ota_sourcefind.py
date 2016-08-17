@@ -34,7 +34,7 @@ def source_find(img,ota,inst):
             tpv = 'T'+pv
             hdu_ota.header.rename_keyword(pv, tpv, force=False)
     w = odi.WCS(hdu_ota.header)
-    #w.wcs.ctype = ["RA---TPV", "DEC--TPV"]
+    w.wcs.ctype = ["RA---TPV", "DEC--TPV"]
     bg_mean,bg_median,bg_std = odi.mask_ota(img,ota,reproj=True)
     threshold = bg_median + (bg_std * 5.)
     print bg_mean,bg_median,bg_std
@@ -232,9 +232,9 @@ def source_scale(img,ref,filter):
 
     #id_ref, d2d_ref, d3d_ref = img_catalog.match_to_catalog_sky(ref_catalog)
 
-    id_img, id_ref, d2d, d3d = ref_catalog.search_around_sky(img_catalog,0.0001*u.deg)
+    id_img, id_ref, d2d, d3d = ref_catalog.search_around_sky(img_catalog,0.003*u.deg)
 
-    print len(id_img),len(id_ref)
+    print img, len(id_img),len(id_ref)
 
     MAG_img    = MAG_img[id_img]
     MERR_img   = MERR_img[id_img]
@@ -275,9 +275,9 @@ def source_scale(img,ref,filter):
             print >> f, raA[i], decA[i], raRef[i], decRef[i], magA[i], magRef[i]
 
     rat = np.power(10.0,-0.4*(magA-magRef))/1.0
-
-    #print np.mean(rat),np.std(rat),len(rat)
-    sigThreshold = 0.009
+    
+    print np.mean(rat),np.std(rat),len(rat)
+    sigThreshold = 0.005
     n = 1
     sigTest = np.std(rat)
     if sigTest <= sigThreshold:
@@ -301,6 +301,7 @@ def source_scale(img,ref,filter):
             #print len(rat), np.mean(rat), np.median(rat), np.std(rat), n
             #scale[img] = np.mean(rat)
             #std[img] = np.std(rat)
+            print np.mean(rat),np.std(rat),len(rat)
         scale = np.mean(rat)
         std = np.std(rat)
     return scale,std,len(rat)

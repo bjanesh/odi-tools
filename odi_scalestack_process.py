@@ -11,17 +11,17 @@ import glob
 import shutil
 import pandas as pd
 
-images_g = glob.glob('*_odi_g*.fits')
+images_g = glob.glob('*_odi_NB695*.fits')
 images_g.sort()
 #print images_g
 images_r = glob.glob('*_odi_r*.fits')
 images_r.sort()
-images_i = glob.glob('*_odi_i*.fits')
-images_i.sort()
-filters = ['odi_g','odi_r','odi_i']
+#images_i = glob.glob('*_odi_i*.fits')
+#images_i.sort()
+filters = ['odi_NB695','odi_r']
 # filters = ['odi_r']
 
-images = images_g+images_r+images_i
+images = images_g+images_r
 
 rad, decd = odi.get_targ_ra_dec(images[0], 'OTA33.SCI')
 
@@ -58,15 +58,26 @@ for img in images_g:
     stds_g[img] = std
     n_g[img] = n
 
+ims = scales_g.keys()
+scls = scales_g.values()
+new_ref = ims[np.argmax(scls)]
+if new_ref != ref_img:  
+    ref_img = new_ref  
+    for img in images_g:
+        scale,std,n = odi.source_scale(img,ref_img,filters[0])
+        scales_g[img] = scale
+        stds_g[img] = std
+        n_g[img] = n
+    
 for img in images_g:
     for key in odi.OTA_dictionary:
         ota = odi.OTA_dictionary[key]
-        if not os.path.isfile(odi.scaledpath+'scaled_'+ota+'.'+str(img[16:])):
-            gaps = odi.get_gaps_rep(img, ota)
-            odi.scale_ota(img, ota, scales_g[img])
-            odi.force_update_bpm(img, ota)
+        #if not os.path.isfile(odi.scaledpath+'scaled_'+ota+'.'+str(img[16:])):
+            #gaps = odi.get_gaps_rep(img, ota)
+            #odi.scale_ota(img, ota, scales_g[img])
+            #odi.force_update_bpm(img, ota)
 
-g_img = odi.stack_images(ref_img)
+#g_img = odi.stack_images(ref_img)
 
 for img in images_r:
     dither  = img.split('.')[1][0]+'_'
@@ -94,16 +105,28 @@ for img in images_r:
     scale,std,n = odi.source_scale(img,ref_img,filters[1])
     scales_r[img] = scale
 
+ims = scales_r.keys()
+scls = scales_r.values()
+new_ref = ims[np.argmax(scls)]
+print ref_img, new_ref
+if new_ref != ref_img:  
+    ref_img = new_ref  
+    for img in images_r:
+        scale,std,n = odi.source_scale(img,ref_img,filters[0])
+        scales_r[img] = scale
+        stds_r[img] = std
+
     
 for img in images_r:
     for key in odi.OTA_dictionary:
         ota = odi.OTA_dictionary[key]
-        if not os.path.isfile(odi.scaledpath+'scaled_'+ota+'.'+str(img[16:])):
-            gaps = odi.get_gaps_rep(img, ota)
-            odi.scale_ota(img, ota, scales_r[img])
-            odi.force_update_bpm(img, ota)
+        #if not os.path.isfile(odi.scaledpath+'scaled_'+ota+'.'+str(img[16:])):
+            #gaps = odi.get_gaps_rep(img, ota)
+            #odi.scale_ota(img, ota, scales_r[img])
+            #odi.force_update_bpm(img, ota)
 
-r_img = odi.stack_images(ref_img)
+#r_img = odi.stack_images(ref_img)
+
 
 for img in images_i:
     dither  = img.split('.')[1][0]+'_'
