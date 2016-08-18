@@ -44,7 +44,7 @@ def imcombine_lists(images, filters):
             list_name.close()
     return
 
-def reproject_ota(img, ota, rad, decd):
+def reproject_ota(img, ota, rad, decd, wcsref):
     from pyraf import iraf
     image = odi.illcorpath+'illcor_'+ota+'.'+str(img[16:])
     imout = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
@@ -54,8 +54,8 @@ def reproject_ota(img, ota, rad, decd):
     iraf.mscred.mscimage.format='image'
     iraf.mscred.mscimage.pixmask='yes'
     iraf.mscred.mscimage.verbose='yes'
-    iraf.mscred.mscimage.wcssour='parameters'
-    iraf.mscred.mscimage.ref=''
+    iraf.mscred.mscimage.wcssour='image'
+    iraf.mscred.mscimage.ref=wcsref
     iraf.mscred.mscimage.ra=rad
     iraf.mscred.mscimage.dec=decd
     iraf.mscred.mscimage.scale=0.11
@@ -175,8 +175,8 @@ def instrument(img):
     print 'Setting instrument to: ', instrument_name 
 
     if instrument_name == '5odi':
-        odi.OTA_dictionary = odi.odi5narrow_dictionary
-        # odi.OTA_dictionary = odi.odi5_dictionary
+        # odi.OTA_dictionary = odi.odi5narrow_dictionary
+        odi.OTA_dictionary = odi.odi5_dictionary
     else :
         odi.OTA_dictionary = odi.podi_dictionary
         
