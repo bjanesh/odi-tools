@@ -14,7 +14,7 @@ from astropy import units as u
 import matplotlib.pyplot as plt
 from astropy.modeling import models, fitting
 
-def source_find(img,ota,inst):
+def source_find(img,ota,inst,nbg_std=10.0):
     """
     This function will find sources on an OTA
     using the detect_sources module from photutils.
@@ -36,7 +36,7 @@ def source_find(img,ota,inst):
     w = odi.WCS(hdu_ota.header)
     w.wcs.ctype = ["RA---TPV", "DEC--TPV"]
     bg_mean,bg_median,bg_std = odi.mask_ota(img,ota,reproj=True)
-    threshold = bg_median + (bg_std * 5.)
+    threshold = bg_median + (bg_std * nbg_std)
     print bg_mean,bg_median,bg_std
     segm_img = detect_sources(hdu_ota.data, threshold, npixels=20)
     source_props = source_properties(hdu_ota.data,segm_img,wcs=w)
@@ -275,7 +275,7 @@ def source_scale(img,ref,filter):
             print >> f, raA[i], decA[i], raRef[i], decRef[i], magA[i], magRef[i]
 
     rat = np.power(10.0,-0.4*(magA-magRef))/1.0
-    
+
     print np.mean(rat),np.std(rat),len(rat)
     sigThreshold = 0.005
     n = 1
