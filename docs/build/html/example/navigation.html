@@ -89,6 +89,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#opening-the-fits-file">Opening the fits file</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#accessing-the-extensions">Accessing the extensions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#the-odi-tools-scheme">The odi-tools scheme</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#the-other-extensions">The other extensions</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="npteststy.html">npteststy module</a></li>
@@ -235,6 +236,19 @@ code of this scheme would be:</p>
 <span class="gp">... </span>        <span class="n">perform</span> <span class="n">tasks</span> <span class="n">on</span> <span class="n">img</span><span class="p">[</span><span class="n">ota</span><span class="p">]</span>
 </pre></div>
 </div>
+</div>
+<div class="section" id="the-other-extensions">
+<span id="id3"></span><h2>The other extensions<a class="headerlink" href="#the-other-extensions" title="Permalink to this headline">¶</a></h2>
+<p>In addition to the extensions for each OTA, the <code class="docutils literal"><span class="pre">hdulist</span></code> also contains
+extensions linking to fits tables with useful information. They are
+<code class="docutils literal"><span class="pre">CAT.2MASS</span></code>, <code class="docutils literal"><span class="pre">CAT.ODI</span></code>, <code class="docutils literal"><span class="pre">CAT.ODI+2MASS</span></code>, <code class="docutils literal"><span class="pre">CAT.PHOTCATLIB</span></code>, <code class="docutils literal"><span class="pre">SKYLEVEL</span></code>,
+<code class="docutils literal"><span class="pre">ASSOCIATIONS</span></code>. The header and data in each of these tables are easily accessed.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">photcat_data</span> <span class="o">=</span> <span class="n">hdulist</span><span class="p">[</span><span class="s1">&#39;CAT.PHOTCATLIB&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">photcat_header</span> <span class="o">=</span> <span class="n">hdulist</span><span class="p">[</span><span class="s1">&#39;CAT.PHOTCATLIB&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">header</span>
+</pre></div>
+</div>
+<p>Some of the information in these tables is used y <code class="docutils literal"><span class="pre">odi-tools</span></code> during the
+image processing.</p>
 </div>
 </div>
 

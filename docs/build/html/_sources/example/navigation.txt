@@ -103,3 +103,19 @@ code of this scheme would be:
 ...     for key in ota_dictionary:
 ...         ota = ota_dictionary[key]
 ...         perform tasks on img[ota]
+
+.. _the-other-extensions:
+
+The other extensions
+--------------------
+
+In addition to the extensions for each OTA, the ``hdulist`` also contains
+extensions linking to fits tables with useful information. They are
+``CAT.2MASS``, ``CAT.ODI``, ``CAT.ODI+2MASS``, ``CAT.PHOTCATLIB``, ``SKYLEVEL``,
+``ASSOCIATIONS``. The header and data in each of these tables are easily accessed.
+
+>>> photcat_data = hdulist['CAT.PHOTCATLIB'].data
+>>> photcat_header = hdulist['CAT.PHOTCATLIB'].header
+
+Some of the information in these tables is used y ``odi-tools`` during the
+image processing.
