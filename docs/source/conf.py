@@ -29,7 +29,8 @@ autodoc_mock_imports = ['astropy.photutils','numpy','astropy','pyraf','numpy.ma'
                         'astropy.utils.misc','astropy.utils.exceptions',
                         'astropy.wcs.utils','astropy.nddata','numpy.lib.index_tricks',
                         'photutils.detection','scipy.ndimage','photutils.utils',
-                        'astropy.visualization.mpl_normalize','astropy.modeling']
+                        'astropy.visualization.mpl_normalize','astropy.modeling',
+                        'tqdm']
 
 # -- General configuration ------------------------------------------------
 
