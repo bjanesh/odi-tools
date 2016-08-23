@@ -28,16 +28,23 @@ rad, decd = odi.get_targ_ra_dec(images[0], 'OTA33.SCI')
 source = 'sdss'
 inst = odi.instrument(images[0])
 
+imgnum,fwhm_d,zp_med, zp_std, bg_mean, bg_median, bg_std = np.loadtxt('derived_props.txt',usecols=(0,3,4,5,6,7,8),unpack=True)
+ota_d, filt_d = np.loadtxt('derived_props.txt',usecols=(1,2),unpack=True,dtype=str)
+id_d = zip(imgnum,ota_d,filt_d)
+fwhm_dict = dict(zip(id_d,fwhm_d))
+
 # Scaling with all sources
 for img in images_g:
     dither  = img.split('.')[1][0]+'_'
     for key in tqdm(odi.OTA_dictionary):
         ota = odi.OTA_dictionary[key]
+        img_id = (int(img.split('.')[1][0]),ota,'odi_NB695')
         if not os.path.isfile(odi.sourcepath+'source_'+ota+'.'+str(img[16:-5])+'.csv'):
             odi.source_find(img,ota,inst)
             gaps = odi.get_gaps_rep(img, ota)
             odi.source_xy(img,ota,gaps,filters[0],inst)
             fwhm = odi.getfwhm_source(img,ota)
+            #fwhm = fwhm_dict[img_id]
             print fwhm
             odi.phot_sources(img, ota, fwhm)
             odi.phot_combine(img, ota)
@@ -72,12 +79,12 @@ if new_ref != ref_img:
 for img in images_g:
     for key in odi.OTA_dictionary:
         ota = odi.OTA_dictionary[key]
-        #if not os.path.isfile(odi.scaledpath+'scaled_'+ota+'.'+str(img[16:])):
-            #gaps = odi.get_gaps_rep(img, ota)
-            #odi.scale_ota(img, ota, scales_g[img])
-            #odi.force_update_bpm(img, ota)
+        if not os.path.isfile(odi.scaledpath+'scaled_'+ota+'.'+str(img[16:])):
+            gaps = odi.get_gaps_rep(img, ota)
+            odi.scale_ota(img, ota, scales_g[img])
+            odi.force_update_bpm(img, ota)
 
-#g_img = odi.stack_images(ref_img)
+g_img = odi.stack_images(ref_img)
 
 for img in images_r:
     dither  = img.split('.')[1][0]+'_'
@@ -120,12 +127,12 @@ if new_ref != ref_img:
 for img in images_r:
     for key in odi.OTA_dictionary:
         ota = odi.OTA_dictionary[key]
-        #if not os.path.isfile(odi.scaledpath+'scaled_'+ota+'.'+str(img[16:])):
-            #gaps = odi.get_gaps_rep(img, ota)
-            #odi.scale_ota(img, ota, scales_r[img])
-            #odi.force_update_bpm(img, ota)
+        if not os.path.isfile(odi.scaledpath+'scaled_'+ota+'.'+str(img[16:])):
+            gaps = odi.get_gaps_rep(img, ota)
+            odi.scale_ota(img, ota, scales_r[img])
+            odi.force_update_bpm(img, ota)
 
-#r_img = odi.stack_images(ref_img)
+r_img = odi.stack_images(ref_img)
 
 
 for img in images_i:

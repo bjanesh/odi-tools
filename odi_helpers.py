@@ -137,14 +137,14 @@ def stack_images(refimg):
     output = objname+'_'+filter_name+'.fits'
     output_bpm = objname+'_'+filter_name+'_bpm.pl'
     iraf.unlearn(iraf.immatch.imcombine, iraf.imutil.imarith)
-    iraf.immatch.imcombine(odi.scaledpath+'*'+filter_name+'*.fits', 'temp', combine='average', reject='none', offsets='wcs', masktype='goodvalue', maskval=0, blank=-999, scale='none', zero='none', lthresh=-900, hthresh=60000)
+    iraf.immatch.imcombine(odi.scaledpath+'*'+filter_name+'*.fits', filter_name, combine='average', reject='none', offsets='wcs', masktype='goodvalue', maskval=0, blank=-999, scale='none', zero='none', lthresh=-900, hthresh=60000)
     # iraf.imutil.imarith.setParam('operand1','temp')
     # iraf.imutil.imarith.setParam('op','+')
     # iraf.imutil.imarith.setParam('operand2',sky_med)
     # iraf.imutil.imarith.setParam('result',output)
     # iraf.imutil.imarith.setParam('verbose','yes')
     # iraf.imutil.imarith(mode='h')
-    iraf.imutil.imexpr('(a != -999) ? a + b : -999',output,'temp.fits',sky_med)
+    iraf.imutil.imexpr('(a != -999) ? a + b : -999',output,filter_name+'.fits',sky_med)
     iraf.imutil.imexpr('a < 0',output_bpm, output)
     iraf.imutil.imdelete('temp', verify='no')
     iraf.unlearn(iraf.imutil.hedit)
