@@ -1,0 +1,344 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>getfwhm &mdash; odi-tools 0.0.1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="odi-tools 0.0.1 documentation" href="../index.html"/>
+        <link rel="up" title="Module code" href="index.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> odi-tools
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../example/index.html">An Introduction to working with Quick Reduced Images</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">Modules</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">odi-tools</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">Module code</a> &raquo;</li>
+      
+    <li>getfwhm</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for getfwhm</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">glob</span><span class="o">,</span> <span class="nn">string</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">astropy</span> <span class="k">as</span> <span class="nn">ast</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">pyraf</span> <span class="k">import</span> <span class="n">iraf</span>
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="k">import</span> <span class="n">tqdm</span>
+<span class="kn">import</span> <span class="nn">odi_config</span> <span class="k">as</span> <span class="nn">odi</span>
+
+<div class="viewcode-block" id="getfwhm_ota"><a class="viewcode-back" href="../getfwhm.html#getfwhm.getfwhm_ota">[docs]</a><span class="k">def</span> <span class="nf">getfwhm_ota</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">ota</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span> <span class="n">buff</span><span class="o">=</span><span class="mf">7.0</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">5.0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get a fwhm estimate for a single OTA using the SDSS catalog stars and</span>
+<span class="sd">    IRAF imexam (SLOW, but works). Adapted from Kathy Rohde&#39;s getfwhm script</span>
+<span class="sd">    (this implementation is simpler in practice). The radius, buff, and width</span>
+<span class="sd">    parameters are for the pyraf task rimexam. This fwhm measure comes from</span>
+<span class="sd">    a gaussian fittype.</span>
+
+<span class="sd">    The positions of the SDSS starts are pulled from a ``coords`` file. This</span>
+<span class="sd">    module automatically fetches the ``coords`` file for the ``img`` and ``ota``</span>
+<span class="sd">    being processed from the appropriate directory.</span>
+
+<span class="sd">    In addition to a median fwhm measurement this module will also</span>
+<span class="sd">    produce an ouputfile where the positions and fwhm of each source are stored.</span>
+<span class="sd">    This ``output`` file is used in other modules in the ``odi-tools`` software.</span>
+<span class="sd">    The name of this ``output`` file is generated based on the ``img`` and</span>
+<span class="sd">    ``ota``.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    -----------</span>
+<span class="sd">    img : str</span>
+<span class="sd">       String containing name of the image currently in use</span>
+
+<span class="sd">    ota : str</span>
+<span class="sd">       Name of ota extension to be used (e.g. OTA33.SCI)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    --------</span>
+<span class="sd">    gfwhm : float</span>
+<span class="sd">          Median fwhm measure of sources found in the ota field.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; img = &#39;img1.fits&#39;</span>
+<span class="sd">    &gt;&gt;&gt; ota = &#39;OTA33.SCI&#39;</span>
+<span class="sd">    &gt;&gt;&gt; gfwhm = getfwhm_ota(img,ota)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># coords= img[0:-5]+&#39;.&#39;+ota+&#39;.sdssxy&#39;</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">reprojpath</span><span class="o">+</span><span class="s1">&#39;reproj_&#39;</span><span class="o">+</span><span class="n">ota</span><span class="o">+</span><span class="s1">&#39;.&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">img</span><span class="p">[</span><span class="mi">16</span><span class="p">:])</span>
+    <span class="n">coords</span> <span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">coordspath</span><span class="o">+</span><span class="s1">&#39;reproj_&#39;</span><span class="o">+</span><span class="n">ota</span><span class="o">+</span><span class="s1">&#39;.&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">img</span><span class="p">[</span><span class="mi">16</span><span class="p">:</span><span class="o">-</span><span class="mi">5</span><span class="p">])</span><span class="o">+</span><span class="s1">&#39;.sdssxy&#39;</span>
+    <span class="nb">print</span> <span class="n">image</span><span class="p">,</span> <span class="n">coords</span>
+    <span class="n">outputfile</span> <span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">coordspath</span><span class="o">+</span><span class="n">img</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">5</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39;.&#39;</span><span class="o">+</span><span class="n">ota</span><span class="o">+</span><span class="s1">&#39;.fwhm.log&#39;</span>
+
+    <span class="n">iraf</span><span class="o">.</span><span class="n">tv</span><span class="o">.</span><span class="n">rimexam</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;radius&#39;</span><span class="p">,</span><span class="n">radius</span><span class="p">)</span>
+    <span class="n">iraf</span><span class="o">.</span><span class="n">tv</span><span class="o">.</span><span class="n">rimexam</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;buffer&#39;</span><span class="p">,</span><span class="n">buff</span><span class="p">)</span>
+    <span class="n">iraf</span><span class="o">.</span><span class="n">tv</span><span class="o">.</span><span class="n">rimexam</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;width&#39;</span><span class="p">,</span><span class="n">width</span><span class="p">)</span>
+    <span class="n">iraf</span><span class="o">.</span><span class="n">tv</span><span class="o">.</span><span class="n">rimexam</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;rplot&#39;</span><span class="p">,</span><span class="mf">20.</span><span class="p">)</span>
+    <span class="n">iraf</span><span class="o">.</span><span class="n">tv</span><span class="o">.</span><span class="n">rimexam</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;center&#39;</span><span class="p">,</span><span class="s1">&#39;yes&#39;</span><span class="p">)</span>
+    <span class="c1"># fit a gaussian, rather than a moffat profile (it&#39;s more robust for faint sources)</span>
+    <span class="n">iraf</span><span class="o">.</span><span class="n">tv</span><span class="o">.</span><span class="n">rimexam</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;fittype&#39;</span><span class="p">,</span><span class="s1">&#39;gaussian&#39;</span><span class="p">)</span>
+    <span class="n">iraf</span><span class="o">.</span><span class="n">tv</span><span class="o">.</span><span class="n">rimexam</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;iterati&#39;</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">outputfile</span><span class="p">):</span>
+        <span class="n">iraf</span><span class="o">.</span><span class="n">tv</span><span class="o">.</span><span class="n">imexamine</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">logfile</span> <span class="o">=</span> <span class="n">outputfile</span><span class="p">,</span> <span class="n">keeplog</span> <span class="o">=</span> <span class="s1">&#39;yes&#39;</span><span class="p">,</span> <span class="n">defkey</span> <span class="o">=</span> <span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="n">nframes</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">imagecur</span> <span class="o">=</span> <span class="n">coords</span><span class="p">,</span><span class="n">use_display</span><span class="o">=</span><span class="s1">&#39;no&#39;</span><span class="p">,</span>  <span class="n">StdoutG</span><span class="o">=</span><span class="s1">&#39;/dev/null&#39;</span><span class="p">,</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;h&#39;</span><span class="p">)</span>
+
+    <span class="n">outputfile_clean</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">outputfile</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.log&#39;</span><span class="p">,</span><span class="s1">&#39;_clean.log&#39;</span><span class="p">),</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">outputfile</span><span class="p">,</span><span class="s2">&quot;r&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;INDEF&#39;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+            <span class="n">outputfile_clean</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;INDEF&#39;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+            <span class="n">outputfile_clean</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;INDEF&#39;</span><span class="p">,</span><span class="s1">&#39;999&#39;</span><span class="p">))</span>
+    <span class="n">outputfile_clean</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">outputfile</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.log&#39;</span><span class="p">,</span><span class="s1">&#39;_clean.log&#39;</span><span class="p">),</span><span class="n">outputfile</span><span class="p">)</span>
+    <span class="n">gfwhm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">outputfile</span><span class="p">,</span> <span class="n">usecols</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,),</span> <span class="n">unpack</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="c1"># hdulist = ast.io.fits.open(image)</span>
+    <span class="c1"># seeing = hdulist[0].header[&#39;FWHMSTAR&#39;]</span>
+    <span class="c1"># gfwhm = seeing/0.11</span>
+    <span class="nb">print</span> <span class="s1">&#39;median gwfhm in ota&#39;</span><span class="p">,</span><span class="n">ota</span><span class="o">+</span><span class="s1">&#39;: &#39;</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">gfwhm</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">gfwhm</span> <span class="o">&lt;</span> <span class="mf">900.0</span><span class="p">)]),</span><span class="s1">&#39;pixels&#39;</span><span class="c1"># (determined via QR)&#39;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">gfwhm</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">gfwhm</span> <span class="o">&lt;</span> <span class="mf">900.0</span><span class="p">)])</span></div>
+
+<div class="viewcode-block" id="getfwhm_full"><a class="viewcode-back" href="../getfwhm.html#getfwhm.getfwhm_full">[docs]</a><span class="k">def</span> <span class="nf">getfwhm_full</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span> <span class="n">buff</span><span class="o">=</span><span class="mf">7.0</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">5.0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get a fwhm estimate for a stacked image using the SDSS catalog stars and</span>
+<span class="sd">    IRAF imexam (SLOW, but works). Adapted from Kathy Rohde&#39;s getfwhm script</span>
+<span class="sd">    (this implementation is simpler in practice). The radius, buff, and width</span>
+<span class="sd">    parameters are for the pyraf task rimexam. This fwhm measure comes from</span>
+<span class="sd">    a gaussian fittype.</span>
+
+<span class="sd">    The positions of the SDSS starts are pulled from a ``coords`` file. This</span>
+<span class="sd">    module automatically fetches the ``coords`` file for the ``img`` and ``ota``</span>
+<span class="sd">    being processed from the appropriate directory.</span>
+
+<span class="sd">    In addition to a median fwhm measurement this module will also</span>
+<span class="sd">    produce an ouputfile where the positions and fwhm of each source are stored.</span>
+<span class="sd">    This ``output`` file is used in other modules in the ``odi-tools`` software.</span>
+<span class="sd">    The name of this ``output`` file is generated based on the ``img``.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    -----------</span>
+<span class="sd">    img : str</span>
+<span class="sd">       String containing name of the image currently in use</span>
+
+
+<span class="sd">    Returns</span>
+<span class="sd">    --------</span>
+<span class="sd">    gfwhm : float</span>
+<span class="sd">          Median fwhm measure of sources found in the ota field.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; img = &#39;stack1.fits&#39;</span>
+<span class="sd">    &gt;&gt;&gt; gfwhm = getfwhm_full(img)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">coords</span> <span class="o">=</span> <span class="n">img</span><span class="p">[:</span><span class="o">-</span><span class="mi">5</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39;.sdssxy&#39;</span>
+    <span class="n">outputfile</span> <span class="o">=</span> <span class="n">img</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">5</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39;.fwhm.log&#39;</span>
+
+    <span class="n">iraf</span><span class="o">.</span><span class="n">tv</span><span class="o">.</span><span class="n">rimexam</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;radius&#39;</span><span class="p">,</span><span class="n">radius</span><span class="p">)</span>
+    <span class="n">iraf</span><span class="o">.</span><span class="n">tv</span><span class="o">.</span><span class="n">rimexam</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;buffer&#39;</span><span class="p">,</span><span class="n">buff</span><span class="p">)</span>
+    <span class="n">iraf</span><span class="o">.</span><span class="n">tv</span><span class="o">.</span><span class="n">rimexam</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;width&#39;</span><span class="p">,</span><span class="n">width</span><span class="p">)</span>
+    <span class="n">iraf</span><span class="o">.</span><span class="n">tv</span><span class="o">.</span><span class="n">rimexam</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;rplot&#39;</span><span class="p">,</span><span class="mf">20.</span><span class="p">)</span>
+    <span class="n">iraf</span><span class="o">.</span><span class="n">tv</span><span class="o">.</span><span class="n">rimexam</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;center&#39;</span><span class="p">,</span><span class="s1">&#39;yes&#39;</span><span class="p">)</span>
+    <span class="c1"># fit a gaussian, rather than a moffat profile (it&#39;s more robust for faint sources)</span>
+    <span class="n">iraf</span><span class="o">.</span><span class="n">tv</span><span class="o">.</span><span class="n">rimexam</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;fittype&#39;</span><span class="p">,</span><span class="s1">&#39;gaussian&#39;</span><span class="p">)</span>
+    <span class="n">iraf</span><span class="o">.</span><span class="n">tv</span><span class="o">.</span><span class="n">rimexam</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;iterati&#39;</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">outputfile</span><span class="p">):</span>
+        <span class="n">iraf</span><span class="o">.</span><span class="n">tv</span><span class="o">.</span><span class="n">imexamine</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">logfile</span> <span class="o">=</span> <span class="n">outputfile</span><span class="p">,</span> <span class="n">keeplog</span> <span class="o">=</span> <span class="s1">&#39;yes&#39;</span><span class="p">,</span> <span class="n">defkey</span> <span class="o">=</span> <span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="n">nframes</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">imagecur</span> <span class="o">=</span> <span class="n">coords</span><span class="p">,</span> <span class="n">wcs</span> <span class="o">=</span> <span class="s2">&quot;logical&quot;</span><span class="p">,</span> <span class="n">use_display</span><span class="o">=</span><span class="s1">&#39;no&#39;</span><span class="p">,</span>  <span class="n">StdoutG</span><span class="o">=</span><span class="s1">&#39;/dev/null&#39;</span><span class="p">,</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;h&#39;</span><span class="p">)</span>
+    <span class="n">outputfile_clean</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">outputfile</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.log&#39;</span><span class="p">,</span><span class="s1">&#39;_clean.log&#39;</span><span class="p">),</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">outputfile</span><span class="p">,</span><span class="s2">&quot;r&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;INDEF&#39;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+            <span class="n">outputfile_clean</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;INDEF&#39;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+            <span class="n">outputfile_clean</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;INDEF&#39;</span><span class="p">,</span><span class="s1">&#39;999&#39;</span><span class="p">))</span>
+    <span class="n">outputfile_clean</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">outputfile</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.log&#39;</span><span class="p">,</span><span class="s1">&#39;_clean.log&#39;</span><span class="p">),</span><span class="n">outputfile</span><span class="p">)</span>
+    <span class="c1">#</span>
+    <span class="c1"># # unfortunately we have to toss the first measured fwhm value from the median because of the file format</span>
+    <span class="c1"># # gfwhm = np.genfromtxt(outputfile, usecols=(3,), skip_header=4, skip_footer=3, unpack=True)</span>
+    <span class="n">gfwhm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">outputfile</span><span class="p">,</span> <span class="n">usecols</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,),</span> <span class="n">unpack</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="c1"># hdulist = ast.io.fits.open(image)</span>
+    <span class="c1"># seeing = hdulist[0].header[&#39;FWHMSTAR&#39;]</span>
+    <span class="c1"># gfwhm = seeing/0.11</span>
+    <span class="nb">print</span> <span class="s1">&#39;median gwfhm in &#39;</span><span class="p">,</span><span class="n">img</span><span class="o">+</span><span class="s1">&#39;: &#39;</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">gfwhm</span><span class="p">),</span><span class="s1">&#39;pixels&#39;</span><span class="c1"># (determined via QR)&#39;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">gfwhm</span><span class="p">)</span></div>
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="k">pass</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Owen Boberg, Bill Janesh.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

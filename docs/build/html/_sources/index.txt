@@ -13,13 +13,23 @@ In this documentation we will provide descriptions of how to obtain and run
 the software, as well as a brief tutorial on using QuickReduced images.
 
 
-Contents:
+Getting started with odi-tools
+==============================
+
+.. toctree::
+   :maxdepth: 3
+
+   install
+   example/index
+
+
+Individual modules and tasks
+============================
 
 .. toctree::
    :maxdepth: 2
 
-   install
-   example/index
+   modules
 
 
 

@@ -20,7 +20,7 @@ open the multi-extension QR fits files:
 Accessing the extensions
 ------------------------
 
-Looking at ``hdulist`` is now an ``astropy`` HDUlist where each element
+``hdulist`` is now an ``astropy`` HDUlist where each element
 cooresponds to an extension of the fits file.
 
 >>> print hdulist.info()
@@ -43,7 +43,7 @@ No.    Name         Type      Cards   Dimensions     Format
 14   SKYLEVEL    BinTableHDU     50   1663R x 7C   [D, D, D, D, D, D, I]
 15   ASSOCIATIONS  BinTableHDU   17   16R x 3C     [25A, 375A, 100A]
 
-This particular image  is from ``podi`` meaning there are a total of 9 OTA in
+This particular image  is from ``podi`` meaning there are a total of 9 OTAs in
 the focal plane. In the ``hdulist`` the extensions for each of the OTAs are
 given in rows 1-9 and have names with the following convention ``OTAxy.SCI``.
 For a 5x6 ``ODI`` image, there would be 30 of these extensions.
@@ -80,7 +80,7 @@ the following:
 >>> iraf.datapars.setParam('fwhmpsf',fwhm,check=1)
 >>> iraf.datapars.setParam('datamin',-900,check=1)
 >>> iraf.datapars.setParam('datamax',60000,check=1)
->>> iraf.datapars.setParam('sigma',bg_std,check=1)
+>>> iraf.datapars.setParam('sigma',25.,check=1)
 >>> iraf.findpars.setParam('threshold',2.5)
 >>> iraf.apphot.daofind.setParam('output',output.txt)
 >>> iraf.apphot.daofind(image=img+'['+'OTA33.SCI'+']', verbose="no", verify='no')
