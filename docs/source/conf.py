@@ -20,8 +20,16 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('example/'))
 sys.path.insert(0, os.path.abspath('../..'))
-print sys.path
 
+autodoc_mock_imports = ['astropy.photutils','numpy','astropy','pyraf','numpy.ma',
+                        'matplotlib.pyplot','astropy.io','astropy.wcs',
+                        'matplotlib.pylab','astropy.stats','astropy.convolution'
+                        ,'astropy.units','pandas','astropy.convolution',
+                        'astropy.table','astropy.coordinates','astropy.extern',
+                        'astropy.utils.misc','astropy.utils.exceptions',
+                        'astropy.wcs.utils','astropy.nddata','numpy.lib.index_tricks',
+                        'photutils.detection','scipy.ndimage','photutils.utils',
+                        'astropy.visualization.mpl_normalize','astropy.modeling']
 
 # -- General configuration ------------------------------------------------
 
@@ -122,11 +130,15 @@ todo_include_todos = False
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-import sphinx_rtd_theme
+# on_rtd is whether we are on readthedocs.org, this line of code grabbed from docs.readthedocs.org
+on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 
-html_theme = "sphinx_rtd_theme"
+if not on_rtd:  # only import and set the theme if we're building docs locally
+    import sphinx_rtd_theme
+    html_theme = 'sphinx_rtd_theme'
+    html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
-html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+# otherwise, readthedocs.org uses their theme by default, so no need to specify it
 
 # html_theme = 'sphinx_rtd_theme'
 
