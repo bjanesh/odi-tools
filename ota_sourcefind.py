@@ -232,7 +232,7 @@ def source_scale(img,ref,filter):
 
     #id_ref, d2d_ref, d3d_ref = img_catalog.match_to_catalog_sky(ref_catalog)
 
-    id_img, id_ref, d2d, d3d = ref_catalog.search_around_sky(img_catalog,0.003*u.deg)
+    id_img, id_ref, d2d, d3d = ref_catalog.search_around_sky(img_catalog,0.002*u.deg)
 
     print img, len(id_img),len(id_ref)
 

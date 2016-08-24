@@ -8,6 +8,7 @@ from photutils.detection import detect_sources
 from photutils.utils import random_cmap
 from scipy.ndimage import binary_dilation
 
+from odi_cfgparse import *
 from odi_calibrate import *
 from odi_helpers import *
 from mask_ota import *
@@ -25,8 +26,17 @@ from ota_sourcefind import *
 from full_calibrate import *
 from full_phot import *
 
-podi_dictionary = {1:'OTA33.SCI',2: 'OTA34.SCI',3 :'OTA44.SCI', 4:'OTA43.SCI',5:'OTA42.SCI', 6:'OTA32.SCI', 
-7:'OTA22.SCI' ,8:'OTA23.SCI',9:'OTA24.SCI'}
+podi_dictionary = {
+    1: 'OTA33.SCI',
+    2: 'OTA34.SCI',
+    3: 'OTA44.SCI', 
+    4: 'OTA43.SCI',
+    5: 'OTA42.SCI', 
+    6: 'OTA32.SCI', 
+    7: 'OTA22.SCI',
+    8: 'OTA23.SCI',
+    9: 'OTA24.SCI'
+}
 
 odi5_dictionary = {
 	1 :'OTA33.SCI',
@@ -61,7 +71,7 @@ odi5_dictionary = {
 	30:'OTA16.SCI'	
 }
 
-odi5narrow_dictionary = {
+odi5mosaic_dictionary = {
     1 :'OTA33.SCI',
     2 :'OTA34.SCI',
     3 :'OTA43.SCI',

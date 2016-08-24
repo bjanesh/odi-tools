@@ -12,27 +12,26 @@ import shutil
 import pandas as pd
 import time
 
-try:
-    object_str, filters, instrument, images, illcor_flag, skyflat_src, scale_flag, stack_flag = odi.cfgparse('config.yaml')
-except IOError:
-    print 'config.yaml does not exist, quitting...'
-    exit()
+images_g = glob.glob('*_odi_NB695*.fits')
+images_g.sort()
+#print images_g
+images_r = glob.glob('*_odi_r*.fits')
+images_r.sort()
+images_i = glob.glob('*_odi_i*.fits')
+images_i.sort()
+filters = ['odi_NB695','odi_r','odi_i']
+# filters = ['odi_r']
 
-# for basic processing, filter shouldn't matter enough to consider separately
-# or rather, this script already handles that just fine
-# so just stick all the image names together into one long list
-images_ = []
-for filt in images:
-    for key in images[filt]:
-        images_.append(images[filt][key])
+images = images_g+images_r+images_i
+# images = images_r
 
-rad, decd = odi.get_targ_ra_dec(images_[0], 'OTA33.SCI')
+rad, decd = odi.get_targ_ra_dec(images[0], 'OTA33.SCI')
 source = 'sdss'
-inst = odi.instrument(images_[0])
+inst = odi.instrument(images[0])
 #source = 'twomass'
 
-#Create offline catalogs
-for img in images_:
+#Create offlines catalogs
+for img in images:
     print 'Retrieving QR SDSS and 2MASS catalogs for:', img
     for key in odi.OTA_dictionary:
         ota = odi.OTA_dictionary[key]
@@ -44,12 +43,12 @@ for img in images_:
 
 listfiles = glob.glob('*.lis')
 if len(listfiles) == 0:
-    odi.imcombine_lists(images_, filters)
+    odi.imcombine_lists(images, filters)
 else:
     print 'imcombine lists done'
 
 if not os.path.isfile('bpms.done'):
-    for img in images_:
+    for img in images:
         print 'updating bpms for', img
         for key in tqdm(odi.OTA_dictionary):
             ota = odi.OTA_dictionary[key]
@@ -66,7 +65,7 @@ else:
 if not os.path.isfile('derived_props.txt'):
     f1 = open('derived_props.txt','w+')
     print >> f1, '# img  ota  filter fwhm  zp_med  zp_std  bg_mean  bg_med  bg_std'
-    for img in images_:
+    for img in images:
         for key in tqdm(odi.OTA_dictionary):
             ota = odi.OTA_dictionary[key]
             hdulist = odi.fits.open(img)
@@ -76,7 +75,7 @@ if not os.path.isfile('derived_props.txt'):
             correction_image = ota+'.'+filt+'.med.fits'
             corrected_image = 'illcor_'+ota+'.'+str(img[16:])
             if not os.path.isfile(odi.illcorpath+corrected_image):
-                odi.illumination_corrections(image_to_correct, correction_image, corrected_image, do_correction=illcor_flag)
+                odi.illumination_corrections(image_to_correct, correction_image, corrected_image)
             gaps = odi.get_gaps(img, ota)
             reprojed_image = 'reproj_'+ota+'.'+str(img[16:])
             if not os.path.isfile(odi.reprojpath+reprojed_image):
@@ -90,7 +89,7 @@ if not os.path.isfile('derived_props.txt'):
                         odi.fix_wcs(img, ota, coords=img[:-5]+'.'+ota+'.radec.coo', iters=3)
                     except:
                         print 'there might be too few stars for msccmatch, just skip it.'
-                wcsref = odi.illcorpath+'illcor_OTA33.SCI.'+str((images_[0])[16:])        
+                wcsref = odi.illcorpath+'illcor_OTA33.SCI.'+str((images[0])[16:])        
                 odi.reproject_ota(img, ota, rad, decd, wcsref)
             gaps = odi.get_gaps_rep(img, ota)
             odi.refetch_sdss_coords(img, ota, gaps, inst,gmaglim=21.5,offline = True,source=source)
@@ -114,7 +113,7 @@ else:
     ota_d, filt_d = np.loadtxt('derived_props.txt',usecols=(1,2),unpack=True,dtype=str)
     finished = zip(imgnum,ota_d,filt_d)
     f1 = open('derived_props.txt','a+')
-    for img in images_:
+    for img in images:
         for key in tqdm(odi.OTA_dictionary):
             ota = odi.OTA_dictionary[key]
             hdulist = odi.fits.open(img)
@@ -125,9 +124,10 @@ else:
                 already = 0
             else:
                 image_to_correct = img+'['+ota+']'
+                correction_image = ota+'.'+filt+'.med.fits'
                 corrected_image = 'illcor_'+ota+'.'+str(img[16:])
                 if not os.path.isfile(odi.illcorpath+corrected_image):
-                    odi.illumination_corrections(image_to_correct, correction_image, corrected_image, do_correction=illcor_flag)
+                    odi.illumination_corrections(image_to_correct, correction_image, corrected_image)
                 gaps = odi.get_gaps(img, ota)
                 reprojed_image = 'reproj_'+ota+'.'+str(img[16:])
                 if not os.path.isfile(odi.reprojpath+reprojed_image):
