@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Welcome to the documentation for odi-tools &mdash; odi-tools 0.0.1 documentation</title>
+  <title>Creating an OTA bad pixel mask &mdash; odi-tools 0.0.1 documentation</title>
   
 
   
@@ -30,8 +30,9 @@
   
 
   
-    <link rel="top" title="odi-tools 0.0.1 documentation" href="#"/>
-        <link rel="next" title="Installation" href="install.html"/> 
+    <link rel="top" title="odi-tools 0.0.1 documentation" href="index.html"/>
+        <link rel="up" title="Modules" href="modules.html"/>
+        <link rel="prev" title="Measuring Stellar FWHM" href="getfwhm.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -49,7 +50,7 @@
           
 
           
-            <a href="#" class="icon icon-home"> odi-tools
+            <a href="index.html" class="icon icon-home"> odi-tools
           
 
           
@@ -84,8 +85,12 @@
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="example/index.html">An Introduction to working with Quick Reduced Images</a></li>
 </ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="modules.html">Modules</a></li>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">Modules</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="getfwhm.html">Measuring Stellar FWHM</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Creating an OTA bad pixel mask</a></li>
+</ul>
+</li>
 </ul>
 
             
@@ -99,7 +104,7 @@
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="#">odi-tools</a>
+        <a href="index.html">odi-tools</a>
       </nav>
 
 
@@ -114,13 +119,15 @@
 
 <div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
-    <li><a href="#">Docs</a> &raquo;</li>
+    <li><a href="index.html">Docs</a> &raquo;</li>
       
-    <li>Welcome to the documentation for odi-tools</li>
+          <li><a href="modules.html">Modules</a> &raquo;</li>
+      
+    <li>Creating an OTA bad pixel mask</li>
       <li class="wy-breadcrumbs-aside">
         
           
-            <a href="_sources/index.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/mask_ota.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -130,51 +137,38 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="welcome-to-the-documentation-for-odi-tools">
-<h1>Welcome to the documentation for odi-tools<a class="headerlink" href="#welcome-to-the-documentation-for-odi-tools" title="Permalink to this headline">¶</a></h1>
-<p><strong>odi-tools</strong> is a suite of tools written in Pyraf, Astropy,
-Scipy, and Numpy to process individual QuickReduced images
-into single stacked images using a set of &#8220;best practices&#8221; for ODI data.</p>
-<p>In this documentation we will provide descriptions of how to obtain and run
-the software, as well as a brief tutorial on using QuickReduced images.</p>
-</div>
-<div class="section" id="getting-started-with-odi-tools">
-<h1>Getting started with odi-tools<a class="headerlink" href="#getting-started-with-odi-tools" title="Permalink to this headline">¶</a></h1>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="example/index.html">An Introduction to working with Quick Reduced Images</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="example/navigation.html">Navigating a QR image</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="example/navigation.html#opening-the-fits-file">Opening the fits file</a></li>
-<li class="toctree-l3"><a class="reference internal" href="example/navigation.html#accessing-the-extensions">Accessing the extensions</a></li>
-<li class="toctree-l3"><a class="reference internal" href="example/navigation.html#the-odi-tools-scheme">The odi-tools scheme</a></li>
-<li class="toctree-l3"><a class="reference internal" href="example/navigation.html#the-other-extensions">The other extensions</a></li>
+  <div class="section" id="module-mask_ota">
+<span id="creating-an-ota-bad-pixel-mask"></span><h1>Creating an OTA bad pixel mask<a class="headerlink" href="#module-mask_ota" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="mask_ota.mask_ota">
+<code class="descclassname">mask_ota.</code><code class="descname">mask_ota</code><span class="sig-paren">(</span><em>img</em>, <em>ota</em>, <em>reproj=False</em>, <em>deep_obj=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mask_ota.html#mask_ota"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mask_ota.mask_ota" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a numpy array that will be used to create the bad pixel mask
+for an ota. The function finds the pixel locations of the gaps in the
+ota as well as hot and dead pixels.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>img</strong> (<em>str</em>) &#8211; String containing name of the image currently in use</li>
+<li><strong>ota</strong> (<em>str</em>) &#8211; Name of ota extension to be used (e.g. OTA33.SCI)</li>
+<li><strong>reproj</strong> (<em>boolean</em>) &#8211; If <code class="docutils literal"><span class="pre">reproj</span></code> is <code class="docutils literal"><span class="pre">True</span></code> this function returns background statistics on
+the OTA, but the mask is still produced.</li>
+<li><strong>deep_obj</strong> (<em>boolean</em>) &#8211; If <code class="docutils literal"><span class="pre">deep_obj</span></code> is <code class="docutils literal"><span class="pre">True</span></code> the threshold for dead pixels is set to -900.</li>
 </ul>
-</li>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><strong>total_mask</strong> (<em>2D array</em>) &#8211; Array mask for hot pixels, dead pixels, and the gaps.</li>
+<li><strong>gap_mask</strong> (<em>2D array</em>) &#8211; Array mask for the gaps.</li>
 </ul>
-</li>
-</ul>
-</div>
-</div>
-<div class="section" id="individual-modules-and-tasks">
-<h1>Individual modules and tasks<a class="headerlink" href="#individual-modules-and-tasks" title="Permalink to this headline">¶</a></h1>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="modules.html">Modules</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="getfwhm.html">Measuring Stellar FWHM</a></li>
-<li class="toctree-l2"><a class="reference internal" href="mask_ota.html">Creating an OTA bad pixel mask</a></li>
-</ul>
-</li>
-</ul>
-</div>
-</div>
-<div class="section" id="indices-and-tables">
-<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
-<ul class="simple">
-<li><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></li>
-<li><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></li>
-<li><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></li>
-</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </div>
 
 
@@ -184,8 +178,8 @@ the software, as well as a brief tutorial on using QuickReduced images.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="install.html" class="btn btn-neutral float-right" title="Installation" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
+        <a href="getfwhm.html" class="btn btn-neutral" title="Measuring Stellar FWHM" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
