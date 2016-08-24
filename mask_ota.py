@@ -3,11 +3,39 @@ import numpy as np
 import astropy as ast
 import matplotlib.pyplot as plt
 from pyraf import iraf
-
 import odi_config as odi
 
 
 def mask_ota(img, ota, reproj=False, deep_obj=False):
+    """
+    Create a numpy array that will be used to create the bad pixel mask
+    for an ota. The function finds the pixel locations of the gaps in the
+    ota as well as hot and dead pixels.
+
+    Parameters
+    -----------
+    img : str
+       String containing name of the image currently in use
+
+    ota : str
+       Name of ota extension to be used (e.g. OTA33.SCI)
+
+    reproj : boolean
+        If ``reproj`` is ``True`` this function returns background statistics on
+        the OTA, but the mask is still produced.
+
+    deep_obj: boolean
+        If ``deep_obj`` is ``True`` the threshold for dead pixels is set to -900.
+
+    Returns
+    --------
+    total_mask : 2D array
+               Array mask for hot pixels, dead pixels, and the gaps.
+    gap_mask : 2D array
+             Array mask for the gaps.
+
+    """
+
     if reproj:
       image = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
       QR_raw = odi.fits.open(image)
@@ -19,8 +47,8 @@ def mask_ota(img, ota, reproj=False, deep_obj=False):
       hdu_ota = QR_raw[0]
     else:
       QR_raw = odi.fits.open(img)
-      hdu_ota = QR_raw[ota] 
-    
+      hdu_ota = QR_raw[ota]
+
     # Mask hot pixels count greater than 58000
     hot_pix_mask = (hdu_ota.data > 58000.0).astype(int)
     # Mask dead pixels
@@ -30,25 +58,25 @@ def mask_ota(img, ota, reproj=False, deep_obj=False):
       dead_pix_mask = (hdu_ota.data < 1.0).astype(int)
     # Mask gaps
     gaps_mask = np.isnan(hdu_ota.data).astype(int)
-    
+
     #Calculate background stats
     bg_stats,bg_median,med_std,std_std,centers,max_box = odi.bkg_boxes(hdu_ota,100,20.0,sources=True)
-    
+
     #print bg_median,med_std,std_std
-    
+
     threshold = bg_median + (med_std * 3.0)
     segm_img = odi.detect_sources(hdu_ota.data, threshold, npixels=25)
     source_mask1 =  segm_img.data.astype(np.bool)
     selem = np.ones((15,15))    # dilate using a 25x25 box
-    source_mask2 = odi.binary_dilation(source_mask1, selem)  
-    
+    source_mask2 = odi.binary_dilation(source_mask1, selem)
+
     full_mask = source_mask2 + hot_pix_mask + dead_pix_mask + gaps_mask
     #full_mask = segm_img.data + hot_pix_mask + dead_pix_mask + gaps_mask
     total_mask = full_mask.astype(np.bool) # turn segm_img into a mask
-    
+
     #create numpy masked array object
     # masked_array = ma.masked_array(hdu_ota.data,mask=total_mask)
-    
+
     if reproj:
       # if operating on the reprojected image, return background statistics instead of the mask
       # but use the mask to get rid of sources, so it's a clean measurement
@@ -60,9 +88,9 @@ def mask_ota(img, ota, reproj=False, deep_obj=False):
       if not os.path.isfile(bppath+mask_name):
           hdu = odi.fits.PrimaryHDU(source_mask2.astype(float))
           hdu.writeto(bppath+mask_name,clobber=True)
-      
+
       ota_mask = 'objmask_'+ota+'.'+str(img[16:17])+'.fits'
-          
+
       if not os.path.isfile(odi.bppath+ota_mask):
           iraf.unlearn(iraf.mscred.mscimage)
           iraf.mscred.mscimage.format='image'
@@ -81,15 +109,14 @@ def mask_ota(img, ota, reproj=False, deep_obj=False):
           iraf.mscred.mscimage.nybl=2048
           iraf.mscred.mscimage.fluxcon='yes'
           iraf.mscred.mscimage(odi.bppath+mask_name,odi.bppath+ota_mask)
-      
+
       return
     else:
-      return total_mask, gaps_mask  
+      return total_mask, gaps_mask
     QR_raw.close()
-  
+
 def main():
     pass
 
 if __name__ == '__main__':
     main()
-  
