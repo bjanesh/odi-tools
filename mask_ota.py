@@ -34,6 +34,17 @@ def mask_ota(img, ota, reproj=False, deep_obj=False):
     gap_mask : 2D array
              Array mask for the gaps.
 
+    Notes
+    -----
+    Here are the limits used to located the pixels that are to be masked
+
+    ``hot_pixels`` : hdu_ota.data > 58000.0
+
+    ``dead_pixels`` : hdu_ota.data < 1.0
+    
+    ``gap_pixels`` : hdu_ota.data = ``NaN``
+
+
     """
 
     if reproj:

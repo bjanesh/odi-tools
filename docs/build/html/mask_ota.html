@@ -167,6 +167,11 @@ the OTA, but the mask is still produced.</li>
 </tr>
 </tbody>
 </table>
+<p class="rubric">Notes</p>
+<p>Here are the limits used to located the pixels that are to be masked</p>
+<p><code class="docutils literal"><span class="pre">hot_pixels</span></code> : hdu_ota.data &gt; 58000.0</p>
+<p><code class="docutils literal"><span class="pre">dead_pixels</span></code> : hdu_ota.data &lt; 1.0</p>
+<p><code class="docutils literal"><span class="pre">gap_pixels</span></code> : hdu_ota.data = <code class="docutils literal"><span class="pre">NaN</span></code></p>
 </dd></dl>
 
 </div>

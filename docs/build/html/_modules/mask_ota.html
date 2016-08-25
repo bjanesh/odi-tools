@@ -167,6 +167,17 @@
 <span class="sd">    gap_mask : 2D array</span>
 <span class="sd">             Array mask for the gaps.</span>
 
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Here are the limits used to located the pixels that are to be masked</span>
+
+<span class="sd">    ``hot_pixels`` : hdu_ota.data &gt; 58000.0</span>
+
+<span class="sd">    ``dead_pixels`` : hdu_ota.data &lt; 1.0</span>
+<span class="sd">    </span>
+<span class="sd">    ``gap_pixels`` : hdu_ota.data = ``NaN``</span>
+
+
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">if</span> <span class="n">reproj</span><span class="p">:</span>
