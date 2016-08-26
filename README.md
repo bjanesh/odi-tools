@@ -3,7 +3,7 @@
 A suite of tools written in Pyraf, Astropy, Scipy, and Numpy to process individual QuickReduced images into single stacked images using a set of "best practices" for ODI data.
 
 We are currently in the process of writing full documentation for `odi-tools`
-and its individual components. This documentation can be found at this [link]('http://odi-tools.readthedocs.io/en/latest/'). 
+and its individual components. This documentation can be found at this [link](http://odi-tools.readthedocs.io/en/latest/). 
 
 ### Installation
 simply fork this repository and clone onto your local machine, e.g.: `git clone https://github.com/bjanesh/odi-tools.git`
