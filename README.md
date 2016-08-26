@@ -2,6 +2,9 @@
 
 A suite of tools written in Pyraf, Astropy, Scipy, and Numpy to process individual QuickReduced images into single stacked images using a set of "best practices" for ODI data.
 
+We are currently in the process of writing full documentation for `odi-tools`
+and its individual components. This documentation can be found at this [link]('http://odi-tools.readthedocs.io/en/latest/'). 
+
 ### Installation
 simply fork this repository and clone onto your local machine, e.g.: `git clone https://github.com/bjanesh/odi-tools.git`
 
@@ -15,7 +18,7 @@ It is possible to install these packages without root access by using the `--use
 
 `pip install --user package-name`
 
-As noted on the [astropy website](http://astropy.readthedocs.org/en/stable/install.html), it might also be beneficial to use the `--no-deps` 
+As noted on the [astropy website](http://astropy.readthedocs.org/en/stable/install.html), it might also be beneficial to use the `--no-deps`
 option when installing astropy to stop pip from automatically upgrading any of your previously installed packages, such as numpy.
 
 `pip install --no-deps astropy`
@@ -25,8 +28,8 @@ All you need to do to get started is download your QR-ed data from the ODI-PPA u
 
 1. move all individual .fz files into the top level folder: `mv calibrated/**/*.fz .`
 2. unpack the compressed fits files using `funpack` [link](https://heasarc.gsfc.nasa.gov/fitsio/fpack/)
-3. you need to rename your files to match the appropriate dither pointing identification. for example, QR files are named by the pattern `OBSID_OBJECT_FILTER.JOBID.fits`. The final digit of the OBSID `e.g. 20151008T195949.1` needs to match the number sequence of the dithers 1-9. Your data may not match this pattern due to restarted observations, multiple night observations, etc. 
-4. copy `example_config.yaml` to your data directory as `config.yaml` and edit the file to match your preferences/data. Make sure that the number for each image matches the correct number in the dither sequence! 
+3. you need to rename your files to match the appropriate dither pointing identification. for example, QR files are named by the pattern `OBSID_OBJECT_FILTER.JOBID.fits`. The final digit of the OBSID `e.g. 20151008T195949.1` needs to match the number sequence of the dithers 1-9. Your data may not match this pattern due to restarted observations, multiple night observations, etc.
+4. copy `example_config.yaml` to your data directory as `config.yaml` and edit the file to match your preferences/data. Make sure that the number for each image matches the correct number in the dither sequence!
 5. run `odi_process.py` in the folder containing the unpacked/renamed fits images. This will (optionally) illumination correct the images, fix their WCS, reproject them to a common pixel scale, and perform background subtraction on them.
 6. this will take a while, so make sure nothing bad happened
 7. run `odi_scalestack_process.py` in the folder containing the unpacked/renamed fits images. This will detect bright stellar sources in the images and use them to calculate a scaling factor relative to the image in the sequence with the lowest airmass, then apply the scale, stack the images, then add in a common background value.
@@ -51,7 +54,7 @@ All you need to do to get started is download your QR-ed data from the ODI-PPA u
   7. now that the WCS is good in each image, reproject each image of the object in all filters to a common system, using the _target_ RA and Dec as the reference point. (using `iraf.mscred.mscimage`)
   8. measure the mean stellar fwhm in each OTA using `iraf.imexam`
   9. measure and subtract the median background in each image. Put down 100 random boxes around the image, find the *median* value and subtract. This takes advantage of the object masks created earlier to know where objects are.
-  10. write out all the measured properties into a table so we know what happened and can see if anything went wrong. 
+  10. write out all the measured properties into a table so we know what happened and can see if anything went wrong.
 8. Run `odi_scalestack_process.py` in the top-level folder. This will determine scaling factors, scale the image, and stack them into single images per filter.
   1. find sources in the image using `daofind`
   2. build a matched catalog of stars, making sure all the stars are visible on all the other images and not in a cell gap/etc.
@@ -65,5 +68,5 @@ All you need to do to get started is download your QR-ed data from the ODI-PPA u
   3. get photometry of all SDSS catalog stars from the stacked images using a large aperture (4.5x fwhm).
   4. do matched pair photometric calibration using the photometry of the SDSS stars and the catalog values. See `full_calibrate.py:388` for full details.
   5. determine an aperture correction for each filter using the brightest SDSS stars.
-  6. find *all* sources in the images using `daofind`, `iraf.apphot.phot` them, and determine their RA and Dec. 
+  6. find *all* sources in the images using `daofind`, `iraf.apphot.phot` them, and determine their RA and Dec.
   7. based on RA and Dec, match the sources between the images, and calibrate the photometry using predetermined coefficients. Print calibrated magnitudes out to a file, and make a CMD of the final sources.
