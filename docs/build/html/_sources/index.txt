@@ -20,7 +20,9 @@ Getting started with odi-tools
    :maxdepth: 3
 
    install
+   running_qr
    example/index
+   basic_usage
 
 
 Individual modules and tasks
