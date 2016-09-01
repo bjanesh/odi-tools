@@ -25,7 +25,7 @@ def bkg_boxes(hdu,nboxes,length,sources):
 
     #generate the centers of n random boxes.
 
-    box_centers = np.random.randint(0,np.min([naxis1,naxis2]),size=(nboxes,2))
+    box_centers = np.random.randint(length,np.min([naxis1-length,naxis2-length]),size=(nboxes,2))
 
     #divide length by 2
     # another numpy error on wopr (can't convert to integer), so don't worry about integer arithmetic
@@ -34,13 +34,13 @@ def bkg_boxes(hdu,nboxes,length,sources):
     bg_stats = []
     centers = []
     for center in range(len(box_centers)):
-        x1 = box_centers[center][0]-side
-        x2 = box_centers[center][0]+side
-        y1 = box_centers[center][1]-side
-        y2 = box_centers[center][1]+side
+        x1 = int(box_centers[center][0]-side)
+        x2 = int(box_centers[center][0]+side)
+        y1 = int(box_centers[center][1]-side)
+        y2 = int(box_centers[center][1]+side)
 
         #Check to ensure that box is within image
-        if (x1 > side and x2 < naxis1-side) and (y1 > side and y2 < naxis2-side):
+        if (x1 > side and x2 < naxis1-1.5*side) and (y1 > side and y2 < naxis2-1.5*side):
             centers.append(box_centers[center])
             """
             The centers that are within the image bounds are returned
@@ -83,8 +83,10 @@ def bkg_boxes(hdu,nboxes,length,sources):
 
     #Locate the box that had the largest std
     #Array will be returned for plotting if wanted
-    max_std = np.argmax(bg_stats[:,2])
-    max_center = centers[max_std]
-    max_box = image[max_center[0]-side:max_center[0]+side,max_center[1]-side:max_center[1]+side]
+    # max_std = np.argmax(bg_stats[:,2])
+    # max_center = centers[max_std]
+    # max_box = image[max_center[0]-side:max_center[0]+side,max_center[1]-side:max_center[1]+side]
+    # max_box is currently not needed.
+    max_box = 1.0
 
     return bg_stats,bg_median,med_std,std_std,centers,max_box
