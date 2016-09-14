@@ -384,9 +384,9 @@ def apcor_sdss(img,fwhm,inspect=False):
         err = [float(x) for x in line.split()[42:55]]
         position = [float(x) for x in line.split()[14:16]]
         #print i,peak[i],gfwhm[i],g[i]
-        if (peak[i] >= np.percentile(peak,70) and peak[i] <= 55000.0  and
+        if (peak[i] > 2500.0 and peak[i] <= 55000.0  and
             (np.abs(gfwhm[i] - np.median(gfwhm[np.where(gfwhm < 20.0)])) < np.std(gfwhm[np.where(gfwhm < 20.0)]))
-            and np.max(mag) != 999.0 and g[i] <= 17):
+            and np.max(mag) != 999.0):
             if inspect == True:
                 center = position
                 x1 = center[0]-75
@@ -447,10 +447,11 @@ def apcor_sdss(img,fwhm,inspect=False):
     for j in range(len(x)):
         if j !=0 :
             star_test = combine_mag_diffs1x[:,j]
+            star_test = star_test[np.where(((star_test >= -0.5) & (star_test <= 0)))]
             sig_test = np.std(combine_mag_diffs1x[:,j])
             #print sig_test,len(star_test)
             med_test = np.median(combine_mag_diffs1x[:,j])
-            keep = star_test[np.where( np.abs(star_test-med_test) < 0.01)]
+            keep = star_test[np.where(np.abs(star_test-med_test) < 0.01)]
             #plt.hist(keep)
             #plt.show()
             combine_mag_diffs1x_mean.append(np.mean(keep))
