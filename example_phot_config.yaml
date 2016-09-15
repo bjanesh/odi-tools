@@ -2,14 +2,14 @@
 basic:
   object: GCPair-F1                           # the name of your object
   filters: [odi_g, odi_r]               # correct filter strings required
-  instrument: 5odi                      # podi | 5odi | mosaic; script will verify using image header info
+  instrument: podi                      # podi | 5odi | mosaic; script will verify using image header info
 
 processing: # optional steps performed in odi_process.py
   remove_tpv: yes
   trim_image: yes
   wcs_correction: yes
-  trim_section: [2508,15798,2216,15506] #[x1:x2,y1:y2]
-  airmasses: [1.0,1.0] #same order as filters
+  trim_section: [2936, 14936, 2787, 14787]
+  airmasses: [1.150461833,1.079062424] #same order as filters
   new_extension: .trim-nopv.fits
 
 # list the images you want to process
