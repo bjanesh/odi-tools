@@ -9,18 +9,6 @@ from astropy.coordinates import SkyCoord
 from astropy import units as u
 from collections import OrderedDict
 
-def trim_img(img):
-    x1,x2 = 2508,15798
-    y1,y2 = 2216,15506
-    input = img[:-5]+'['+repr(x1)+':'+repr(x2)+','+repr(y1)+':'+repr(y2)+']'
-    output =  img[:-5]+'.trim.fits'
-    if not os.path.isfile(output):
-	print 'Trimming image: ' ,img
-        iraf.unlearn(iraf.imcopy)
-        iraf.imcopy(input = input,output = output,verbose='no',mode='h')
-
-
-
 def find_sources_full(img,fwhm,bg_std,threshold=4.0):
     output = img[:-5]+'_sources.coo'
     if not os.path.isfile(output):
@@ -159,7 +147,7 @@ def match_phot_srcs(img1,img2):
         print >> junk, x_2[i], y_2[i]
     junk.close()
 
-def calc_calibrated_mags(apcor_g, cal_A_g, apcor_r, cal_A_r):
+def calc_calibrated_mags(apcor_g, cal_A_g, apcor_r, cal_A_r, photcalFile, object_str):
     from matplotlib import gridspec
     kg = 0.200
     kr = 0.12
@@ -168,7 +156,7 @@ def calc_calibrated_mags(apcor_g, cal_A_g, apcor_r, cal_A_r):
 
     # get the photometric calibration coefficients from Steven's help file <--
     # or from the image header/fits table/ whatever
-    photcalFile = open('GCPair-F2_odi_g-no_help.txt')
+    photcalFile = open(photcalFile)
     photcal = photcalFile.read()
     photcalLines = photcal.splitlines()
 
@@ -223,4 +211,4 @@ def calc_calibrated_mags(apcor_g, cal_A_g, apcor_r, cal_A_r):
     plt.setp(ax1.get_yticklabels(), visible=False)
 
     plt.tight_layout()
-    plt.savefig("GCPF2_CMD.pdf")
+    plt.savefig(object_str+'_CMD.pdf')

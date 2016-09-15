@@ -25,6 +25,16 @@ def tpv_remove(img):
 
     return img[:-5]+'-nopv.fits'
 
+def trim_img(img,x1,x2,y1,y2):
+    x1,x2 = x1,x2
+    y1,y2 = y1,y2
+    input = img[:-5]+'['+repr(x1)+':'+repr(x2)+','+repr(y1)+':'+repr(y2)+']'
+    output =  img[:-5]+'.trim.fits'
+    if not os.path.isfile(output):
+        print 'Trimming image: ' ,img
+        iraf.unlearn(iraf.imcopy)
+        iraf.imcopy(input = input,output = output,verbose='no',mode='h')
+
 def full_sdssmatch(img1,img2,inst,gmaglim=19):
     """
     Fetch sdss images in each final stacked image
@@ -866,25 +876,4 @@ def calibrate_match(img1, img2, fwhm1, fwhm2, airmass1, airmass2):
     print 'Calibration fit diagnostic plots:      ', img_root+'_photcal.pdf'
     print 'Final calibration values:              ', img_root+'_help.txt'
 
-
-# How to use in odi_process
-#g_img = 'GCPair-F1_odi_g.fits'
-#r_img = 'GCPair-F1_odi_r.fits'
-
-#odi.full_sdssmatch(g_img,r_img,inst)
-
-#median_fwhm,median_bg_mean,median_bg_median,median_bg_std = odi.read_proc('derived_props.txt','odi_g')
-#print median_fwhm,median_bg_mean,median_bg_median,median_bg_std
-
-#airmass_g = odi.get_airmass(images_g)
-
-#odi.sdss_phot(g_img,median_fwhm,airmass_g)
-
-#median_fwhmr,median_bg_meanr,median_bg_medianr,median_bg_stdr = odi.read_proc('derived_props.txt','odi_r')
-#print median_fwhmr,median_bg_meanr,median_bg_medianr,median_bg_stdr
-
-#airmass_r = odi.get_airmass(images_r)
-
-#odi.sdss_phot(r_img,median_fwhmr,airmass_r)
-
-#odi.calibrate_match(g_img,r_img,median_fwhm,median_fwhmr,airmass_g,airmass_r)
+    return img_root+'_help.txt'
