@@ -11,99 +11,61 @@ import glob
 import shutil
 import pandas as pd
 
-# These are not acutally needed.
-# We only really need one to get the inst variable
 
-images_g = glob.glob('20*_odi_g*.fits')
-images_g.sort()
-images_r = glob.glob('20*_odi_r*.fits')
-images_r.sort()
-filters = ['odi_g','odi_r']
+try:
+    object_str, filters, instrument, images, new_extension, remove_tpv_flag, trim_image_flag, wcs_flag, trim_section, airmasses = odi.photcfgparse('phot_confing.yaml')
+except IOError:
+    print 'phot_config.yaml does not exist, quitting...'
+    exit()
 
-images = images_g+images_r
+images_ = []
+new_images_=[]
+for filt in images:
+    for key in images[filt]:
+        images_.append(images[filt][key])
+        new_images_.append(images[filt][key].strip('.fits') + new_extension)
 
-# Get the airmass of reference image
-grefimg = odi.find_ref_image(images_g)
-ghduref = odi.fits.open(images_g[grefimg])
-airmass_g = ghduref[0].header['airmass']
-#airmass_g = 1.045
-#airmass_r = 1.161
-ghduref.close()
+nopv_images = new_images_
+for i,img in enumerate(images_):
+    if trim_image_flag == True:
+        x1, x2, y1, y2 = trim_section[0], trim_section[1], trim_section[2], trim_section[3]
+        odi.trim_img(img,x1,x2,y1,y2)
+    if remove_tpv_flag == True:
+        img_nopv = odi.tpv_remove(img[:-5]+'.trim.fits')
+        nopv_images[i] = img_nopv
 
-rrefimg = odi.find_ref_image(images_r)
-rhduref = odi.fits.open(images_r[rrefimg])
-airmass_r = rhduref[0].header['airmass']
-rhduref.close()
+if wcs_flag == True:
+    if not os.path.isfile('full_wcs_fix.done'):
+        odi.full_sdssmatch(nopv_images[0],nopv_images[1],instrument,gmaglim=23.0)
+        odi.fix_wcs_full(nopv_images[0],coords=nopv_images[0][:-5]+'.wcs.coo')
+        odi.fix_wcs_full(nopv_images[1],coords=nopv_images[0][:-5]+'.wcs.coo')
+        with open('full_wcs_fix.done','w+') as f:
+            print >> f, ''
 
+apcor_values = {}
+apcor_stds = {}
+apcor_sems = {}
+fwhm_values = {}
+for i,img in enumerate(images_):
+    median_fwhm,median_bg_mean,median_bg_median,median_bg_std = odi.read_proc('derived_props.txt',filters[i])
+    img = nopv_images[i]
+    peaks,gfwhms = odi.getfwhm_full_sdss(img)
 
-source = 'sdss'
-inst = odi.instrument(images[0])
-fitsref = odi.fits.open(images[0])
-hduref = fitsref[0]
-objname = hduref.header['object']
-fitsref.close()
-#filter_name = hduref.header['filter']
-#sky_med = hduref.header['skybg']
-#output = objname+'_'+filter_name+'.fits'
+    median_gfwhm = np.median(gfwhms[np.where(gfwhms < 20.0)])
+    print median_gfwhm
+    fwhm_values[i] = median_gfwhm
 
-g_img = g_imgr = objname+'_odi_g.fits'
-print 'The g image is: ', g_img
+    odi.sdss_phot_full(img,median_gfwhm,airmasses[i])
+    apcor, apcor_std, apcor_sem = odi.apcor_sdss(img, median_gfwhm, inspect=False)
+    apcor_values[i] = apcor
+    apcor_stds[i] = apcor_std
+    apcor_sems[i] = apcor_sem
 
-r_img = r_imgr = objname+'_odi_r.fits'
-print 'The r image is: ', r_img
+    odi.find_sources_full(img,median_gfwhm,median_bg_std,threshold=3.5)
+    odi.phot_sources_full(img,median_gfwhm,airmasses[i],1.0)
+    odi.phot_sources_xy2sky(img,instrument)
 
+photcalFile = odi.calibrate_match(nopv_images[0],nopv_images[1],fwhm_values[0],fwhm_values[1],airmasses[0],airmasses[1])
 
-#Color eq steps
-#First find the sdss sources that are in each stacked image
-if not os.path.isfile('full_wcs_fix.done'):
-    odi.full_sdssmatch(g_img,r_img,inst,gmaglim=19.0)
-    odi.fix_wcs_full(g_img,coords=g_img[:-5]+'.wcs.coo')
-    odi.fix_wcs_full(r_img,coords=r_img[:-5]+'.wcs.coo')
-    with open('full_wcs_fix.done','w+') as f:
-        print >> f, ''
-
-odi.full_sdssmatch(g_img,r_img,inst,gmaglim=23.0)
-#Get source and background characteristics from 'derived_props.txt'
-median_fwhm,median_bg_mean,median_bg_median,median_bg_std = odi.read_proc('derived_props.txt','odi_g')
-
-# Measure gfwhm of sdss stars on combined image
-g_peaks,g_gfwhms = odi.getfwhm_full_sdss(g_img)
-median_fwhmg = np.median(g_gfwhms[np.where(g_gfwhms < 20.0)])
-
-#Phot sdss g sources on stacked image
-odi.sdss_phot_full(g_img,median_fwhmg,airmass_g)
-
-
-#Repeat same steps above, but for the r stacked image
-median_fwhmr,median_bg_meanr,median_bg_medianr,median_bg_stdr = odi.read_proc('derived_props.txt','odi_r')
-
-# Measure gfwhm of sdss stars on combined image
-r_peaks,r_gfwhms = odi.getfwhm_full_sdss(r_img)
-median_fwhmr = np.median(r_gfwhms[np.where(r_gfwhms < 20.0)])
-
-odi.sdss_phot_full(r_img,median_fwhmr,airmass_r)
-
-#Solve the color equations using the pair of stacked images. This was just
-#taken odi_calibrate.
-odi.calibrate_match(g_img,r_img,median_fwhmg,median_fwhmr,airmass_g,airmass_r)
-
-apcor_g, apcor_std_g, apcor_sem_g = odi.apcor_sdss(g_img, median_fwhmg,inspect=True)
-apcor_r, apcor_std_r, apcor_sem_r = odi.apcor_sdss(r_img, median_fwhmr,inspect=True)
-
-#Phot Steps g
-#Find all sources using daofind
-odi.find_sources_full(g_imgr,median_fwhmg,median_bg_std,threshold=3.5)
-#Phot found sources
-odi.phot_sources_full(g_imgr,median_fwhmg,airmass_g,1.0)
-#Convert xy positions of sources to Ra Dec
-odi.phot_sources_xy2sky(g_imgr,inst)
-
-#Phot Steps r
-odi.find_sources_full(r_imgr,median_fwhmr,median_bg_stdr,threshold=3.5)
-odi.phot_sources_full(r_imgr,median_fwhmr,airmass_r,1.0)
-odi.phot_sources_xy2sky(r_imgr,inst)
-
-#Create a matched catalog of sources on the g and r frame
-odi.match_phot_srcs(g_imgr,r_imgr)
-odi.calc_calibrated_mags(apcor_g, 0, apcor_r, 0)
-
+odi.match_phot_srcs(nopv_images[0],nopv_images[1])
+odi.calc_calibrated_mags(apcor_values[0], 0, apcor_values[1], 0, photcalFile, object_str)
