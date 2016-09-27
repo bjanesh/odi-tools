@@ -11,8 +11,31 @@ from collections import OrderedDict
 
 def tpv_remove(img):
     """
-    Remove the PV keywords from the final stacked
-    image
+    Remove the TPV values from a final stacked image. Each OTA has a set of TPV
+    header keywords that define the WCS solution. The way the final images are
+    stacked, the TPV values from the last OTA in the list, OTA22 for example,
+    are what are inherited by the final image. Without removing these values
+    other Python scripts, and other program such as Source Extractor, will no
+    be able to accurately convert an x,y position to Ra and Dec.
+
+    Parameters
+    ----------
+    img : str
+        String containing name of the image currently in use.
+
+    Returns
+    -------
+
+    img : str
+        Name of the new image produced by this function.
+
+    Examples
+    --------
+    >>> img = 'GCPair-F1_odi_g.fits'
+    >>> new_img = tpv_remove(img)
+    >>> print new_img
+    >>> 'GCPair-F1_odi_g-nopv.fits'
+
     """
     if not os.path.isfile(img[:-5]+'-nopv.fits'):
         print 'Removing PV keywords from: ',img
@@ -26,6 +49,30 @@ def tpv_remove(img):
     return img[:-5]+'-nopv.fits'
 
 def trim_img(img,x1,x2,y1,y2):
+    """
+    Trim a stacked image based on the coordinates given. The image is trimmed
+    using ``imcopy`` through pyraf, so the x and y pixel ranges should be given
+    in the correct ``imcopy`` format. ``[x1:x2,y1:y2]``
+
+    Parameters
+    ---------
+    img : str
+        String containing name of the image currently in use
+    x1 : int
+        Pixel coordinate of x1
+    x2 : int
+        Pixel coordinate of x2
+    y1 : int
+        Pixel coordinate of y1
+    y2 : int
+        Pixel coordinate of y2
+
+    Returns
+    -------
+    img : str
+        The new image is given the extension ``.trim.fits``.
+
+    """
     x1,x2 = x1,x2
     y1,y2 = y1,y2
     input = img[:-5]+'['+repr(x1)+':'+repr(x2)+','+repr(y1)+':'+repr(y2)+']'
@@ -37,9 +84,45 @@ def trim_img(img,x1,x2,y1,y2):
 
 def full_sdssmatch(img1,img2,inst,gmaglim=19):
     """
-    Fetch sdss images in each final stacked image
-    Then match the sources in common between each
-    image based on ra and dec.
+    This function requires two stacked images, one each filter that will be used
+    in solving the color equations. The purpose of this function is to first
+    collect all of the SDSS sources in a given field using the
+    ``odi.sdss_coords_full`` function. After collecting a catalog of the SDSS
+    sources in each image this function creates a catalog of the SDSS matches
+    between the two fields. This is required to form the SDSS color that will be
+    used in solving the color equations. The function returns a ``Pandas``
+    dataframe of the matched sources in each field.
+
+    Parameters
+    ----------
+    img1 : str
+        Name of the stacked image in the first filter (e.g. odi_g)
+    img2 : str
+        Name of the stacked image in the second filter (e.g. odi_r)
+    inst : str
+        The version of ODI used to collect the data (podi or 5odi)
+
+    gmaglim : float
+        The g magnitude limit to set on the SDSS sources retrieved
+        in each field.
+
+    Returns
+    -------
+
+    img1_match_df: pandas dataframe
+        Pandas dataframe of matched sources in img 1
+
+    img2_match_df: pandas dataframe
+        Pandas dataframe of matched sources in img 2
+
+    Examples
+    --------
+    >>> img1 = 'GCPair-F1_odi_g.fits'
+    >>> img2 = 'GCPair-F1_odi_r.fits'
+    >>> inst = 'podi'
+    >>> img1_match_df, img2_match_df = full_sdssmatch(img1,img2,inst)
+
+
     """
     odi.sdss_coords_full(img1,inst,gmaglim=gmaglim)
     img1_sdss_cat = img1[:-5]+'.sdssxy'
@@ -122,7 +205,7 @@ def sdss_source_props_full(img):
     """
     Use photutils to get the elongation of all of the sdss sources
     can maybe use for point source filter
-    """
+    """""
     hdulist = odi.fits.open(img)
     data = hdulist[0].data
 
@@ -161,8 +244,34 @@ def sdss_source_props_full(img):
 
 def read_proc(file,filter):
     """
-    Read the derived properties file to get useful values
-    need for phot and dao find
+    This functions reads and collects information from the ``derived_props.txt``
+    file that is produced by ``odi_process.py``.
+
+    Parameters
+    ----------
+    file : str
+        This can be anything, but most often will be ``derived_props.txt``
+
+    filter : str
+        ODI filter string
+
+    Returns
+    -------
+    median_fwhm : float
+        median fwhm measure of individual OTAs that went into a stack
+    median_bg_mean : float
+        mean fwhm measure of individual OTAs that went into a stack
+    median_bg_median : float
+        median background of individual OTAs that went into a stack
+    median_bg_std : float
+        median standard deviation of background in individual OTAs
+        that went into a stack
+
+    Note
+    -----
+    The fwhm values need to be remeasured in the final stack. There is an
+    additional function that completes this task.
+
     """
     filter_str = np.loadtxt(file,usecols=(2,),unpack=True,dtype=str)
     fwhm,bg_mean,bg_med,bg_std = np.loadtxt(file,usecols=(3,6,7,8),unpack=True)
@@ -214,7 +323,42 @@ def calc_airmass():
 
 def sdss_phot_full(img,fwhm,airmass):
     """
-    Run phot on the matches sdss stars
+    Run ``pyraf phot`` on SDSS sources in the field. ``phot`` is given the
+    following parameters ::
+
+        iraf.unlearn(iraf.phot,iraf.datapars,iraf.photpars,iraf.centerpars,iraf.fitskypars)
+        iraf.apphot.phot.setParam('interactive',"no")
+        iraf.apphot.phot.setParam('verify',"no")
+        iraf.datapars.setParam('datamax',50000.)
+        iraf.datapars.setParam('gain',"gain")
+        iraf.datapars.setParam('ccdread','rdnoise')
+        iraf.datapars.setParam('exposure',"exptime")
+
+        iraf.datapars.setParam('filter',"filter")
+        iraf.datapars.setParam('obstime',"time-obs")
+        iraf.datapars.setParam('sigma',"INDEF")
+        iraf.photpars.setParam('zmag',0.)
+        iraf.centerpars.setParam('cbox',9.)
+        iraf.centerpars.setParam('maxshift',3.)
+        iraf.fitskypars.setParam('salgorithm',"median")
+        iraf.fitskypars.setParam('dannulus',10.)
+        iraf.datapars.setParam('xairmass',float(airmass))
+        iraf.datapars.setParam('fwhmpsf',float(fwhm))
+        iraf.photpars.setParam('apertures',5.*float(fwhm)) # use a big aperture for this
+        iraf.fitskypars.setParam('annulus',6.*float(fwhm))
+
+    Parameters
+    ----------
+    img : str
+        String containing name of the image currently in use
+
+    fwhm : float
+        A measure of the fwhm of stars in the stacked image
+
+    airmass : float
+        Airmass assigned to the stacked image. Should match the image in the
+        dither that was used as the reference scaling image.
+
     """
     from pyraf import iraf
     iraf.ptools(_doprint=0)
@@ -264,8 +408,28 @@ def sdss_phot_full(img,fwhm,airmass):
 
 def getfwhm_full_sdss(img, radius=4.0, buff=7.0, width=5.0):
     '''
-    Get a fwhm estimate for the image using the SDSS catalog stars and IRAF imexam (SLOW, but works)
-    Adapted from Kathy's getfwhm script (this implementation is simpler in practice)
+    Get a fwhm estimate for the image using the SDSS catalog stars and ``pyraf
+    imexam``.
+
+    Parameters
+    ----------
+    img : str
+        String containing name of the image currently in use
+
+    Returns
+    -------
+
+    peak : array
+        array of the peak counts in each SDSS source
+
+    gfwhm: array
+        array of the Gaussian fwhm of each SDSS source
+
+    Note
+    ----
+    The ``peak`` and ``gfwhm`` arrays returned by this function are used by
+    other functions in the ``full_calibrate.py`` module.
+
     '''
     coords = img[:-5]+'.match.sdssxy'
     outputfile = img[0:-5]+'.sdssmatch.fwhm.log'
@@ -296,7 +460,44 @@ def getfwhm_full_sdss(img, radius=4.0, buff=7.0, width=5.0):
 
 def apcor_sdss(img,fwhm,inspect=False):
     """
-    Use csv tables produced by full_sdssmatch
+    Determine the aperture correction based on the photometry of SDSS sources in
+    the field. Each SDSS source is ``phot-ed`` with a range of apertures that
+    are multiples of the mean ``fwhm`` of SDSS stars in the field. Specifically,
+    ``phot`` is done using ``1 - 7*fwhm`` in steps of ``0.5``. This function
+    calculates the difference in the instrumental magnitude in aperture 'n'
+    with aperture ``n-1``. The aperture at which this difference levels off is
+    where we determine what the aperture correction is. This is typically around
+    ``4.5 to 5*fwhm``, but can vary depending on the data. This difference
+    between this leveling off point, and the magnitude measured using ``1*fwhm``
+    is the returned aperture correction. Sigma clipping is used to throw out
+    values that would throw off the measurement.
+
+    Parameters
+    ----------
+    img : str
+        String containing name of the image currently in us
+    fhwm : float
+        average of median fwhm of SDSS sources in the field
+    inspect : boolean
+        if ``True`` each candidate aperture correction star will be
+        displayed. This gives you the chance to throw out stars that
+        have near neighbors or next to image artifacts.
+
+    Returns
+    -------
+    apcor : float
+        mean aperture correction of candidate starts remaining After
+        sigma clipping
+
+    apcor_std : float
+        standard deviation of aperture corrections of candidate starts
+        remaining After sigma clipping
+
+    apcor_sem : float
+        standard error on the mean of the aperture corrections of
+        candidate starts remaining After sigma clipping
+
+
     """
     from pyraf import iraf
     import matplotlib.pyplot as plt
@@ -525,7 +726,61 @@ def apcor_sdss(img,fwhm,inspect=False):
 
 def calibrate_match(img1, img2, fwhm1, fwhm2, airmass1, airmass2):
     """
-    Solve color equations
+    This function solves the color equations to determine the coefficients
+    needed to produce calibrated magnitudes. We are implementing a method
+    that requires have at least two filters, and their equations are solved
+    simultaneously. For example ::
+
+        g-r = mu_gi ( r0 - r0 ) + ZP_gr
+        r = i0 + eps_gr ( g - r ) + ZP_r
+        g0 = g_i - k_g * X_g
+        r0 = i_i - k_r * X_r
+
+    ``gi:`` instrumental g magnitude
+
+    ``ri:`` instrumental r magnitude
+
+    ``g:`` catalog SDSS g magnitude
+
+    ``r:`` catalog SDSS r magnitude
+
+    Parameters
+    ----------
+
+    img1 : str
+        Name of the stacked image in the first filter (e.g. odi_g)
+    img2 : str
+        Name of the stacked image in the second filter (e.g. odi_r)
+
+    fwhm1 : float
+        fwhm measure in img1
+
+    fwhm2 : float
+        fwhm measure in img2
+
+    arimass1 : float
+        arimass in img1
+
+    arimass2 : float
+        arimass in img2
+
+    Examples
+    --------
+    >>> img1 = 'GCPair-F1_odi_g.fits'
+    >>> img2 = 'GCPair-F1_odi_r.fits'
+    >>> fwhm1 = 9.8
+    >>> fwhm2 = 10.0
+    >>> airmass1 = 1.2
+    >>> airmass2 = 1.3
+    >>> calibrate_match(img1, img2, fwhm1, fwhm2, airmass1, airmass2)
+
+    Note
+    ----
+    This function will produce a file that contains the derived coefficients
+    as well as other useful calibration information. The name of this file is
+    automatically generated by the name of the images and given the extension
+    ``_help.txt``.
+
     """
     try:
         from pyraf import iraf

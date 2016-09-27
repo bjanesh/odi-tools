@@ -10,6 +10,37 @@ from astropy import units as u
 from collections import OrderedDict
 
 def find_sources_full(img,fwhm,bg_std,threshold=4.0):
+    """
+    Use ``pyraf daofind`` to located sources on a stacked image.
+    ``doafind`` options ::
+    iraf.unlearn(iraf.apphot.daofind)
+    iraf.datapars.setParam('fwhmpsf',fwhm,check=1)
+    iraf.datapars.setParam('datamin',-900,check=1)
+    iraf.datapars.setParam('datamax',60000,check=1)
+    iraf.datapars.setParam('sigma',bg_std,check=1)
+    iraf.findpars.setParam('threshold',threshold)
+    iraf.apphot.daofind.setParam('output',output)
+    iraf.apphot.daofind(image=img, verbose="no", verify='no')
+
+    Parameters
+    ----------
+    img : str
+         String containing name of the image currently in use
+
+    fwhm : float
+        fwhm measure of sources in field
+
+    bg_std : float
+        standard deviation of background in image
+
+    threshold : float
+        detection threshold for sources
+
+    Note
+    ----
+    Produces a coordinate file based on the name of the image.
+    The file name will be ``img[:-5]+_sources.coo``
+    """
     output = img[:-5]+'_sources.coo'
     if not os.path.isfile(output):
         print 'Locating sources on ',img
@@ -24,6 +55,29 @@ def find_sources_full(img,fwhm,bg_std,threshold=4.0):
         iraf.apphot.daofind(image=img, verbose="no", verify='no')
 
 def phot_sources_full(img,fwhm,airmass,apfactor):
+    """
+    Run ``pyraf phot`` on the sources found by ``find sources_full``
+
+    Parameters
+    ----------
+
+    img : str
+        String containing name of the image currently in use
+
+    fwhm : float
+        fwhm measurement in image
+
+    airmass : float
+        airmass of image
+
+    apfactor : float
+        multile of fwhm to use for photometry
+
+    Note
+    ----
+    Will retrun a ``.phot`` table with the name ``img[:-5]+.srcphot``
+
+    """
     iraf.ptools(_doprint=0)
     coords = img[:-5]+'_sources.coo'
     output = img[:-5]+'.phot.1'
@@ -66,6 +120,24 @@ def phot_sources_full(img,fwhm,airmass,apfactor):
         os.rename(phot_tbl.replace('.srcphot','_clean.srcphot'),phot_tbl)
 
 def phot_sources_xy2sky(img,inst):
+    """
+    Convert the x,y positions in the phot table produced by
+    ``phot_sources_full`` into Ra and Dec positions.
+
+    Parameters
+    ----------
+
+    img : str
+        String containing name of the image currently in use
+
+    inst : str
+        ODI configuration. ``podi`` or ``5odi``
+
+    Note
+    ----
+    Returns a table with the name ``img[0:-5]+.srcphotrd``
+
+    """
     phot_tbl = img[0:-5]+'.srcphot'
     outputradec = img[0:-5]+'.srcphotrd'
     hdulist= odi.fits.open(img)
@@ -95,6 +167,25 @@ def phot_sources_xy2sky(img,inst):
     hdulist.close()
 
 def match_phot_srcs(img1,img2):
+    """
+    Match the sources in two images. This function reads in the photometry tables
+    produces by ``phot_sources_xy2sky`` and used the Ra and Dec positions to
+    match the sources between the images.
+
+    Parameters
+    ----------
+    img1 : str
+        Name of the stacked image in the first filter (e.g. odi_g)
+    img2 : str
+        Name of the stacked image in the second filter (e.g. odi_r)
+
+    Note
+    ----
+    Produces a catalog of matched sources for each image.
+    ``img1[:-5]+.match.srscrd`` and ``img2[:-5]+.match.srscrd`` These magnitudes
+    are combined in the file ``calibration.dat``.
+
+    """
 
     img1_srcs =img1[:-5]+'.srcphotrd'
     img1_srsc_match = img1[:-5]+'.match.srscrd'
@@ -148,6 +239,39 @@ def match_phot_srcs(img1,img2):
     junk.close()
 
 def calc_calibrated_mags(apcor_g, cal_A_g, apcor_r, cal_A_r, photcalFile, object_str):
+    """
+    Convert the instrumental magnitudes to calibrated magnitudes using the help
+    file produce by ``full_calibrate``.
+
+    Parameters
+    ----------
+
+    apcor_g : float
+        aperture correction in the first filter
+
+    cal_A_g : float
+        extinction in first filter
+
+    apcor_r : float
+        aperture correction in the second filter
+
+    cal_A_r : float
+        extinction in second filter
+
+    photcalFile : str
+        help file produced by ``full_calibrate``
+
+    object_str : str
+        object string (e.g. GCPair-F1)
+
+
+    Note
+    ----
+    The calibrated magnitudes in both filters will be save to a file called
+    ``calibrated_mags.dat``.
+
+
+    """
     from matplotlib import gridspec
     kg = 0.200
     kr = 0.12
