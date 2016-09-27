@@ -1,0 +1,534 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>full_phot &mdash; odi-tools 0.0.1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="odi-tools 0.0.1 documentation" href="../index.html"/>
+        <link rel="up" title="Module code" href="index.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> odi-tools
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../running_qr.html">QuickReduce, ODI-PPA, and odi-tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../example/index.html">An Introduction to working with Quick Reduced Images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../basic_usage.html">Basic usage</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">Modules</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">odi-tools</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">Module code</a> &raquo;</li>
+      
+    <li>full_phot</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for full_phot</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">glob</span><span class="o">,</span> <span class="nn">string</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">astropy</span> <span class="k">as</span> <span class="nn">ast</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">pyraf</span> <span class="k">import</span> <span class="n">iraf</span>
+<span class="kn">import</span> <span class="nn">odi_config</span> <span class="k">as</span> <span class="nn">odi</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">astropy.coordinates</span> <span class="k">import</span> <span class="n">SkyCoord</span>
+<span class="kn">from</span> <span class="nn">astropy</span> <span class="k">import</span> <span class="n">units</span> <span class="k">as</span> <span class="n">u</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
+
+<div class="viewcode-block" id="find_sources_full"><a class="viewcode-back" href="../full_phot.html#full_phot.find_sources_full">[docs]</a><span class="k">def</span> <span class="nf">find_sources_full</span><span class="p">(</span><span class="n">img</span><span class="p">,</span><span class="n">fwhm</span><span class="p">,</span><span class="n">bg_std</span><span class="p">,</span><span class="n">threshold</span><span class="o">=</span><span class="mf">4.0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Use ``pyraf daofind`` to located sources on a stacked image.</span>
+<span class="sd">    ``doafind`` options ::</span>
+<span class="sd">    iraf.unlearn(iraf.apphot.daofind)</span>
+<span class="sd">    iraf.datapars.setParam(&#39;fwhmpsf&#39;,fwhm,check=1)</span>
+<span class="sd">    iraf.datapars.setParam(&#39;datamin&#39;,-900,check=1)</span>
+<span class="sd">    iraf.datapars.setParam(&#39;datamax&#39;,60000,check=1)</span>
+<span class="sd">    iraf.datapars.setParam(&#39;sigma&#39;,bg_std,check=1)</span>
+<span class="sd">    iraf.findpars.setParam(&#39;threshold&#39;,threshold)</span>
+<span class="sd">    iraf.apphot.daofind.setParam(&#39;output&#39;,output)</span>
+<span class="sd">    iraf.apphot.daofind(image=img, verbose=&quot;no&quot;, verify=&#39;no&#39;)</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    img : str</span>
+<span class="sd">         String containing name of the image currently in use</span>
+
+<span class="sd">    fwhm : float</span>
+<span class="sd">        fwhm measure of sources in field</span>
+
+<span class="sd">    bg_std : float</span>
+<span class="sd">        standard deviation of background in image</span>
+
+<span class="sd">    threshold : float</span>
+<span class="sd">        detection threshold for sources</span>
+
+<span class="sd">    Note</span>
+<span class="sd">    ----</span>
+<span class="sd">    Produces a coordinate file based on the name of the image.</span>
+<span class="sd">    The file name will be ``img[:-5]+_sources.coo``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">img</span><span class="p">[:</span><span class="o">-</span><span class="mi">5</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39;_sources.coo&#39;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">output</span><span class="p">):</span>
+        <span class="nb">print</span> <span class="s1">&#39;Locating sources on &#39;</span><span class="p">,</span><span class="n">img</span>
+        <span class="nb">print</span> <span class="s1">&#39;Will output to &#39;</span><span class="p">,</span><span class="n">output</span>
+        <span class="n">iraf</span><span class="o">.</span><span class="n">unlearn</span><span class="p">(</span><span class="n">iraf</span><span class="o">.</span><span class="n">apphot</span><span class="o">.</span><span class="n">daofind</span><span class="p">)</span>
+        <span class="n">iraf</span><span class="o">.</span><span class="n">datapars</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;fwhmpsf&#39;</span><span class="p">,</span><span class="n">fwhm</span><span class="p">,</span><span class="n">check</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">iraf</span><span class="o">.</span><span class="n">datapars</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;datamin&#39;</span><span class="p">,</span><span class="o">-</span><span class="mi">900</span><span class="p">,</span><span class="n">check</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">iraf</span><span class="o">.</span><span class="n">datapars</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;datamax&#39;</span><span class="p">,</span><span class="mi">60000</span><span class="p">,</span><span class="n">check</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">iraf</span><span class="o">.</span><span class="n">datapars</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;sigma&#39;</span><span class="p">,</span><span class="n">bg_std</span><span class="p">,</span><span class="n">check</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">iraf</span><span class="o">.</span><span class="n">findpars</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;threshold&#39;</span><span class="p">,</span><span class="n">threshold</span><span class="p">)</span>
+        <span class="n">iraf</span><span class="o">.</span><span class="n">apphot</span><span class="o">.</span><span class="n">daofind</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;output&#39;</span><span class="p">,</span><span class="n">output</span><span class="p">)</span>
+        <span class="n">iraf</span><span class="o">.</span><span class="n">apphot</span><span class="o">.</span><span class="n">daofind</span><span class="p">(</span><span class="n">image</span><span class="o">=</span><span class="n">img</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="s2">&quot;no&quot;</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="s1">&#39;no&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="phot_sources_full"><a class="viewcode-back" href="../full_phot.html#full_phot.phot_sources_full">[docs]</a><span class="k">def</span> <span class="nf">phot_sources_full</span><span class="p">(</span><span class="n">img</span><span class="p">,</span><span class="n">fwhm</span><span class="p">,</span><span class="n">airmass</span><span class="p">,</span><span class="n">apfactor</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Run ``pyraf phot`` on the sources found by ``find sources_full``</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    img : str</span>
+<span class="sd">        String containing name of the image currently in use</span>
+
+<span class="sd">    fwhm : float</span>
+<span class="sd">        fwhm measurement in image</span>
+
+<span class="sd">    airmass : float</span>
+<span class="sd">        airmass of image</span>
+
+<span class="sd">    apfactor : float</span>
+<span class="sd">        multile of fwhm to use for photometry</span>
+
+<span class="sd">    Note</span>
+<span class="sd">    ----</span>
+<span class="sd">    Will retrun a ``.phot`` table with the name ``img[:-5]+.srcphot``</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">iraf</span><span class="o">.</span><span class="n">ptools</span><span class="p">(</span><span class="n">_doprint</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">coords</span> <span class="o">=</span> <span class="n">img</span><span class="p">[:</span><span class="o">-</span><span class="mi">5</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39;_sources.coo&#39;</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">img</span><span class="p">[:</span><span class="o">-</span><span class="mi">5</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39;.phot.1&#39;</span>
+    <span class="n">phot_tbl</span> <span class="o">=</span> <span class="n">img</span><span class="p">[:</span><span class="o">-</span><span class="mi">5</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39;.srcphot&#39;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">phot_tbl</span><span class="p">)</span> <span class="p">:</span>
+        <span class="nb">print</span> <span class="s1">&#39;phot-ing &#39;</span><span class="p">,</span> <span class="n">img</span><span class="p">,</span> <span class="s1">&#39; from daofind&#39;</span>
+        <span class="n">iraf</span><span class="o">.</span><span class="n">unlearn</span><span class="p">(</span><span class="n">iraf</span><span class="o">.</span><span class="n">apphot</span><span class="o">.</span><span class="n">phot</span><span class="p">,</span><span class="n">iraf</span><span class="o">.</span><span class="n">datapars</span><span class="p">,</span><span class="n">iraf</span><span class="o">.</span><span class="n">photpars</span><span class="p">,</span><span class="n">iraf</span><span class="o">.</span><span class="n">centerpars</span><span class="p">,</span><span class="n">iraf</span><span class="o">.</span><span class="n">fitskypars</span><span class="p">)</span>
+        <span class="n">iraf</span><span class="o">.</span><span class="n">apphot</span><span class="o">.</span><span class="n">phot</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;interactive&#39;</span><span class="p">,</span><span class="s2">&quot;no&quot;</span><span class="p">)</span>
+        <span class="n">iraf</span><span class="o">.</span><span class="n">apphot</span><span class="o">.</span><span class="n">phot</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;verify&#39;</span><span class="p">,</span><span class="s2">&quot;no&quot;</span><span class="p">)</span>
+        <span class="n">iraf</span><span class="o">.</span><span class="n">datapars</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;datamax&#39;</span><span class="p">,</span><span class="mf">50000.</span><span class="p">)</span>
+        <span class="n">iraf</span><span class="o">.</span><span class="n">datapars</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;gain&#39;</span><span class="p">,</span><span class="s2">&quot;gain&quot;</span><span class="p">)</span>
+        <span class="n">iraf</span><span class="o">.</span><span class="n">datapars</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;ccdread&#39;</span><span class="p">,</span><span class="s1">&#39;rdnoise&#39;</span><span class="p">)</span>
+        <span class="n">iraf</span><span class="o">.</span><span class="n">datapars</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;exposure&#39;</span><span class="p">,</span><span class="s2">&quot;exptime&quot;</span><span class="p">)</span>
+        <span class="n">iraf</span><span class="o">.</span><span class="n">datapars</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;xairmass&#39;</span><span class="p">,</span><span class="n">airmass</span><span class="p">)</span>
+        <span class="n">iraf</span><span class="o">.</span><span class="n">datapars</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;filter&#39;</span><span class="p">,</span><span class="s2">&quot;filter&quot;</span><span class="p">)</span>
+        <span class="n">iraf</span><span class="o">.</span><span class="n">datapars</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;obstime&#39;</span><span class="p">,</span><span class="s2">&quot;time-obs&quot;</span><span class="p">)</span>
+        <span class="n">iraf</span><span class="o">.</span><span class="n">datapars</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;sigma&#39;</span><span class="p">,</span><span class="s2">&quot;INDEF&quot;</span><span class="p">)</span>
+        <span class="n">iraf</span><span class="o">.</span><span class="n">photpars</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;zmag&#39;</span><span class="p">,</span><span class="mf">0.</span><span class="p">)</span>
+        <span class="n">iraf</span><span class="o">.</span><span class="n">centerpars</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;cbox&#39;</span><span class="p">,</span><span class="mf">9.</span><span class="p">)</span>
+        <span class="n">iraf</span><span class="o">.</span><span class="n">centerpars</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;maxshift&#39;</span><span class="p">,</span><span class="mf">3.</span><span class="p">)</span>
+        <span class="n">iraf</span><span class="o">.</span><span class="n">fitskypars</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;salgorithm&#39;</span><span class="p">,</span><span class="s2">&quot;median&quot;</span><span class="p">)</span>
+        <span class="n">iraf</span><span class="o">.</span><span class="n">fitskypars</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;dannulus&#39;</span><span class="p">,</span><span class="mf">10.</span><span class="p">)</span>
+
+        <span class="n">iraf</span><span class="o">.</span><span class="n">datapars</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;fwhmpsf&#39;</span><span class="p">,</span><span class="n">fwhm</span><span class="p">)</span>
+        <span class="n">iraf</span><span class="o">.</span><span class="n">photpars</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;apertures&#39;</span><span class="p">,</span><span class="n">apfactor</span><span class="o">*</span><span class="n">fwhm</span><span class="p">)</span>
+        <span class="n">iraf</span><span class="o">.</span><span class="n">fitskypars</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;annulus&#39;</span><span class="p">,</span><span class="mf">6.5</span><span class="o">*</span><span class="n">fwhm</span><span class="p">)</span>
+
+        <span class="n">iraf</span><span class="o">.</span><span class="n">apphot</span><span class="o">.</span><span class="n">phot</span><span class="p">(</span><span class="n">image</span><span class="o">=</span><span class="n">img</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="n">coords</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="n">output</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">phot_tbl</span><span class="p">,</span><span class="s1">&#39;w+&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">txdump_out</span><span class="p">:</span>
+            <span class="n">iraf</span><span class="o">.</span><span class="n">ptools</span><span class="o">.</span><span class="n">txdump</span><span class="p">(</span><span class="n">textfiles</span><span class="o">=</span><span class="n">output</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="s2">&quot;id,mag,merr,msky,stdev,rapert,xcen,ycen,ifilter,xairmass,image&quot;</span><span class="p">,</span><span class="n">expr</span><span class="o">=</span><span class="s1">&#39;yes&#39;</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="s1">&#39;no&#39;</span><span class="p">,</span> <span class="n">Stdout</span><span class="o">=</span><span class="n">txdump_out</span><span class="p">)</span>
+
+        <span class="n">outputfile_clean</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">phot_tbl</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.srcphot&#39;</span><span class="p">,</span><span class="s1">&#39;_clean.srcphot&#39;</span><span class="p">),</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">phot_tbl</span><span class="p">,</span><span class="s2">&quot;r&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;INDEF&#39;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                <span class="n">outputfile_clean</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s1">&#39;INDEF&#39;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                <span class="n">outputfile_clean</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;INDEF&#39;</span><span class="p">,</span><span class="s1">&#39;999&#39;</span><span class="p">))</span>
+        <span class="n">outputfile_clean</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">phot_tbl</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.srcphot&#39;</span><span class="p">,</span><span class="s1">&#39;_clean.srcphot&#39;</span><span class="p">),</span><span class="n">phot_tbl</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="phot_sources_xy2sky"><a class="viewcode-back" href="../full_phot.html#full_phot.phot_sources_xy2sky">[docs]</a><span class="k">def</span> <span class="nf">phot_sources_xy2sky</span><span class="p">(</span><span class="n">img</span><span class="p">,</span><span class="n">inst</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert the x,y positions in the phot table produced by</span>
+<span class="sd">    ``phot_sources_full`` into Ra and Dec positions.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    img : str</span>
+<span class="sd">        String containing name of the image currently in use</span>
+
+<span class="sd">    inst : str</span>
+<span class="sd">        ODI configuration. ``podi`` or ``5odi``</span>
+
+<span class="sd">    Note</span>
+<span class="sd">    ----</span>
+<span class="sd">    Returns a table with the name ``img[0:-5]+.srcphotrd``</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">phot_tbl</span> <span class="o">=</span> <span class="n">img</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">5</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39;.srcphot&#39;</span>
+    <span class="n">outputradec</span> <span class="o">=</span> <span class="n">img</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">5</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39;.srcphotrd&#39;</span>
+    <span class="n">hdulist</span><span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+
+    <span class="c1">#if inst == &#39;podi&#39;:</span>
+    <span class="c1">#    header = hdulist[0].header</span>
+    <span class="c1">#    print header[&#39;CTYPE1&#39;]</span>
+    <span class="c1">#    print header[&#39;CTYPE2&#39;]</span>
+    <span class="c1">#    header[&#39;CTYPE1&#39;] = &#39;RA---TPV&#39;</span>
+    <span class="c1">#    header[&#39;CTYPE2&#39;] = &#39;DEC--TPV&#39;</span>
+    <span class="c1">#    print header[&#39;CTYPE1&#39;]</span>
+    <span class="c1">#    print header[&#39;CTYPE2&#39;]</span>
+    <span class="c1">#    w = odi.WCS(header)</span>
+        <span class="c1">#w.wcs.ctype = [&quot;RA---TPV&quot;, &quot;DEC--TPV&quot;]</span>
+    <span class="c1">#     print w</span>
+        <span class="c1">#pvlist = hdulist[0].header[&#39;PV*&#39;]</span>
+        <span class="c1">#for pv in pvlist:</span>
+            <span class="c1">#tpv = &#39;T&#39;+pv</span>
+            <span class="c1">#hdulist[0].header.rename_keyword(pv, tpv, force=False)</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">WCS</span><span class="p">(</span><span class="n">hdulist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">)</span>
+    <span class="n">MAG</span><span class="p">,</span> <span class="n">MERR</span><span class="p">,</span> <span class="n">SKY</span><span class="p">,</span> <span class="n">SERR</span><span class="p">,</span> <span class="n">RAPERT</span><span class="p">,</span> <span class="n">XPOS</span><span class="p">,</span> <span class="n">YPOS</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">phot_tbl</span><span class="p">,</span> <span class="n">usecols</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">7</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">unpack</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">outputradec</span><span class="p">,</span> <span class="s1">&#39;w+&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fxy</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">XPOS</span><span class="p">):</span>
+            <span class="n">coords2</span> <span class="o">=</span> <span class="p">[[</span><span class="n">XPOS</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">YPOS</span><span class="p">[</span><span class="n">i</span><span class="p">]]]</span>
+            <span class="n">pixcrd2</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">wcs_pix2world</span><span class="p">(</span><span class="n">coords2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="nb">print</span> <span class="o">&gt;&gt;</span> <span class="n">fxy</span><span class="p">,</span> <span class="n">pixcrd2</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">pixcrd2</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span><span class="n">XPOS</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">YPOS</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">MAG</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">MERR</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">SKY</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">SERR</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">RAPERT</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="n">hdulist</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="match_phot_srcs"><a class="viewcode-back" href="../full_phot.html#full_phot.match_phot_srcs">[docs]</a><span class="k">def</span> <span class="nf">match_phot_srcs</span><span class="p">(</span><span class="n">img1</span><span class="p">,</span><span class="n">img2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Match the sources in two images. This function reads in the photometry tables</span>
+<span class="sd">    produces by ``phot_sources_xy2sky`` and used the Ra and Dec positions to</span>
+<span class="sd">    match the sources between the images.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    img1 : str</span>
+<span class="sd">        Name of the stacked image in the first filter (e.g. odi_g)</span>
+<span class="sd">    img2 : str</span>
+<span class="sd">        Name of the stacked image in the second filter (e.g. odi_r)</span>
+
+<span class="sd">    Note</span>
+<span class="sd">    ----</span>
+<span class="sd">    Produces a catalog of matched sources for each image.</span>
+<span class="sd">    ``img1[:-5]+.match.srscrd`` and ``img2[:-5]+.match.srscrd`` These magnitudes</span>
+<span class="sd">    are combined in the file ``calibration.dat``.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">img1_srcs</span> <span class="o">=</span><span class="n">img1</span><span class="p">[:</span><span class="o">-</span><span class="mi">5</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39;.srcphotrd&#39;</span>
+    <span class="n">img1_srsc_match</span> <span class="o">=</span> <span class="n">img1</span><span class="p">[:</span><span class="o">-</span><span class="mi">5</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39;.match.srscrd&#39;</span>
+    <span class="n">img2_srcs</span> <span class="o">=</span><span class="n">img2</span><span class="p">[:</span><span class="o">-</span><span class="mi">5</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39;.srcphotrd&#39;</span>
+    <span class="n">img2_srsc_match</span> <span class="o">=</span> <span class="n">img2</span><span class="p">[:</span><span class="o">-</span><span class="mi">5</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39;.match.srscrd&#39;</span>
+
+    <span class="n">ra_1</span><span class="p">,</span> <span class="n">dec_1</span><span class="p">,</span><span class="n">x_1</span><span class="p">,</span><span class="n">y_1</span><span class="p">,</span><span class="n">mag_1</span><span class="p">,</span><span class="n">merr_1</span><span class="p">,</span><span class="n">sky_1</span><span class="p">,</span><span class="n">serr_1</span><span class="p">,</span><span class="n">rapert_1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">img1_srcs</span><span class="p">,</span><span class="n">usecols</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">8</span><span class="p">),</span><span class="n">unpack</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">ra_2</span><span class="p">,</span> <span class="n">dec_2</span><span class="p">,</span><span class="n">x_2</span><span class="p">,</span><span class="n">y_2</span><span class="p">,</span><span class="n">mag_2</span><span class="p">,</span><span class="n">merr_2</span><span class="p">,</span><span class="n">sky_2</span><span class="p">,</span><span class="n">serr_2</span><span class="p">,</span><span class="n">rapert_2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">img2_srcs</span><span class="p">,</span><span class="n">usecols</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">8</span><span class="p">),</span><span class="n">unpack</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+
+    <span class="n">img1_catalog</span> <span class="o">=</span> <span class="n">SkyCoord</span><span class="p">(</span><span class="n">ra</span> <span class="o">=</span> <span class="n">ra_1</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">degree</span><span class="p">,</span> <span class="n">dec</span><span class="o">=</span> <span class="n">dec_1</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">degree</span><span class="p">)</span>
+
+    <span class="n">img2_catalog</span> <span class="o">=</span> <span class="n">SkyCoord</span><span class="p">(</span><span class="n">ra</span> <span class="o">=</span> <span class="n">ra_2</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">degree</span><span class="p">,</span> <span class="n">dec</span><span class="o">=</span> <span class="n">dec_2</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">degree</span><span class="p">)</span>
+
+    <span class="n">id_img1</span><span class="p">,</span> <span class="n">id_img2</span><span class="p">,</span> <span class="n">d2d</span><span class="p">,</span> <span class="n">d3d</span> <span class="o">=</span> <span class="n">img2_catalog</span><span class="o">.</span><span class="n">search_around_sky</span><span class="p">(</span><span class="n">img1_catalog</span><span class="p">,</span><span class="mf">0.00005</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">deg</span><span class="p">)</span>
+
+    <span class="nb">print</span> <span class="nb">len</span><span class="p">(</span><span class="n">id_img1</span><span class="p">),</span><span class="nb">len</span><span class="p">(</span><span class="n">id_img2</span><span class="p">),</span><span class="nb">len</span><span class="p">(</span><span class="n">x_1</span><span class="p">),</span><span class="nb">len</span><span class="p">(</span><span class="n">x_2</span><span class="p">)</span>
+
+    <span class="n">ra_1</span>      <span class="o">=</span>    <span class="n">ra_1</span><span class="p">[</span><span class="n">id_img1</span><span class="p">]</span>
+    <span class="n">dec_1</span>     <span class="o">=</span>    <span class="n">dec_1</span><span class="p">[</span><span class="n">id_img1</span><span class="p">]</span>
+    <span class="n">x_1</span>       <span class="o">=</span>    <span class="n">x_1</span><span class="p">[</span><span class="n">id_img1</span><span class="p">]</span>
+    <span class="n">y_1</span>       <span class="o">=</span>    <span class="n">y_1</span><span class="p">[</span><span class="n">id_img1</span><span class="p">]</span>
+    <span class="n">mag_1</span>     <span class="o">=</span>    <span class="n">mag_1</span><span class="p">[</span><span class="n">id_img1</span><span class="p">]</span>
+    <span class="n">merr_1</span>    <span class="o">=</span>    <span class="n">merr_1</span><span class="p">[</span><span class="n">id_img1</span><span class="p">]</span>
+    <span class="n">sky_1</span>     <span class="o">=</span>    <span class="n">sky_1</span><span class="p">[</span><span class="n">id_img1</span><span class="p">]</span>
+    <span class="n">serr_1</span>    <span class="o">=</span>    <span class="n">serr_1</span><span class="p">[</span><span class="n">id_img1</span><span class="p">]</span>
+    <span class="n">rapert_1</span>  <span class="o">=</span>    <span class="n">rapert_1</span><span class="p">[</span><span class="n">id_img1</span><span class="p">]</span>
+
+    <span class="n">ra_2</span>      <span class="o">=</span>    <span class="n">ra_2</span><span class="p">[</span><span class="n">id_img2</span><span class="p">]</span>
+    <span class="n">dec_2</span>     <span class="o">=</span>    <span class="n">dec_2</span><span class="p">[</span><span class="n">id_img2</span><span class="p">]</span>
+    <span class="n">x_2</span>       <span class="o">=</span>    <span class="n">x_2</span><span class="p">[</span><span class="n">id_img2</span><span class="p">]</span>
+    <span class="n">y_2</span>       <span class="o">=</span>    <span class="n">y_2</span><span class="p">[</span><span class="n">id_img2</span><span class="p">]</span>
+    <span class="n">mag_2</span>     <span class="o">=</span>    <span class="n">mag_2</span><span class="p">[</span><span class="n">id_img2</span><span class="p">]</span>
+    <span class="n">merr_2</span>    <span class="o">=</span>    <span class="n">merr_2</span><span class="p">[</span><span class="n">id_img2</span><span class="p">]</span>
+    <span class="n">sky_2</span>     <span class="o">=</span>    <span class="n">sky_2</span><span class="p">[</span><span class="n">id_img2</span><span class="p">]</span>
+    <span class="n">serr_2</span>    <span class="o">=</span>    <span class="n">serr_2</span><span class="p">[</span><span class="n">id_img2</span><span class="p">]</span>
+    <span class="n">rapert_2</span>  <span class="o">=</span>    <span class="n">rapert_2</span><span class="p">[</span><span class="n">id_img2</span><span class="p">]</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">img1_srsc_match</span><span class="p">,</span><span class="s1">&#39;w+&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">m1</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">img2_srsc_match</span><span class="p">,</span><span class="s1">&#39;w+&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">m2</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;calibration.dat&#39;</span><span class="p">,</span><span class="s1">&#39;w+&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">cal</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">s</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ra_1</span><span class="p">):</span>
+                    <span class="nb">print</span> <span class="o">&gt;&gt;</span> <span class="n">m1</span><span class="p">,</span><span class="n">ra_1</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">dec_1</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">x_1</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">y_1</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">mag_1</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">merr_1</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">sky_1</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">serr_1</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">rapert_1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                    <span class="nb">print</span> <span class="o">&gt;&gt;</span> <span class="n">m2</span><span class="p">,</span><span class="n">ra_2</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">dec_2</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">x_2</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">y_2</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">mag_2</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">merr_2</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">sky_2</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">serr_2</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">rapert_2</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                    <span class="nb">print</span> <span class="o">&gt;&gt;</span> <span class="n">cal</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">x_1</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">y_1</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">rapert_1</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">mag_1</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">merr_1</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">x_2</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">y_2</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">rapert_2</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">mag_2</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">merr_2</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="n">m1</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">m2</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">junk</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;match.reg&#39;</span><span class="p">,</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ra_1</span><span class="p">)):</span>
+        <span class="nb">print</span> <span class="o">&gt;&gt;</span> <span class="n">junk</span><span class="p">,</span> <span class="n">x_2</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">y_2</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="n">junk</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+<span class="k">def</span> <span class="nf">calc_calibrated_mags</span><span class="p">(</span><span class="n">apcor_g</span><span class="p">,</span> <span class="n">cal_A_g</span><span class="p">,</span> <span class="n">apcor_r</span><span class="p">,</span> <span class="n">cal_A_r</span><span class="p">,</span> <span class="n">photcalFile</span><span class="p">,</span> <span class="n">object_str</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert the instrumental magnitudes to calibrated magnitudes using the help</span>
+<span class="sd">    file produce by ``full_calibrate``.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    apcor_g : float</span>
+<span class="sd">        aperture correction in the first filter</span>
+
+<span class="sd">    cal_A_g : float</span>
+<span class="sd">        extinction in first filter</span>
+
+<span class="sd">    apcor_r : float</span>
+<span class="sd">        aperture correction in the second filter</span>
+
+<span class="sd">    cal_A_r : float</span>
+<span class="sd">        extinction in second filter</span>
+
+<span class="sd">    photcalFile : str</span>
+<span class="sd">        help file produced by ``full_calibrate``</span>
+
+<span class="sd">    object_str : str</span>
+<span class="sd">        object string (e.g. GCPair-F1)</span>
+
+
+<span class="sd">    Note</span>
+<span class="sd">    ----</span>
+<span class="sd">    The calibrated magnitudes in both filters will be save to a file called</span>
+<span class="sd">    ``calibrated_mags.dat``.</span>
+
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="k">import</span> <span class="n">gridspec</span>
+    <span class="n">kg</span> <span class="o">=</span> <span class="mf">0.200</span>
+    <span class="n">kr</span> <span class="o">=</span> <span class="mf">0.12</span>
+    <span class="n">ki</span> <span class="o">=</span> <span class="mf">0.058</span>
+    <span class="n">rdnoise</span> <span class="o">=</span> <span class="mf">6.5</span>
+
+    <span class="c1"># get the photometric calibration coefficients from Steven&#39;s help file &lt;--</span>
+    <span class="c1"># or from the image header/fits table/ whatever</span>
+    <span class="n">photcalFile</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">photcalFile</span><span class="p">)</span>
+    <span class="n">photcal</span> <span class="o">=</span> <span class="n">photcalFile</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="n">photcalLines</span> <span class="o">=</span> <span class="n">photcal</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
+
+    <span class="n">mu_gr</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">photcalLines</span><span class="p">[</span><span class="mi">28</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">5</span><span class="p">])</span>
+    <span class="n">zp_gr</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">photcalLines</span><span class="p">[</span><span class="mi">30</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">4</span><span class="p">])</span>
+    <span class="n">eps_gr</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">photcalLines</span><span class="p">[</span><span class="mi">34</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">5</span><span class="p">])</span>
+    <span class="n">zp_r</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">photcalLines</span><span class="p">[</span><span class="mi">36</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">4</span><span class="p">])</span>
+    <span class="n">amg</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">photcalLines</span><span class="p">[</span><span class="mi">25</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">5</span><span class="p">])</span>
+    <span class="n">amr</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">photcalLines</span><span class="p">[</span><span class="mi">26</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">5</span><span class="p">])</span>
+    <span class="n">photcalFile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="n">nid</span><span class="p">,</span><span class="n">gx</span><span class="p">,</span><span class="n">gy</span><span class="p">,</span><span class="n">g_i</span><span class="p">,</span><span class="n">g_ierr</span><span class="p">,</span><span class="n">rx</span><span class="p">,</span><span class="n">ry</span><span class="p">,</span><span class="n">r_i</span><span class="p">,</span><span class="n">r_ierr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="s1">&#39;calibration.dat&#39;</span><span class="p">,</span><span class="n">usecols</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">10</span><span class="p">),</span><span class="n">unpack</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="nb">print</span> <span class="n">apcor_g</span><span class="p">,</span><span class="n">apcor_r</span>
+    <span class="n">g0</span> <span class="o">=</span> <span class="n">g_i</span> <span class="o">-</span> <span class="p">(</span><span class="n">kg</span><span class="o">*</span><span class="n">amg</span><span class="p">)</span> <span class="o">+</span> <span class="n">apcor_g</span>
+    <span class="n">r0</span> <span class="o">=</span> <span class="n">r_i</span> <span class="o">-</span> <span class="p">(</span><span class="n">kr</span><span class="o">*</span><span class="n">amr</span><span class="p">)</span> <span class="o">+</span> <span class="n">apcor_r</span>
+    <span class="n">gmr</span> <span class="o">=</span> <span class="n">mu_gr</span><span class="o">*</span><span class="p">(</span><span class="n">g0</span><span class="o">-</span><span class="n">r0</span><span class="p">)</span> <span class="o">+</span> <span class="n">zp_gr</span>
+
+    <span class="n">r_mag</span> <span class="o">=</span> <span class="n">r0</span> <span class="o">+</span> <span class="n">eps_gr</span><span class="o">*</span><span class="n">gmr</span> <span class="o">+</span> <span class="n">zp_r</span>
+    <span class="n">g_mag</span> <span class="o">=</span> <span class="n">gmr</span> <span class="o">+</span> <span class="n">r_mag</span> <span class="o">-</span> <span class="n">cal_A_g</span>
+    <span class="n">r_mag</span> <span class="o">=</span> <span class="n">r_mag</span> <span class="o">-</span> <span class="n">cal_A_r</span>
+    <span class="n">gmr</span> <span class="o">=</span> <span class="n">g_mag</span> <span class="o">-</span> <span class="n">r_mag</span>
+
+    <span class="nb">print</span> <span class="s1">&#39;Median (g-r) :: g - r = </span><span class="si">{0:7.4f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">gmr</span><span class="p">))</span>
+    <span class="nb">print</span> <span class="s1">&#39;Final number of phot-ed stars :: g = </span><span class="si">{0:5d}</span><span class="s1"> : r = </span><span class="si">{1:5d}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">g_mag</span><span class="p">),</span><span class="nb">len</span><span class="p">(</span><span class="n">r_mag</span><span class="p">))</span>
+
+    <span class="n">g_mag_lims</span> <span class="o">=</span> <span class="p">[</span><span class="n">g_mag</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">g_mag</span><span class="p">))</span> <span class="k">if</span> <span class="p">(</span><span class="n">g_ierr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mf">0.2</span><span class="p">)]</span>
+    <span class="n">r_mag_lims</span> <span class="o">=</span> <span class="p">[</span><span class="n">r_mag</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">r_mag</span><span class="p">))</span> <span class="k">if</span> <span class="p">(</span><span class="n">r_ierr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mf">0.2</span><span class="p">)]</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;calibrated_magstest.dat&#39;</span><span class="p">,</span> <span class="s1">&#39;w+&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f3</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rx</span><span class="p">))</span> <span class="p">:</span>
+            <span class="nb">print</span> <span class="o">&gt;&gt;</span> <span class="n">f3</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{0:8.2f}</span><span class="s1"> </span><span class="si">{1:8.2f}</span><span class="s1"> </span><span class="si">{2:12.3f}</span><span class="s1"> </span><span class="si">{3:12.3f}</span><span class="s1"> </span><span class="si">{4:8.2f}</span><span class="s1"> </span><span class="si">{5:8.2f}</span><span class="s1"> </span><span class="si">{6:12.3f}</span><span class="s1"> </span><span class="si">{7:12.3f}</span><span class="s1"> </span><span class="si">{8:12.3f}</span><span class="s1"> &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">gx</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">gy</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">g_mag</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">g_ierr</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">rx</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">ry</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">r_mag</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">r_ierr</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">gmr</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">clf</span><span class="p">()</span>
+
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="n">hspace</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">gs</span> <span class="o">=</span> <span class="n">gridspec</span><span class="o">.</span><span class="n">GridSpec</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">width_ratios</span><span class="o">=</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+    <span class="n">ax0</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">gs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="n">ax0</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">gmr</span><span class="p">,</span> <span class="n">r_mag</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">edgecolors</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">)</span>
+    <span class="n">ax0</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;$r$&#39;</span><span class="p">)</span>
+    <span class="n">ax0</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;$(g-r)$&#39;</span><span class="p">)</span>
+    <span class="n">ax0</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="mi">24</span><span class="p">,</span><span class="mi">10</span><span class="p">)</span>
+    <span class="n">ax0</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="n">ax1</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">gs</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="n">ax1</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">r_ierr</span><span class="p">,</span> <span class="n">r_mag</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">edgecolors</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">)</span>
+    <span class="c1"># ax1.set_ylabel(&#39;$r$&#39;)</span>
+    <span class="n">ax1</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;inst $r$ err.&#39;</span><span class="p">)</span>
+    <span class="n">ax1</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="mi">24</span><span class="p">,</span><span class="mi">10</span><span class="p">)</span>
+    <span class="n">ax1</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="o">-</span><span class="mf">0.002</span><span class="p">,</span><span class="mf">0.05</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">setp</span><span class="p">(</span><span class="n">ax1</span><span class="o">.</span><span class="n">get_yticklabels</span><span class="p">(),</span> <span class="n">visible</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">object_str</span><span class="o">+</span><span class="s1">&#39;_CMD.pdf&#39;</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Owen Boberg, Bill Janesh.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

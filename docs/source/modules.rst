@@ -6,3 +6,5 @@ Modules
 
    getfwhm
    mask_ota
+   full_calibrate
+   full_phot

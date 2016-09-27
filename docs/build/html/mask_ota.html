@@ -32,6 +32,7 @@
   
     <link rel="top" title="odi-tools 0.0.1 documentation" href="index.html"/>
         <link rel="up" title="Modules" href="modules.html"/>
+        <link rel="next" title="Full Calibrate" href="full_calibrate.html"/>
         <link rel="prev" title="Measuring Stellar FWHM" href="getfwhm.html"/> 
 
   
@@ -91,6 +92,8 @@
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">Modules</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="getfwhm.html">Measuring Stellar FWHM</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Creating an OTA bad pixel mask</a></li>
+<li class="toctree-l2"><a class="reference internal" href="full_calibrate.html">Full Calibrate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="full_phot.html">Full Phot</a></li>
 </ul>
 </li>
 </ul>
@@ -169,11 +172,13 @@ the OTA, but the mask is still produced.</li>
 </tr>
 </tbody>
 </table>
-<p class="rubric">Notes</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
 <p>Here are the limits used to located the pixels that are to be masked</p>
 <p><code class="docutils literal"><span class="pre">hot_pixels</span></code> : hdu_ota.data &gt; 58000.0</p>
 <p><code class="docutils literal"><span class="pre">dead_pixels</span></code> : hdu_ota.data &lt; 1.0</p>
-<p><code class="docutils literal"><span class="pre">gap_pixels</span></code> : hdu_ota.data = <code class="docutils literal"><span class="pre">NaN</span></code></p>
+<p class="last"><code class="docutils literal"><span class="pre">gap_pixels</span></code> : hdu_ota.data = <code class="docutils literal"><span class="pre">NaN</span></code></p>
+</div>
 </dd></dl>
 
 </div>
@@ -184,6 +189,8 @@ the OTA, but the mask is still produced.</li>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="full_calibrate.html" class="btn btn-neutral float-right" title="Full Calibrate" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="getfwhm.html" class="btn btn-neutral" title="Measuring Stellar FWHM" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
