@@ -9,14 +9,14 @@ def get_sdss_coords(img, ota, inst,output='test.sdss'):
     formats = ['csv','xml','html']
 
     astro_url='http://skyserver.sdss3.org/public/en/tools/search/x_sql.aspx'
-    public_url='http://skyserver.sdss.org/SkyserverWS/dr12/ImagingQuery/Cone?'
+    public_url='http://skyserver.sdss.org/dr12/SkyserverWS/ImagingQuery/Cone?'
 
     default_url=public_url
     default_fmt='csv'
 
     hdulist = odi.fits.open(img)
     hdu = hdulist[ota]
-    
+
     if inst == 'podi':
         pvlist = hdu.header['PV*']
         for pv in pvlist:
@@ -55,7 +55,7 @@ def get_sdss_coords(img, ota, inst,output='test.sdss'):
         # The second argument is "origin" -- in this case we're declaring we
         # have 1-based (Fortran-like) coordinates.
         world = w.wcs_pix2world(pixcrd, 1)
-        # print(world)    
+        # print(world)
         rac = world[0][0]
         decc = world[0][1]
         # print xc, yc, rac, decc
@@ -101,32 +101,32 @@ def get_sdss_coords(img, ota, inst,output='test.sdss'):
         print 'SDSS sources already fetched!'
     return xdim, ydim
     hdulist.close()
-    
+
 def refetch_sdss_coords(img, ota, gapmask, inst,gmaglim=19.,offline = False,source='sdss'):
-    
+
     image = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
     outcoords = odi.coordspath+'reproj_'+ota+'.'+str(img[16:-5])+'.sdss'
     hdulist = odi.fits.open(image)
-    
+
     if inst == 'podi':
         pvlist = hdulist[0].header['PV*']
         for pv in pvlist:
             tpv = 'T'+pv
             hdulist[0].header.rename_keyword(pv, tpv, force=False)
     xdim = hdulist[0].header['NAXIS1']
-    ydim = hdulist[0].header['NAXIS2']  
-  
+    ydim = hdulist[0].header['NAXIS2']
+
     if offline == False:
         formats = ['csv','xml','html']
         astro_url='http://skyserver.sdss3.org/public/en/tools/search/x_sql.aspx'
-        public_url='http://skyserver.sdss.org/SkyserverWS/dr12/ImagingQuery/Cone?'
+        public_url='http://skyserver.sdss.org/dr12/SkyserverWS/ImagingQuery/Cone?'
         default_url=public_url
         default_fmt='csv'
         if not os.path.isfile(outcoords):
             # and find the image center
             xc = xdim/2.0
             yc = ydim/2.0
-            
+
             # get the CD matrix keywords
             cd11 = hdulist[0].header['CD1_1']
             cd22 = hdulist[0].header['CD2_2']
@@ -139,21 +139,21 @@ def refetch_sdss_coords(img, ota, gapmask, inst,gmaglim=19.,offline = False,sour
                 cd21 = hdulist[0].header['CD2_1']
             except:
                 cd21 = 0.0
-                
+
             w = odi.WCS(hdulist[0].header)
-            
+
             # Some pixel coordinates of interest.
             pixcrd = np.array([[xc,yc]], np.float_)
-            
+
             # Convert pixel coordinates to world coordinates
             # The second argument is "origin" -- in this case we're declaring we
             # have 1-based (Fortran-like) coordinates.
             world = w.wcs_pix2world(pixcrd, 1)
-            # print(world)    
+            # print(world)
             rac = world[0][0]
             decc = world[0][1]
             # print xc, yc, rac, decc
-            
+
             # get the biggest radius of the image in arcminutes
             pixscal1 = 3600*abs(cd11)
             pixscal2 = 3600*abs(cd22)
@@ -165,18 +165,18 @@ def refetch_sdss_coords(img, ota, gapmask, inst,gmaglim=19.,offline = False,sour
             #radius for query: sqrt2 = 1.414
             sizeam = 1.414*(xam+yam)/4
             print sizeam
-            
+
             #qry = "limit=5000&format=csv&imgparams=ra,dec,u,err_u,g,err_g,r,err_r,i,err_i,z,err_z,probPSF&specparams=none&ra="+repr(rac)+"&dec="+repr(decc)+"&radius="+repr(sizeam)+"&magType=psf"
             qry = "limit=5000&format=csv&imgparams=ra,dec,psfMag_u,psfMagErr_u,psfMag_g,psfMagErr_g,psfMag_r,psfMagErr_r,psfMag_i,psfMagErr_i,psfMag_z,psfMagErr_z,probPSF&specparams=none&ra="+repr(rac)+"&dec="+repr(decc)+"&radius="+repr(sizeam)+"&magType=psf"
 
-            
+
             #print 'with query\n-->', qry
             print 'fetching SDSS sources around',rac,decc,'with radius',sizeam,'arcmin'
             url = default_url
             fmt = default_fmt
             writefirst = 1
             verbose = 0
-            
+
             ofp = open(outcoords,'w+')
             if verbose:
                 odi.write_header(ofp,'#',url,qry)
@@ -250,7 +250,7 @@ def refetch_sdss_coords(img, ota, gapmask, inst,gmaglim=19.,offline = False,sour
 
 
     hdulist.close()
-    
+
 def repoxy_offline(img, ota, gapmask, inst,gmaglim=19.,source='sdss'):
     image = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
     hdulist = odi.fits.open(image)
@@ -301,7 +301,8 @@ def sdss_coords_full(img, inst,gmaglim=19.):
     formats = ['csv','xml','html']
 
     astro_url='http://skyserver.sdss3.org/public/en/tools/search/x_sql.aspx'
-    public_url='http://skyserver.sdss.org/SkyserverWS/dr12/ImagingQuery/Cone?'
+    #public_url='http://skyserver.sdss.org/SkyserverWS/dr12/ImagingQuery/Cone?'
+    public_url='http://skyserver.sdss.org/dr12/SkyserverWS/ImagingQuery/Cone?'
 
     default_url=public_url
     default_fmt='csv'
@@ -312,7 +313,7 @@ def sdss_coords_full(img, inst,gmaglim=19.):
     hdulist = odi.fits.open(image)
     data = hdulist[0].data
     # hdu = hdulist[ota]
-    
+
     if inst == 'podi':
         pvlist = hdulist[0].header['PV*']
         for pv in pvlist:
@@ -351,7 +352,7 @@ def sdss_coords_full(img, inst,gmaglim=19.):
       # The second argument is "origin" -- in this case we're declaring we
       # have 1-based (Fortran-like) coordinates.
       world = w.wcs_pix2world(pixcrd, 1)
-      # print(world)    
+      # print(world)
       rac = world[0][0]
       decc = world[0][1]
       # print xc, yc, rac, decc
@@ -369,7 +370,7 @@ def sdss_coords_full(img, inst,gmaglim=19.):
       print sizeam
 
       #qry = "limit=5000&format=csv&imgparams=ra,dec,u,err_u,g,err_g,r,err_r,i,err_i,z,err_z,probPSF&specparams=none&ra="+repr(rac)+"&dec="+repr(decc)+"&radius="+repr(sizeam)+"&magType=psf"
-      qry = "limit=5000&format=csv&imgparams=ra,dec,psfMag_u,psfMagErr_u,psfMag_g,psfMagErr_g,psfMag_r,psfMagErr_r,psfMag_i,psfMagErr_i,psfMag_z,psfMagErr_z,probPSF&specparams=none&ra="+repr(rac)+"&dec="+repr(decc)+"&radius="+repr(sizeam)+"&magType=psf"
+      qry = "limit=10000&format=csv&imgparams=ra,dec,psfMag_u,psfMagErr_u,psfMag_g,psfMagErr_g,psfMag_r,psfMagErr_r,psfMag_i,psfMagErr_i,psfMag_z,psfMagErr_z,probPSF&specparams=none&ra="+repr(rac)+"&dec="+repr(decc)+"&radius="+repr(sizeam)+"&magType=psf"
 
       #print 'with query\n-->', qry
       print 'fetching SDSS sources around',rac,decc,'with radius',sizeam,'arcmin'
@@ -416,12 +417,12 @@ def sdss_coords_full(img, inst,gmaglim=19.):
                     if not (cutout<-900).any():
                       print >> f, r, d, psfMag_g[i]
                       print >> fxy, pixcrd2[0][0], pixcrd2[0][1], ras[i],decs[i],psfMag_u[i],psfMagErr_u[i],psfMag_g[i],psfMagErr_g[i],psfMag_r[i],psfMagErr_r[i],psfMag_i[i],psfMagErr_i[i],psfMag_z[i],psfMagErr_z[i]
-    hdulist.close()    
+    hdulist.close()
 
 def get_sdss_coords_offline(img, ota, inst,output='test.sdss'):
     hdulist = odi.fits.open(img)
     hdu = hdulist[ota]
-    
+
     if inst == 'podi':
         pvlist = hdu.header['PV*']
         for pv in pvlist:
@@ -429,11 +430,11 @@ def get_sdss_coords_offline(img, ota, inst,output='test.sdss'):
             hdu.header.rename_keyword(pv, tpv, force=False)
     xdim = hdu.header['NAXIS1']
     ydim = hdu.header['NAXIS2']
-    
+
     sdss_cat_img = hdulist['CAT.PHOTCALIB']
     sdss_cat_img_df = pd.DataFrame.from_dict(sdss_cat_img.data)
     hdulist.close()
-    
+
     ota = float(ota.strip('OTA.SCI'))
     ota_matches_df = sdss_cat_img_df.iloc[np.where(sdss_cat_img_df['ODI_OTA'] == ota)]
 
@@ -488,7 +489,7 @@ def refetch_sdss_coords_offline(img, ota, gapmask, inst,gmaglim=19.):
       # The second argument is "origin" -- in this case we're declaring we
       # have 1-based (Fortran-like) coordinates.
       world = w.wcs_pix2world(pixcrd, 1)
-      # print(world)    
+      # print(world)
       rac = world[0][0]
       decc = world[0][1]
       # print xc, yc, rac, decc
@@ -535,8 +536,7 @@ def refetch_sdss_coords_offline(img, ota, gapmask, inst,gmaglim=19.):
                     print >> fxy, pixcrd2[0][0], pixcrd2[0][1], ras[i],decs[i],psfMag_u[i],psfMagErr_u[i],psfMag_g[i],psfMagErr_g[i],psfMag_r[i],psfMagErr_r[i],psfMag_i[i],psfMagErr_i[i],psfMag_z[i],psfMagErr_z[i]
         # print j
     hdulist.close()
-    
+
 
 if __name__ == '__main__':
     get_sdss_coords()
-
