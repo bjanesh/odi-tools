@@ -124,30 +124,54 @@ def find_new_bg(refimg, filter):
     print 'calculated sky median to re-add:', sky_med
     return sky_med
 
+def make_stack_list(object, filter):
+    """ makes a list of images to input to imcombine in the stack_images() function
+        that does not include the guiding OTAs in the stack using the measured values
+        for each OTA in derived_props.txt"""
+    
+    img, ota, filt = np.loadtxt('derived_props.txt', usecols=(0,1,2), dtype=str, unpack=True)
+    fwhm, zp_med, zp_std, bg_mean, bg_med, bg_std = np.loadtxt('derived_props.txt', usecols=(3,4,5,6,7,8), dtype=float, unpack=True)
+    
+    keep = np.where(filt==filter)
+    bg_std_med, bg_std_std = np.median(bg_std[keep]), np.std(bg_std[keep])
+    # print bg_std_med, bg_std_std
+    scaled_imgs = glob.glob(odi.scaledpath+'*'+filter+'*.fits')
+    head = scaled_imgs[0][:14]
+    tail = scaled_imgs[0][25:]
+    
+    with open(object+'_'+filter+'_stack.list','w+') as stack_file:
+        for j,im in enumerate(img[keep]):
+            factor = np.absolute(bg_std[keep][j] - bg_std_med)/bg_std_std
+            # print head+ota[j]+'.'+im+tail, factor
+            if factor < 2.:
+                print >> stack_file, head+ota[j]+'.'+im+tail
+
+
 def stack_images(refimg):
     from astropy.io import fits
     from pyraf import iraf
     print refimg
     fitsref = fits.open(refimg)
     hduref = fitsref[0]
-    objname = hduref.header['object']
+    objname = hduref.header['object'].replace(' ','_')
     filter_name = hduref.header['filter']
     sky_med = odi.find_new_bg(refimg, filter_name)
+    odi.make_stack_list(objname, filter_name)
     # sky_med = hduref.header['skybg']
     output = objname+'_'+filter_name+'.fits'
     output_bpm = objname+'_'+filter_name+'_bpm.pl'
     if not os.path.isfile(output):
         iraf.unlearn(iraf.immatch.imcombine, iraf.imutil.imarith)
-        iraf.immatch.imcombine(odi.scaledpath+'*'+filter_name+'*.fits', 'temp', combine='average', reject='none', offsets='wcs', masktype='goodvalue', maskval=0, blank=-999, scale='none', zero='none', lthresh=-900, hthresh=60000)
+        iraf.immatch.imcombine('@'+objname+'_'+filter_name+'_stack.list', 'temp', combine='average', reject='none', offsets='wcs', masktype='goodvalue', maskval=0, blank=-999, scale='none', zero='none', lthresh=-900, hthresh=60000)
         # iraf.imutil.imarith.setParam('operand1','temp')
         # iraf.imutil.imarith.setParam('op','+')
         # iraf.imutil.imarith.setParam('operand2',sky_med)
         # iraf.imutil.imarith.setParam('result',output)
         # iraf.imutil.imarith.setParam('verbose','yes')
         # iraf.imutil.imarith(mode='h')
-        iraf.imutil.imexpr('(a != -999) ? a + b : -999',output,'temp.fits',sky_med)
-        iraf.imutil.imexpr('a < 0',output_bpm, output)
-        iraf.imutil.imdelete('temp', verify='no')
+        # iraf.imutil.imexpr('(a != -999) ? a + b : -999',output,'temp.fits',sky_med)
+        # iraf.imutil.imexpr('a < 0',output_bpm, output)
+        # iraf.imutil.imdelete('temp', verify='no')
         iraf.unlearn(iraf.imutil.hedit)
         iraf.imutil.hedit.setParam('images',output)
         iraf.imutil.hedit.setParam('fields','BPM')
