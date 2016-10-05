@@ -34,7 +34,8 @@ def source_find(img,ota,inst,nbg_std=10.0):
             tpv = 'T'+pv
             hdu_ota.header.rename_keyword(pv, tpv, force=False)
     w = odi.WCS(hdu_ota.header)
-    w.wcs.ctype = ["RA---TPV", "DEC--TPV"]
+    if inst == '5odi':
+        w.wcs.ctype = ["RA---TPV", "DEC--TPV"]
     bg_mean,bg_median,bg_std = odi.mask_ota(img,ota,reproj=True)
     threshold = bg_median + (bg_std * nbg_std)
     print bg_mean,bg_median,bg_std
@@ -232,7 +233,7 @@ def source_scale(img,ref,filter):
 
     #id_ref, d2d_ref, d3d_ref = img_catalog.match_to_catalog_sky(ref_catalog)
 
-    id_img, id_ref, d2d, d3d = ref_catalog.search_around_sky(img_catalog,0.002*u.deg)
+    id_img, id_ref, d2d, d3d = ref_catalog.search_around_sky(img_catalog,0.00005*u.deg)
 
     print img, len(id_img),len(id_ref)
 
@@ -294,7 +295,7 @@ def source_scale(img,ref,filter):
             #print magA[i], magRef[i], r
             sigTest = np.std(rat)
             n = n + 1
-            if n > 10:
+            if n > 20:
                 print "Iteration did not converge to sigma <", repr(sigThreshold),"for", img
                 print "Quitting..."
                 exit()

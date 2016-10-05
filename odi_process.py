@@ -100,7 +100,7 @@ if not os.path.isfile('derived_props.txt'):
             if 'odi_NB695' in filters:
                 zp_med, zp_std = 99.99,99.99
             elif source == 'sdss':
-                zp_med, zp_std, phot_tbl = odi.zeropoint_ota(img, ota, fwhm)
+                zp_med, zp_std = 99.99,99.99
             elif source == 'twomass':
                 zp_med, zp_std = 99.99,99.99
             if not os.path.isfile(odi.bgsubpath+'bgsub_'+ota+'.'+str(img[16:])):
@@ -125,6 +125,7 @@ else:
                 already = 0
             else:
                 image_to_correct = img+'['+ota+']'
+                correction_image = ota+'.'+filt+'.med.fits'
                 corrected_image = 'illcor_'+ota+'.'+str(img[16:])
                 if not os.path.isfile(odi.illcorpath+corrected_image):
                     odi.illumination_corrections(image_to_correct, correction_image, corrected_image, do_correction=illcor_flag)
@@ -140,15 +141,15 @@ else:
                         print 'msccmatch failed, wait a second and try again'
                         time.sleep(1.0)
                         odi.fix_wcs(img, ota, coords=img[:-5]+'.'+ota+'.radec.coo', iters=1)
-                    
-                    odi.reproject_ota(img, ota, rad, decd)
+                    wcsref = odi.illcorpath+'illcor_OTA33.SCI.'+str((images_[0])[16:])        
+                    odi.reproject_ota(img, ota, rad, decd, wcsref)
                 gaps = odi.get_gaps_rep(img, ota)
                 odi.refetch_sdss_coords(img, ota, gaps, inst,gmaglim=21.5,offline = True,source=source)
                 #run an additional refetch to get the xy for 2mass so they can be used for scaling
                 odi.repoxy_offline(img, ota, gaps, inst,gmaglim=21.5,source='twomass')
                 fwhm = odi.getfwhm_ota(img, ota)
                 if source == 'sdss':
-                    zp_med, zp_std, phot_tbl = odi.zeropoint_ota(img, ota, fwhm)
+                    zp_med, zp_std = 99.99,99.99
                 if source == 'twomass':
                     zp_med, zp_std = 99.99,99.99
                 if not os.path.isfile(odi.bgsubpath+'bgsub_'+ota+'.'+str(img[16:])):
