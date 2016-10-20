@@ -12,6 +12,12 @@ def cfgparse(cfg_file):
         skyflat_src = (data['processing'])['dark_sky_flat_source']
         scale_flag = (data['processing'])['scale_images']
         stack_flag = (data['processing'])['stack_images']
+        gaia_flag = (data['processing'])['get_gaia']
+        cluster_flag = (data['processing'])['cluster_field']
+        ra_center = (data['processing'])['ra_center']
+        dec_center = (data['processing'])['dec_center']
+        min_radius = (data['processing'])['min_radius']
+
 
         object_str = (data['basic'])['object']
         filters = (data['basic'])['filters']
@@ -49,7 +55,7 @@ def cfgparse(cfg_file):
             for filter in filters:
                 dither_string = dither_string + images[filter][dither]+' '
             print dither_string
-        return object_str, filters, instrument, images, illcor_flag, skyflat_src, scale_flag, stack_flag
+        return object_str, filters, instrument, images, illcor_flag, skyflat_src, scale_flag, stack_flag, gaia_flag, cluster_flag, ra_center, dec_center, min_radius
 
 def photcfgparse(cfg_file):
     from sys import exit
