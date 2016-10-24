@@ -7,7 +7,7 @@ from tqdm import tqdm
 import odi_config as odi
 
 def list_wcs_coords(img, ota, gapmask, inst,output='radec.coo', gmaglim=20., stars_only=True, offline = False, source = 'sdss'):
-    # outputs a list of coordinates in the proper formatting to be used as input to 
+    # outputs a list of coordinates in the proper formatting to be used as input to
     # iraf.msccmatch. RETURNS a list of pixel coordinates for plotting
     if offline == False:
         xdim, ydim = odi.get_sdss_coords(img, ota, inst,output=odi.coordspath+img[0:-5]+'.'+ota+'.sdss')
@@ -34,6 +34,22 @@ def list_wcs_coords(img, ota, gapmask, inst,output='radec.coo', gmaglim=20., sta
         psfMag_z       = np.ones(len(ras))
         psfMagErr_z    = np.ones(len(ras))
         coords2 = zip(ras,decs)
+    if source == 'gaia':
+        gaia_cat = odi.gaiapath+'offline_'+ota+'.'+str(img[16:-5])+'.gaia'
+        ras,decs = np.loadtxt(gaia_cat,usecols=(0,1), unpack=True, delimiter=',', skiprows=1)
+        # Just creating dummy variables so that the file formats remain the same
+        # for other functions
+        psfMag_u       = np.ones(len(ras))
+        psfMagErr_u    = np.ones(len(ras))
+        psfMag_g       = np.ones(len(ras))
+        psfMagErr_g    = np.ones(len(ras))
+        psfMag_r       = np.ones(len(ras))
+        psfMagErr_r    = np.ones(len(ras))
+        psfMag_i       = np.ones(len(ras))
+        psfMagErr_i    = np.ones(len(ras))
+        psfMag_z       = np.ones(len(ras))
+        psfMagErr_z    = np.ones(len(ras))
+        coords2 = zip(ras,decs)
 
     hdulist = odi.fits.open(img)
     hdu = hdulist[ota]
@@ -45,7 +61,7 @@ def list_wcs_coords(img, ota, gapmask, inst,output='radec.coo', gmaglim=20., sta
     if offline == True:
         xdim = hdu.header['NAXIS1']
         ydim = hdu.header['NAXIS2']
-    
+
     w = odi.WCS(hdu.header)
     pixcrd2 = w.wcs_world2pix(coords2, 1)
     pixid = []
@@ -83,21 +99,21 @@ def fix_wcs(img, ota, coords='radec.coo', iters=3):
       print fix[-4]
       print fix[-3]
       print fix[-2]
-      
+
 def fix_wcs_full(img, coords='radec.coo', iters=1):
-    print coords 
+    print coords
     iraf.mscred(_doprint=0)
     iraf.unlearn(iraf.mscred.msccmatch)
     # otaext = {'33':'[1]','34':'[2]','44':'[3]','43':'[4]','42':'[5]','32':'[6]','22':'[7]','23':'[8]','24':'[9]'}
     for i in range(iters):
-        fix = iraf.msccmatch(input=img,coords=coords,usebpm='no',verbose='yes',nsearch=1000,search=10,rsearch=5.5,cfrac=.9,csig=1.0,nfit=3,rms=15,maxshif=50,fitgeom="general",update='yes',interac='no',fit='no',accept='yes', Stdout=1)
+        fix = iraf.msccmatch(input=img,coords=coords,usebpm='no',verbose='yes',nsearch=1000,search=10,rsearch=5.5,cfrac=.9,csig=1.0,nfit=3,rms=15,maxshif=50,fitgeom="general",update='yes',interac='yes',fit='no',accept='yes', Stdout=1)
         print 'fixing WCS for',img+', iter ='+repr(i)
         print fix[-6]
         print fix[-5]
         print fix[-4]
         print fix[-3]
-        print fix[-2]	
-        
+        print fix[-2]
+
 def repair_bad_wcs(img, ota, refimg, refota):
     print 'repairing bad wcs solution for',img+'['+ota+']...'
     # get good CD matrix values from the reference image
@@ -109,7 +125,7 @@ def repair_bad_wcs(img, ota, refimg, refota):
         refhdu[refota].header.rename_keyword(pv, tpv, force=False)
     w_ref = odi.WCS(refhdu[refota].header)
     print w_ref.wcs.cd, w_ref.wcs.crpix, w_ref.wcs.crval
-    
+
     # get the bad WCS info so we can do some checking
     # image = img+'['+ota+']'
     hdu = odi.fits.open(img)
@@ -130,4 +146,3 @@ if __name__ == '__main__':
     refimg = "20130509T031515.2_m13-se_odi_g.5869.fits"
     refota = "OTA33.SCI"
     repair_bad_wcs(img, ota, refimg, refota)
-    

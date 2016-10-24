@@ -234,6 +234,21 @@ def refetch_sdss_coords(img, ota, gapmask, inst,gmaglim=19.,offline = False,sour
             psfMagErr_i    = np.ones(len(ras))
             psfMag_z       = np.ones(len(ras))
             psfMagErr_z    = np.ones(len(ras))
+        if source == 'gaia':
+            outcoords = odi.gaiapath+'offline_'+ota+'.'+str(img[16:-5])+'.gaia'
+            ras,decs = np.loadtxt(outcoords,usecols=(0,1), unpack=True, delimiter=',', skiprows=1)
+            # Just creating dummy variables so that the file formats remain the same
+            # for other functions
+            psfMag_u       = np.ones(len(ras))
+            psfMagErr_u    = np.ones(len(ras))
+            psfMag_g       = np.ones(len(ras))
+            psfMagErr_g    = np.ones(len(ras))
+            psfMag_r       = np.ones(len(ras))
+            psfMagErr_r    = np.ones(len(ras))
+            psfMag_i       = np.ones(len(ras))
+            psfMagErr_i    = np.ones(len(ras))
+            psfMag_z       = np.ones(len(ras))
+            psfMagErr_z    = np.ones(len(ras))
         print 'Using Ra and Dec from:',outcoords, 'for reproject'
         w = odi.WCS(hdulist[0].header)
         with open(odi.coordspath+'reproj_'+ota+'.'+str(img[16:-5])+'.sdssxy', 'w+') as fxy:
@@ -270,6 +285,22 @@ def repoxy_offline(img, ota, gapmask, inst,gmaglim=19.,source='sdss'):
         outputxy =  odi.coordspath+'reproj_'+ota+'.'+str(img[16:-5])+'.massxy'
         ras,decs = np.loadtxt(outcoords,usecols=(2,3), unpack=True, delimiter=',', skiprows=1)
         # Just creating dummy variables so that the file formats remain the same for other functions
+        psfMag_u       = np.ones(len(ras))
+        psfMagErr_u    = np.ones(len(ras))
+        psfMag_g       = np.ones(len(ras))
+        psfMagErr_g    = np.ones(len(ras))
+        psfMag_r       = np.ones(len(ras))
+        psfMagErr_r    = np.ones(len(ras))
+        psfMag_i       = np.ones(len(ras))
+        psfMagErr_i    = np.ones(len(ras))
+        psfMag_z       = np.ones(len(ras))
+        psfMagErr_z    = np.ones(len(ras))
+    if source == 'gaia':
+        outcoords = odi.gaiapath+'offline_'+ota+'.'+str(img[16:-5])+'.gaia'
+        outputxy =  odi.coordspath+'reproj_'+ota+'.'+str(img[16:-5])+'.gaiaxy'
+        ras,decs = np.loadtxt(outcoords,usecols=(0,1), unpack=True, delimiter=',', skiprows=1)
+        # Just creating dummy variables so that the file formats remain the same
+        # for other functions
         psfMag_u       = np.ones(len(ras))
         psfMagErr_u    = np.ones(len(ras))
         psfMag_g       = np.ones(len(ras))

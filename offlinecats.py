@@ -122,6 +122,7 @@ def get_gaia_coords(img,ota,inst,output='test.gaia',cluster=False,**kwargs):
             racenter = kwargs['racenter']
             deccenter = kwargs['deccenter']
             min_radius = kwargs['min_radius']
+            G_lim = kwargs['G_lim']
         except KeyError:
             print 'Must provide racenter, deccenter, and min_radius'
         cluster_center = SkyCoord(racenter*u.degree
@@ -131,7 +132,8 @@ def get_gaia_coords(img,ota,inst,output='test.gaia',cluster=False,**kwargs):
                                ota_gaia_df.dec.values*u.deg,frame='icrs')
         dist_from_center = cluster_center.separation(gaia_coords).arcmin
         ota_gaia_df['dis'] = dist_from_center
-        ota_gaia_df = ota_gaia_df[ota_gaia_df.dis >= min_radius]
+        ota_gaia_df = ota_gaia_df[(ota_gaia_df.dis >= min_radius) &
+                                  (ota_gaia_df.phot_g_mean_mag <= G_lim)]
 
     ra_min, ra_max = coord1[0][0],coord2[0][0]
     dec_min, dec_max = coord1[0][1],coord3[0][1]
