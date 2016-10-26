@@ -72,7 +72,7 @@ def list_wcs_coords(img, ota, gapmask, inst,output='radec.coo', gmaglim=20., sta
                     if  20.0 <= pixcrd2[i,0] < xdim-100.0 and 20.0 <= pixcrd2[i,1] < ydim-100.0:
                         # make an image cutout of the gap mask
                         x, y = int(round(pixcrd2[i,0])), int(round(pixcrd2[i,1]))
-                        cutout = gapmask[x-30:x+30,y-30:y+30]
+                        cutout = gapmask[y-30:y+30,x-30:x+30]
                         # print cutout
                         if not (cutout.astype(bool)).any():
                             pixid.append(i)
@@ -106,7 +106,24 @@ def fix_wcs_full(img, coords='radec.coo', iters=1):
     iraf.unlearn(iraf.mscred.msccmatch)
     # otaext = {'33':'[1]','34':'[2]','44':'[3]','43':'[4]','42':'[5]','32':'[6]','22':'[7]','23':'[8]','24':'[9]'}
     for i in range(iters):
-        fix = iraf.msccmatch(input=img,coords=coords,usebpm='no',verbose='yes',nsearch=1000,search=10,rsearch=5.5,cfrac=.9,csig=1.0,nfit=3,rms=15,maxshif=50,fitgeom="general",update='yes',interac='yes',fit='no',accept='yes', Stdout=1)
+        fix = iraf.msccmatch(input=img,
+                             coords=coords,
+                             usebpm='no',
+                             verbose='yes',
+                             nsearch=250,
+                             search=30,
+                             rsearch=0.2,
+                             cfrac=.5,
+                             csig=0.1,
+                             nfit=5,
+                             rms=1.0,
+                             maxshif=5.0,
+                             fitgeom="general",
+                             update='yes',
+                             interac='yes',
+                             fit='no',
+                             accept='yes',
+                             Stdout=1)
         print 'fixing WCS for',img+', iter ='+repr(i)
         print fix[-6]
         print fix[-5]

@@ -50,7 +50,8 @@ for img in images_:
                                         cluster=cluster_flag,
                                         racenter=float(ra_center),
                                         deccenter=float(dec_center),
-                                        min_radius=float(min_radius))
+                                        min_radius=float(min_radius),
+                                        G_lim = 20.75)
                 else:
                     odi.get_gaia_coords(img,ota,inst,
                                         output=outputg,
@@ -98,12 +99,12 @@ if not os.path.isfile('derived_props.txt'):
             if not os.path.isfile(odi.reprojpath+reprojed_image):
                 pixcrd3 = odi.list_wcs_coords(img, ota, gaps, inst,output=img[:-5]+'.'+ota+'.radec.coo', gmaglim=23., stars_only=True, offline = True, source = source)
                 try:
-                    odi.fix_wcs(img, ota, coords=img[:-5]+'.'+ota+'.radec.coo', iters=3)
+                    odi.fix_wcs(img, ota, coords=img[:-5]+'.'+ota+'.radec.coo', iters=1)
                 except:
                     try:
                         print 'msccmatch failed, wait a second and try again'
                         time.sleep(1.0)
-                        odi.fix_wcs(img, ota, coords=img[:-5]+'.'+ota+'.radec.coo', iters=3)
+                        odi.fix_wcs(img, ota, coords=img[:-5]+'.'+ota+'.radec.coo', iters=1)
                     except:
                         print 'there might be too few stars for msccmatch, just skip it.'
                 wcsref = odi.illcorpath+'illcor_OTA33.SCI.'+str((images_[0])[16:])
@@ -112,12 +113,15 @@ if not os.path.isfile('derived_props.txt'):
             odi.refetch_sdss_coords(img, ota, gaps, inst,gmaglim=21.5,offline = True,source=source)
             #run an additional refetch to get the xy for 2mass so they can be used for scaling
             odi.repoxy_offline(img, ota, gaps, inst,gmaglim=21.5,source='twomass')
+            odi.repoxy_offline(img, ota, gaps, inst,gmaglim=21.5,source='gaia')
             fwhm = odi.getfwhm_ota(img, ota)
             if 'odi_NB695' in filters:
                 zp_med, zp_std = 99.99,99.99
             elif source == 'sdss':
                 zp_med, zp_std = 99.99,99.99
             elif source == 'twomass':
+                zp_med, zp_std = 99.99,99.99
+            elif source == 'gaia':
                 zp_med, zp_std = 99.99,99.99
             if not os.path.isfile(odi.bgsubpath+'bgsub_'+ota+'.'+str(img[16:])):
                 bg_mean, bg_median, bg_std = odi.bgsub_ota(img, ota, apply=True)
