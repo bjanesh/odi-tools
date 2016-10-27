@@ -128,6 +128,11 @@ if not os.path.isfile('derived_props.txt'):
             else:
                 bg_mean, bg_median, bg_std = odi.bgsub_ota(img, ota, apply=False)
             print >> f1, img[16], ota, filt, fwhm, zp_med, zp_std, bg_mean, bg_median, bg_std
+            dim_stats = odi.check_mask_dim(img,ota)
+            if not dim_stats:
+                print 'mask dimensions do not match image'
+                print 'redo', img, ota
+                raise ValueError
     f1.close()
 else:
     imgnum,fwhm,zp_med, zp_std, bg_mean, bg_median, bg_std = np.loadtxt('derived_props.txt',usecols=(0,3,4,5,6,7,8),unpack=True)
@@ -167,14 +172,22 @@ else:
                 odi.refetch_sdss_coords(img, ota, gaps, inst,gmaglim=21.5,offline = True,source=source)
                 #run an additional refetch to get the xy for 2mass so they can be used for scaling
                 odi.repoxy_offline(img, ota, gaps, inst,gmaglim=21.5,source='twomass')
+                odi.repoxy_offline(img, ota, gaps, inst,gmaglim=21.5,source='gaia'
                 fwhm = odi.getfwhm_ota(img, ota)
                 if source == 'sdss':
                     zp_med, zp_std = 99.99,99.99
                 if source == 'twomass':
+                    zp_med, zp_std = 99.99,99.99
+                elif source == 'gaia':
                     zp_med, zp_std = 99.99,99.99
                 if not os.path.isfile(odi.bgsubpath+'bgsub_'+ota+'.'+str(img[16:])):
                     bg_mean, bg_median, bg_std = odi.bgsub_ota(img, ota, apply=True)
                 else:
                     bg_mean, bg_median, bg_std = odi.bgsub_ota(img, ota, apply=False)
                 print >> f1, img[16], ota, filt, fwhm, zp_med, zp_std, bg_mean, bg_median, bg_std
+                dim_stats = odi.check_mask_dim(img,ota)
+                if not dim_stats:
+                    print 'mask dimensions do not match image'
+                    print 'redo', img, ota
+                    raise ValueError
     f1.close()
