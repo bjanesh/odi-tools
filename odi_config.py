@@ -29,10 +29,10 @@ from full_phot import *
 podi_dictionary = {
     1: 'OTA33.SCI',
     2: 'OTA34.SCI',
-    3: 'OTA44.SCI', 
+    3: 'OTA44.SCI',
     4: 'OTA43.SCI',
-    5: 'OTA42.SCI', 
-    6: 'OTA32.SCI', 
+    5: 'OTA42.SCI',
+    6: 'OTA32.SCI',
     7: 'OTA22.SCI',
     8: 'OTA23.SCI',
     9: 'OTA24.SCI'
@@ -68,7 +68,7 @@ odi5_dictionary = {
 	27:'OTA26.SCI',
 	28:'OTA56.SCI',
 	29:'OTA11.SCI',
-	30:'OTA16.SCI'	
+	30:'OTA16.SCI'
 }
 
 odi5mosaic_dictionary = {
@@ -159,6 +159,13 @@ if not os.path.exists(twomassofflinedir):
     os.makedirs(twomassofflinedir)
 
 twomasspath = twomassofflinedir+'/'
+
+gaiaofflinedir = 'gaiaoffline'
+if not os.path.exists(gaiaofflinedir):
+    print 'Creating directory for gaia catalogs...'
+    os.makedirs(gaiaofflinedir)
+
+gaiapath = gaiaofflinedir+'/'
 
 
 sourcedir = 'sources'

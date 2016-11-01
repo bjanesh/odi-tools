@@ -11,6 +11,11 @@ processing: # optional steps performed in odi_process.py
   reproject: yes
   scale_images: yes
   stack_images: yes
+  get_gaia: yes
+  cluster_field: yes                    #if yes, provide cluster ra and dec
+  ra_center:  '198.230033'              #clsuter center ra deg
+  dec_center: '18.168394'               #cluster center dec deg
+  min_radius: '1.5'                     #min radius (") away from cluster center
 
 # list the images you want to process
 # be sure to associate the filename with the correct dither pointing!
@@ -50,4 +55,3 @@ odi_i:
   7: 20130510T002928.7_m13-9_odi_i.5869.fits
   8: 20130510T002928.8_m13-9_odi_i.5869.fits
   9: 20130510T002928.9_m13-9_odi_i.5869.fits
-
