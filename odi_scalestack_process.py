@@ -49,6 +49,7 @@ for filter in filters:
             os.system(cat_command)
     
     # choose the initial reference image (lowest airmass to start)
+    print images_.values()
     refimg_ = odi.find_ref_image(images_.values())
     ref_img = images_[refimg_+1]
     
@@ -99,6 +100,6 @@ for filter in filters:
     
     # finally stack the images
     if stack_flag:
-        stacked_img = odi.stack_images(ref_img)
+        stacked_img = odi.stack_images(object_str, ref_img)
     else:
         print 'stacking not performed, set flag in config.yaml'

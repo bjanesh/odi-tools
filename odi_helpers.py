@@ -147,7 +147,7 @@ def make_stack_list(object, filter):
                 print >> stack_file, head+ota[j]+'.'+im+tail
 
 
-def stack_images(refimg):
+def stack_images(stackname, refimg):
     from astropy.io import fits
     from pyraf import iraf
     print refimg
@@ -158,8 +158,8 @@ def stack_images(refimg):
     sky_med = odi.find_new_bg(refimg, filter_name)
     odi.make_stack_list(objname, filter_name)
     # sky_med = hduref.header['skybg']
-    output = objname+'_'+filter_name+'.fits'
-    output_bpm = objname+'_'+filter_name+'_bpm.pl'
+    output = stackname+'_'+filter_name+'.fits'
+    output_bpm = stackname+'_'+filter_name+'_bpm.pl'
     if not os.path.isfile(output):
         iraf.unlearn(iraf.immatch.imcombine, iraf.imutil.imarith)
         iraf.immatch.imcombine('@'+objname+'_'+filter_name+'_stack.list', 'temp', combine='average', reject='none', offsets='wcs', masktype='goodvalue', maskval=0, blank=-999, scale='none', zero='none', lthresh=-900, hthresh=60000)
@@ -169,9 +169,9 @@ def stack_images(refimg):
         # iraf.imutil.imarith.setParam('result',output)
         # iraf.imutil.imarith.setParam('verbose','yes')
         # iraf.imutil.imarith(mode='h')
-        # iraf.imutil.imexpr('(a != -999) ? a + b : -999',output,'temp.fits',sky_med)
-        # iraf.imutil.imexpr('a < 0',output_bpm, output)
-        # iraf.imutil.imdelete('temp', verify='no')
+        iraf.imutil.imexpr('(a != -999) ? a + b : -999',output,'temp.fits',sky_med)
+        iraf.imutil.imexpr('a < 0',output_bpm, output)
+        iraf.imutil.imdelete('temp', verify='no')
         iraf.unlearn(iraf.imutil.hedit)
         iraf.imutil.hedit.setParam('images',output)
         iraf.imutil.hedit.setParam('fields','BPM')
