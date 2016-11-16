@@ -172,7 +172,7 @@ else:
                 odi.refetch_sdss_coords(img, ota, gaps, inst,gmaglim=21.5,offline = True,source=source)
                 #run an additional refetch to get the xy for 2mass so they can be used for scaling
                 odi.repoxy_offline(img, ota, gaps, inst,gmaglim=21.5,source='twomass')
-                odi.repoxy_offline(img, ota, gaps, inst,gmaglim=21.5,source='gaia'
+                odi.repoxy_offline(img, ota, gaps, inst,gmaglim=21.5,source='gaia')
                 fwhm = odi.getfwhm_ota(img, ota)
                 if source == 'sdss':
                     zp_med, zp_std = 99.99,99.99
