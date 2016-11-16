@@ -11,6 +11,8 @@ def cfgparse(cfg_file):
         illcor_flag = (data['processing'])['illumination_correction']
         skyflat_src = (data['processing'])['dark_sky_flat_source']
         scale_flag = (data['processing'])['scale_images']
+        wcs_flag = (data['processing'])['wcs_correction']
+        reproject_flag = (data['processing'])['reproject']
         stack_flag = (data['processing'])['stack_images']
         gaia_flag = (data['processing'])['get_gaia']
         cluster_flag = (data['processing'])['cluster_field']
@@ -35,6 +37,8 @@ def cfgparse(cfg_file):
         print '----------------------------------'
         print 'illumination correction:', illcor_flag
         print 'dark sky flat source:   ', skyflat_src
+        print 'wcs correction:         ', wcs_flag
+        print 'reprojection:           ', reproject_flag
         print 'scaling:                ', scale_flag
         print 'stacking:               ', stack_flag
         print '----------------------------------'
@@ -55,7 +59,7 @@ def cfgparse(cfg_file):
             for filter in filters:
                 dither_string = dither_string + images[filter][dither]+' '
             print dither_string
-        return object_str, filters, instrument, images, illcor_flag, skyflat_src, scale_flag, stack_flag, gaia_flag, cluster_flag, ra_center, dec_center, min_radius
+        return object_str, filters, instrument, images, illcor_flag, skyflat_src, wcs_flag, reproject_flag, scale_flag, stack_flag, gaia_flag, cluster_flag, ra_center, dec_center, min_radius
 
 def photcfgparse(cfg_file):
     from sys import exit

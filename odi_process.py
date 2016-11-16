@@ -13,7 +13,7 @@ import pandas as pd
 import time
 
 try:
-    object_str, filters, instrument, images, illcor_flag, skyflat_src, scale_flag, stack_flag, gaia_flag, cluster_flag, ra_center, dec_center, min_radius = odi.cfgparse('config.yaml')
+    object_str, filters, instrument, images, illcor_flag, skyflat_src, wcs_flag, reproject_flag, scale_flag, stack_flag, gaia_flag, cluster_flag, ra_center, dec_center, min_radius = odi.cfgparse('config.yaml')
 except IOError:
     print 'config.yaml does not exist, quitting...'
     exit()
@@ -97,18 +97,20 @@ if not os.path.isfile('derived_props.txt'):
             gaps = odi.get_gaps(img, ota)
             reprojed_image = 'reproj_'+ota+'.'+str(img[16:])
             if not os.path.isfile(odi.reprojpath+reprojed_image):
-                pixcrd3 = odi.list_wcs_coords(img, ota, gaps, inst,output=img[:-5]+'.'+ota+'.radec.coo', gmaglim=23., stars_only=True, offline = True, source = source)
-                try:
-                    odi.fix_wcs(img, ota, coords=img[:-5]+'.'+ota+'.radec.coo', iters=1)
-                except:
+                if wcs_flag:
+                    pixcrd3 = odi.list_wcs_coords(img, ota, gaps, inst,output=img[:-5]+'.'+ota+'.radec.coo', gmaglim=23., stars_only=True, offline = True, source = source)
                     try:
-                        print 'msccmatch failed, wait a second and try again'
-                        time.sleep(1.0)
                         odi.fix_wcs(img, ota, coords=img[:-5]+'.'+ota+'.radec.coo', iters=1)
                     except:
-                        print 'there might be too few stars for msccmatch, just skip it.'
-                wcsref = odi.illcorpath+'illcor_OTA33.SCI.'+str((images_[0])[16:])
-                odi.reproject_ota(img, ota, rad, decd, wcsref)
+                        try:
+                            print 'msccmatch failed, wait a second and try again'
+                            time.sleep(1.0)
+                            odi.fix_wcs(img, ota, coords=img[:-5]+'.'+ota+'.radec.coo', iters=1)
+                        except:
+                            print 'there might be too few stars for msccmatch, just skip it.'
+                if reproject_flag:
+                    wcsref = odi.illcorpath+'illcor_OTA33.SCI.'+str((images_[0])[16:])
+                    odi.reproject_ota(img, ota, rad, decd, wcsref)
             gaps = odi.get_gaps_rep(img, ota)
             odi.refetch_sdss_coords(img, ota, gaps, inst,gmaglim=21.5,offline = True,source=source)
             #run an additional refetch to get the xy for 2mass so they can be used for scaling
@@ -157,17 +159,19 @@ else:
                 gaps = odi.get_gaps(img, ota)
                 reprojed_image = 'reproj_'+ota+'.'+str(img[16:])
                 if not os.path.isfile(odi.reprojpath+reprojed_image):
-                    pixcrd3 = odi.list_wcs_coords(img, ota, gaps, inst,output=img[:-5]+'.'+ota+'.radec.coo', gmaglim=23., stars_only=True, offline = True, source = source)
-                    try:
-                        odi.fix_wcs(img, ota, coords=img[:-5]+'.'+ota+'.radec.coo', iters=1)
-                    except IndexError:
-                        print 'not enough stars to fix wcs, skipping for this ota:', img, ota
-                    except:
-                        print 'msccmatch failed, wait a second and try again'
-                        time.sleep(1.0)
-                        odi.fix_wcs(img, ota, coords=img[:-5]+'.'+ota+'.radec.coo', iters=1)
-                    wcsref = odi.illcorpath+'illcor_OTA33.SCI.'+str((images_[0])[16:])
-                    odi.reproject_ota(img, ota, rad, decd, wcsref)
+                    if wcs_flag:
+                        pixcrd3 = odi.list_wcs_coords(img, ota, gaps, inst,output=img[:-5]+'.'+ota+'.radec.coo', gmaglim=23., stars_only=True, offline = True, source = source)
+                        try:
+                            odi.fix_wcs(img, ota, coords=img[:-5]+'.'+ota+'.radec.coo', iters=1)
+                        except IndexError:
+                            print 'not enough stars to fix wcs, skipping for this ota:', img, ota
+                        except:
+                            print 'msccmatch failed, wait a second and try again'
+                            time.sleep(1.0)
+                            odi.fix_wcs(img, ota, coords=img[:-5]+'.'+ota+'.radec.coo', iters=1)
+                    if reproject_flag:
+                        wcsref = odi.illcorpath+'illcor_OTA33.SCI.'+str((images_[0])[16:])
+                        odi.reproject_ota(img, ota, rad, decd, wcsref)
                 gaps = odi.get_gaps_rep(img, ota)
                 odi.refetch_sdss_coords(img, ota, gaps, inst,gmaglim=21.5,offline = True,source=source)
                 #run an additional refetch to get the xy for 2mass so they can be used for scaling
