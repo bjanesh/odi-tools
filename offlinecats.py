@@ -31,40 +31,65 @@ def get_sdss_coords_offline(img, ota, inst,output='test.sdss'):
     sdss_cat_img_df = pd.DataFrame.from_dict(sdss_cat_img.data)
 
     ota = float(ota.strip('OTA.SCI'))
-    try:
+
+    if hdulist[0].header['PHOTMCAT'] == 'SDSS':
+
+        try:
+            ota_matches_df = sdss_cat_img_df.iloc[np.where(sdss_cat_img_df['ODI_OTA'] == ota)]
+            needed_columns = ['SDSS_RA','SDSS_DEC','SDSS_MAG_U',
+                              'SDSS_ERR_U', u'SDSS_MAG_G', u'SDSS_ERR_G', u'SDSS_MAG_R',
+                              'SDSS_ERR_R', u'SDSS_MAG_I', u'SDSS_ERR_I', u'SDSS_MAG_Z',
+                              'SDSS_ERR_Z','ODI_OTA']
+
+            output_df = ota_matches_df[needed_columns]
+            output_df.to_csv(output,index=False)
+        except KeyError:
+            oditable = hdulist['CAT.ODI'].data
+            oditalbe_df = pd.DataFrame.from_dict(oditable)
+
+            ODI_RA = np.squeeze(np.array(oditalbe_df['RA']))
+            ODI_DEC = np.squeeze( np.array(oditalbe_df['DEC']))
+            ODI_OTA = np.squeeze( np.array(oditalbe_df['OTA']))
+
+            junkdict = OrderedDict([('ODI_RA',ODI_RA),
+                                    ('ODI_DEC',ODI_DEC),
+                                    ('ODI_OTA',ODI_OTA.astype(float))])
+            junk_df = pd.DataFrame.from_dict(junkdict)
+
+            matched_df = pd.merge(sdss_cat_img_df,junk_df ,on = ['ODI_RA','ODI_DEC'],how='inner')
+
+            needed_columns = np.insert(sdss_cat_img_df.columns.values,0,'ODI_OTA')
+
+            full_df = matched_df[needed_columns]
+            ota_matches_df = full_df.iloc[np.where(full_df['ODI_OTA'] == ota)]
+            needed_columns = ['SDSS_RA','SDSS_DEC',
+                              'SDSS_MAG_U','SDSS_ERR_U',
+                              u'SDSS_MAG_G', u'SDSS_ERR_G',
+                              u'SDSS_MAG_R','SDSS_ERR_R',
+                              u'SDSS_MAG_I', u'SDSS_ERR_I',
+                              u'SDSS_MAG_Z','SDSS_ERR_Z',
+                              'ODI_OTA']
+            output_df = ota_matches_df[needed_columns]
+            output_df.to_csv(output,index=False)
+    else:
         ota_matches_df = sdss_cat_img_df.iloc[np.where(sdss_cat_img_df['ODI_OTA'] == ota)]
-        needed_columns = ['SDSS_RA','SDSS_DEC','SDSS_MAG_U',
-                          'SDSS_ERR_U', u'SDSS_MAG_G', u'SDSS_ERR_G', u'SDSS_MAG_R',
-                          'SDSS_ERR_R', u'SDSS_MAG_I', u'SDSS_ERR_I', u'SDSS_MAG_Z',
-                          'SDSS_ERR_Z','ODI_OTA']
+        ota_matches_df = ota_matches_df.reset_index()
+        junk_u = np.ones(len(ota_matches_df))
+        junk_u_err = np.ones(len(ota_matches_df))
+        ota_matches_df['IPP_MAG_U'] = junk_u
+        ota_matches_df['IPP_ERR_U'] = junk_u_err
+
+        needed_columns = ['IPP_RA', 'IPP_DEC',
+                          'IPP_MAG_U', 'IPP_ERR_U',
+                          'IPP_MAG_G', 'IPP_ERR_G',
+                          'IPP_MAG_R', 'IPP_ERR_R',
+                          'IPP_MAG_I', 'IPP_ERR_I',
+                          'IPP_MAG_Z','IPP_ERR_Z',
+                          'ODI_OTA']
 
         output_df = ota_matches_df[needed_columns]
         output_df.to_csv(output,index=False)
-    except KeyError:
-        oditable = hdulist['CAT.ODI'].data
-        oditalbe_df = pd.DataFrame.from_dict(oditable)
 
-        ODI_RA = np.squeeze(np.array(oditalbe_df['RA']))
-        ODI_DEC = np.squeeze( np.array(oditalbe_df['DEC']))
-        ODI_OTA = np.squeeze( np.array(oditalbe_df['OTA']))
-
-        junkdict = OrderedDict([('ODI_RA',ODI_RA),
-                                ('ODI_DEC',ODI_DEC),
-                                ('ODI_OTA',ODI_OTA.astype(float))])
-        junk_df = pd.DataFrame.from_dict(junkdict)
-
-        matched_df = pd.merge(sdss_cat_img_df,junk_df ,on = ['ODI_RA','ODI_DEC'],how='inner')
-
-        needed_columns = np.insert(sdss_cat_img_df.columns.values,0,'ODI_OTA')
-
-        full_df = matched_df[needed_columns]
-        ota_matches_df = full_df.iloc[np.where(full_df['ODI_OTA'] == ota)]
-        needed_columns = ['SDSS_RA','SDSS_DEC','SDSS_MAG_U',
-                          'SDSS_ERR_U', u'SDSS_MAG_G', u'SDSS_ERR_G', u'SDSS_MAG_R',
-                          'SDSS_ERR_R', u'SDSS_MAG_I', u'SDSS_ERR_I', u'SDSS_MAG_Z',
-                          'SDSS_ERR_Z','ODI_OTA']
-        output_df = ota_matches_df[needed_columns]
-        output_df.to_csv(output,index=False)
     hdulist.close()
     return xdim, ydim
 
