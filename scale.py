@@ -20,8 +20,8 @@ def find_ref_image(images):
         hdulist = fits.open(im)
         airmass = hdulist[0].header['AIRMASS']
         filter  = hdulist[0].header['FILTER']
-        these = np.where((imgs.astype(int)==j+1) & (filter_string == filter))
-        zp_filter = np.where((imgs.astype(int)==j+1) & (filter_string == filter) & (zp_med < 900.0))
+        these = np.where((imgs.astype(int)==int(im[16])) & (filter_string == filter))
+        zp_filter = np.where((imgs.astype(int)==int(im[16])) & (filter_string == filter) & (zp_med < 900.0))
         bg_lvl = np.mean(bg_median[these])
         warnings.simplefilter("error")
         try:
@@ -34,7 +34,7 @@ def find_ref_image(images):
         ams.append(airmass)
         zps.append(zp_lvl)
         hdulist.close()
-        print j+1, '%10.3f'%bg_lvl, '%10.3f'%airmass,'%10.3f'%zp_lvl,'%10.3f'%zp_lvl_std,'%10d'%int(len(zp_filter[0]))
+        print im[16], '%10.3f'%bg_lvl, '%10.3f'%airmass,'%10.3f'%zp_lvl,'%10.3f'%zp_lvl_std,'%10d'%int(len(zp_filter[0]))
         ref_img = np.argmin(np.array(ams))
     print 'reference image:',images[ref_img]
     print np.argmin(np.array(zps))
