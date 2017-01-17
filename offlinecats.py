@@ -34,9 +34,9 @@ def get_sdss_coords_offline(img, ota, inst,output='test.sdss'):
     # force little-endian byte order to make FITS play nice with pandas
     sdss_cat_img_df = cat_img_data.to_pandas()
     # sdss_cat_img_df = pd.DataFrame.from_dict(cat_img_dict)
-    print sdss_cat_img_df.keys()
+    # print sdss_cat_img_df.keys()
     ota = float(ota.strip('OTA.SCI'))
-    print hdulist[0].header['PHOTMCAT']
+    # print hdulist[0].header['PHOTMCAT']
     if 'sdss' in hdulist[0].header['PHOTMCAT']:
         try:
             ota_matches_df = sdss_cat_img_df.iloc[np.where(sdss_cat_img_df[u'ODI_OTA'] == ota)]
