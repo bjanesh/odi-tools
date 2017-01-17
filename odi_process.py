@@ -40,7 +40,7 @@ for img in images_:
         if not os.path.isfile(outputsd):
             x,y = odi.get_sdss_coords_offline(img,ota,inst,output=outputsd)
             output2m = odi.twomasspath+'offline_'+ota+'.'+str(img[16:-5])+'.mass'
-            x,y = odi.get_2mass_coords_offline(img,ota,inst,output=output2m)
+            # x,y = odi.get_2mass_coords_offline(img,ota,inst,output=output2m)
         if gaia_flag == True:
             outputg = odi.gaiapath+'offline_'+ota+'.'+str(img[16:-5])+'.gaia'
             if not os.path.isfile(outputg):
@@ -175,7 +175,7 @@ else:
                 gaps = odi.get_gaps_rep(img, ota)
                 odi.refetch_sdss_coords(img, ota, gaps, inst,gmaglim=21.5,offline = True,source=source)
                 #run an additional refetch to get the xy for 2mass so they can be used for scaling
-                odi.repoxy_offline(img, ota, gaps, inst,gmaglim=21.5,source='twomass')
+                # odi.repoxy_offline(img, ota, gaps, inst,gmaglim=21.5,source='twomass')
                 odi.repoxy_offline(img, ota, gaps, inst,gmaglim=21.5,source='gaia')
                 fwhm = odi.getfwhm_ota(img, ota)
                 if source == 'sdss':
