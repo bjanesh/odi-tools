@@ -30,12 +30,13 @@ def get_sdss_coords_offline(img, ota, inst,output='test.sdss'):
 
     sdss_cat_img = hdulist['CAT.PHOTCALIB']
     cat_img_data = Table.read(sdss_cat_img, format='fits')
+    print cat_img_data
     # force little-endian byte order to make FITS play nice with pandas
     sdss_cat_img_df = cat_img_data.to_pandas()
     # sdss_cat_img_df = pd.DataFrame.from_dict(cat_img_dict)
 
     ota = float(ota.strip('OTA.SCI'))
-
+    print hdulist[0].header['PHOTMCAT']
     if hdulist[0].header['PHOTMCAT'] == 'SDSS':
 
         try:
