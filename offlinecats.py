@@ -3,7 +3,7 @@ from astropy.wcs import WCS
 #from rand_bkg import bkg_boxes
 from astropy.convolution import Gaussian2DKernel
 from astropy.stats import sigma_clipped_stats
-from photutils.detection import detect_sources
+from photutils import detect_sources
 from photutils.utils import random_cmap
 from scipy.ndimage import binary_dilation
 import pandas as pd
@@ -28,7 +28,11 @@ def get_sdss_coords_offline(img, ota, inst,output='test.sdss'):
     ydim = hdu.header['NAXIS2']
 
     sdss_cat_img = hdulist['CAT.PHOTCALIB']
-    sdss_cat_img_df = pd.DataFrame.from_dict(sdss_cat_img.data)
+    cat_img_dict = sdss_cat_img.data
+    # force little-endian byte order to make FITS play nice with pandas
+    for k in cat_img_dict:
+        cat_img_dict[k].byteswap().newbyteorder(new_order='L')
+    sdss_cat_img_df = pd.DataFrame.from_dict(cat_img_dict)
 
     ota = float(ota.strip('OTA.SCI'))
 
