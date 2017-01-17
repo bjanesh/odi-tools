@@ -127,6 +127,11 @@ def get_gaia_coords(img,ota,inst,output='test.gaia',cluster=False,**kwargs):
     from astropy.coordinates import SkyCoord
     hdulist = fits.open(img)
     hdu_ota = hdulist[ota]
+    if inst == 'podi':
+        pvlist = hdu_ota.header['PV*']
+        for pv in pvlist:
+            tpv = 'T'+pv
+            hdu_ota.header.rename_keyword(pv, tpv, force=False)
     w = WCS(hdu_ota.header)
     ota_center_radec = w.wcs_pix2world([[2018.0,2007.5]],1)
 
