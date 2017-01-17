@@ -14,6 +14,7 @@ from collections import OrderedDict
 from astropy.io import fits
 import odi_config as odi
 from gaia.tap import cone_search
+from astropy.table import Table
 
 def get_sdss_coords_offline(img, ota, inst,output='test.sdss'):
     hdulist = odi.fits.open(img)
@@ -28,11 +29,10 @@ def get_sdss_coords_offline(img, ota, inst,output='test.sdss'):
     ydim = hdu.header['NAXIS2']
 
     sdss_cat_img = hdulist['CAT.PHOTCALIB']
-    cat_img_dict = sdss_cat_img.data
+    cat_img_data = Table.read(sdss_cat_img, format='fits')
     # force little-endian byte order to make FITS play nice with pandas
-    for k in cat_img_dict:
-        cat_img_dict[k].byteswap().newbyteorder(new_order='L')
-    sdss_cat_img_df = pd.DataFrame.from_dict(cat_img_dict)
+    sdss_cat_img_df = cat_img_data.to_pandas()
+    # sdss_cat_img_df = pd.DataFrame.from_dict(cat_img_dict)
 
     ota = float(ota.strip('OTA.SCI'))
 
