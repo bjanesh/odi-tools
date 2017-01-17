@@ -40,10 +40,10 @@ def get_sdss_coords_offline(img, ota, inst,output='test.sdss'):
     if 'sdss' in hdulist[0].header['PHOTMCAT']:
         try:
             ota_matches_df = sdss_cat_img_df.iloc[np.where(sdss_cat_img_df['ODI_OTA'] == ota)]
-            needed_columns = ['REF_RA','REF_DEC','REF_MAG_U',
-                              'REF_ERR_U', u'REF_MAG_G', u'REF_ERR_G', u'REF_MAG_R',
-                              'REF_ERR_R', u'REF_MAG_I', u'REF_ERR_I', u'REF_MAG_Z',
-                              'REF_ERR_Z','ODI_OTA']
+            needed_columns = [u'REF_RA',u'REF_DEC',u'REF_MAG_U',
+                              u'REF_ERR_U', u'REF_MAG_G', u'REF_ERR_G', u'REF_MAG_R',
+                              u'REF_ERR_R', u'REF_MAG_I', u'REF_ERR_I', u'REF_MAG_Z',
+                              u'REF_ERR_Z',u'ODI_OTA']
 
             output_df = ota_matches_df[needed_columns]
             output_df.to_csv(output,index=False)
@@ -66,13 +66,13 @@ def get_sdss_coords_offline(img, ota, inst,output='test.sdss'):
 
             full_df = matched_df[needed_columns]
             ota_matches_df = full_df.iloc[np.where(full_df['ODI_OTA'] == ota)]
-            needed_columns = ['SDSS_RA','SDSS_DEC',
-                              'SDSS_MAG_U','SDSS_ERR_U',
+            needed_columns = [u'SDSS_RA',u'SDSS_DEC',
+                              u'SDSS_MAG_U',u'SDSS_ERR_U',
                               u'SDSS_MAG_G', u'SDSS_ERR_G',
-                              u'SDSS_MAG_R','SDSS_ERR_R',
+                              u'SDSS_MAG_R',u'SDSS_ERR_R',
                               u'SDSS_MAG_I', u'SDSS_ERR_I',
-                              u'SDSS_MAG_Z','SDSS_ERR_Z',
-                              'ODI_OTA']
+                              u'SDSS_MAG_Z',u'SDSS_ERR_Z',
+                              u'ODI_OTA']
             output_df = ota_matches_df[needed_columns]
             output_df.to_csv(output,index=False)
     else:
