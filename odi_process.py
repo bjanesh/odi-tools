@@ -116,7 +116,7 @@ if not os.path.isfile('derived_props.txt'):
             #run an additional refetch to get the xy for 2mass so they can be used for scaling
             # odi.repoxy_offline(img, ota, gaps, inst,gmaglim=21.5,source='twomass')
             odi.repoxy_offline(img, ota, gaps, inst,gmaglim=21.5,source='gaia')
-            fwhm = odi.getfwhm_ota(img, ota)
+            fwhm = odi.getfwhm_ota(img, ota, gaia=gaia_flag)
             if 'odi_NB695' in filters:
                 zp_med, zp_std = 99.99,99.99
             elif source == 'sdss':
@@ -177,7 +177,7 @@ else:
                 #run an additional refetch to get the xy for 2mass so they can be used for scaling
                 # odi.repoxy_offline(img, ota, gaps, inst,gmaglim=21.5,source='twomass')
                 odi.repoxy_offline(img, ota, gaps, inst,gmaglim=21.5,source='gaia')
-                fwhm = odi.getfwhm_ota(img, ota)
+                fwhm = odi.getfwhm_ota(img, ota, gaia=gaia_flag)
                 if source == 'sdss':
                     zp_med, zp_std = 99.99,99.99
                 if source == 'twomass':

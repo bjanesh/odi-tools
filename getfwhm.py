@@ -6,7 +6,7 @@ from pyraf import iraf
 from tqdm import tqdm
 import odi_config as odi
 
-def getfwhm_ota(img, ota, radius=4.0, buff=7.0, width=5.0):
+def getfwhm_ota(img, ota, gaia=False, radius=4.0, buff=7.0, width=5.0):
     """
     Get a fwhm estimate for a single OTA using the SDSS catalog stars and
     IRAF imexam (SLOW, but works). Adapted from Kathy Rohde's getfwhm script
@@ -46,7 +46,10 @@ def getfwhm_ota(img, ota, radius=4.0, buff=7.0, width=5.0):
     """
     # coords= img[0:-5]+'.'+ota+'.sdssxy'
     image = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
-    coords = odi.coordspath+'reproj_'+ota+'.'+str(img[16:-5])+'.sdssxy'
+    if gaia:
+        coords = odi.coordspath+'reproj_'+ota+'.'+str(img[16:-5])+'.gaiaxy'
+    else:
+        coords = odi.coordspath+'reproj_'+ota+'.'+str(img[16:-5])+'.sdssxy'
     print image, coords
     outputfile = odi.coordspath+img[0:-5]+'.'+ota+'.fwhm.log'
 
