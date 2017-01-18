@@ -114,7 +114,7 @@ if not os.path.isfile('derived_props.txt'):
             gaps = odi.get_gaps_rep(img, ota)
             odi.refetch_sdss_coords(img, ota, gaps, inst,gmaglim=21.5,offline = True,source=source)
             #run an additional refetch to get the xy for 2mass so they can be used for scaling
-            odi.repoxy_offline(img, ota, gaps, inst,gmaglim=21.5,source='twomass')
+            # odi.repoxy_offline(img, ota, gaps, inst,gmaglim=21.5,source='twomass')
             odi.repoxy_offline(img, ota, gaps, inst,gmaglim=21.5,source='gaia')
             fwhm = odi.getfwhm_ota(img, ota)
             if 'odi_NB695' in filters:
