@@ -27,7 +27,10 @@ for filt in images:
         images_.append(images[filt][key])
 
 rad, decd = odi.get_targ_ra_dec(images_[0], 'OTA33.SCI')
-source = 'sdss'
+if gaia_flag:
+    source = 'gaia'
+else:
+    source = 'sdss'
 inst = odi.instrument(images_[0])
 #source = 'twomass'
 
