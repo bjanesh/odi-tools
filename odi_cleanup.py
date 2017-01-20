@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os
 import sys
+import pwd
 import shutil
 import glob
 import datetime
@@ -14,7 +15,11 @@ def main():
         exit()
     object_str = object_str.replace(' ','')
     today = datetime.date.today()
-    print '{:0>4}{:0>2}{:0>2}'.format(today.year,today.month,today.day)+'_'+object_str
+    stat_info = os.stat('.')
+    uid = stat_info.st_uid
+    user = pwd.getpwuid(uid)[0]
+    
+    print '{:0>4}{:0>2}{:0>2}'.format(today.year,today.month,today.day)+'_'+user+'_'+object_str
     # os.mkdir(today.year+today.month+today.day+'_'+object_str)
 #     shutil.copy('derived_props.txt', object_str)
 #     shutil.copy('config.yaml', object_str)
