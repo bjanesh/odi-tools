@@ -30,9 +30,9 @@ def main():
     file_stem =  '{:0>4}-{:0>2}-{:0>2}'.format(today.year,today.month,today.day)+'_'+user+'_'+object_str
     
     # if there's not already an archive here...
-    if not os.path.isfile(file_stem+".tar.gz"):
+    if not os.path.isfile('/ssd1/'+file_stem+".tar.gz"):
         # make a tar object to move the kept files into
-        tar = tarfile.open(file_stem+".tar.gz","w:gz")
+        tar = tarfile.open('/ssd1/'+file_stem+".tar.gz","w:gz")
     
         # move the derived props and config files
         tar.add('derived_props.txt')
