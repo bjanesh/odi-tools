@@ -14,7 +14,7 @@ def main():
         exit()
     object_str = object_str.replace(' ','')
     today = datetime.date.today()
-    print repr(today.year)+repr(today.month)+repr(today.day)+'_'+object_str
+    print '{:0>4}{:0>2}{:0>2}'.format(today.year,today.month,today.day)+'_'+object_str
     # os.mkdir(today.year+today.month+today.day+'_'+object_str)
 #     shutil.copy('derived_props.txt', object_str)
 #     shutil.copy('config.yaml', object_str)
