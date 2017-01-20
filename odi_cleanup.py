@@ -29,6 +29,11 @@ def main():
     # construct the filename --> yyyy-mm-dd_username_object
     file_stem =  '{:0>4}-{:0>2}-{:0>2}'.format(today.year,today.month,today.day)+'_'+user+'_'+object_str
     
+    # figure out the fits, pl, scale filenames (1/filter)
+    fits_files = glob.glob(object_str+'*.fits')
+    pl_files = glob.glob(object_str+'*_bpm.pl')
+    scale_files = glob.glob('*scales.txt')
+    
     # if there's not already an archive here...
     if not os.path.isfile('/ssd1/'+file_stem+".tar.gz"):
         # make a tar object to move the kept files into
@@ -37,11 +42,6 @@ def main():
         # move the derived props and config files
         tar.add('derived_props.txt')
         tar.add('config.yaml')
-    
-        # figure out the fits, pl, scale filenames (1/filter)
-        fits_files = glob.glob(object_str+'*.fits')
-        pl_files = glob.glob(object_str+'*_bpm.pl')
-        scale_files = glob.glob('*scales.txt')
     
         # move the fits files
         for f in fits_files:
@@ -57,7 +57,20 @@ def main():
         
         tar.close()
         
-    print 'Files compressed into /ssd1/'+file_stem+".tar.gz!"
+    print 'Files compressed into /ssd1/'+file_stem+".tar.gz:"
+    print 'config.yaml'
+    print 'derived_props.txt'
+    # move the fits files
+    for f in fits_files:
+        print f
+
+    # move the pl files    
+    for p in pl_files:
+        print p
+
+    # move the scale files
+    for s in scale_files:
+        print s
     print 'To copy this to your computer, run:'
     print '--> scp /ssd1/'+file_stem+".tar.gz USER@HOST.astro.indiana.edu"
     print '  where USER and HOST are your local user name and computer name.'
