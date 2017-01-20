@@ -3,6 +3,7 @@ import os
 import sys
 import shutil
 import glob
+import datetime
 import odi_config as odi
 
 def main():
@@ -12,13 +13,15 @@ def main():
         print 'config.yaml does not exist, quitting...'
         exit()
     object_str = object_str.replace(' ','')
-    # os.mkdir(object_str)
+    today = datetime.date.today()
+    print today.year+today.month+today.day+'_'+object_str
+    # os.mkdir(today.year+today.month+today.day+'_'+object_str)
 #     shutil.copy('derived_props.txt', object_str)
-#shutil.copy('config.yaml', object_str)
+#     shutil.copy('config.yaml', object_str)
     fits_files = glob.glob(object_str+'*.fits')
     pl_files = glob.glob(object_str+'*_bpm.pl')
     scale_files = glob.glob('*scales.txt')
-    print fits_files, pl_files, scale_files
+    
     pass
 
 if __name__ == '__main__':
