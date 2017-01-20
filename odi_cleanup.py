@@ -11,7 +11,7 @@ def main():
     except IOError:
         print 'config.yaml does not exist, quitting...'
         exit()
-    
+    object_str = object_str.replace(' ','')
     # os.mkdir(object_str)
 #     shutil.copy('derived_props.txt', object_str)
 #shutil.copy('config.yaml', object_str)
