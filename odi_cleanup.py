@@ -5,6 +5,7 @@ import pwd
 import shutil
 import glob
 import datetime
+import tarfile
 import odi_config as odi
 
 def main():
