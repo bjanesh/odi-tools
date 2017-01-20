@@ -56,6 +56,13 @@ def main():
             tar.add(s)
         
         tar.close()
+        
+    print 'Files compressed into /ssd1/'+file_stem+".tar.gz!"
+    print 'To copy this to your computer, run:'
+    print '--> scp /ssd1/'+file_stem+".tar.gz USER@HOST.astro.indiana.edu"
+    print '  where USER and HOST are your local user name and computer name.'
+    print 'Then notify Bob Lezotte (hlezotte [at] indiana.edu)'
+    print '  that you are finished processing with wopr.'
     
     pass
 
