@@ -58,22 +58,23 @@ def main():
         tar.close()
         
     print 'Files compressed into /ssd1/'+file_stem+".tar.gz:"
-    print 'config.yaml'
-    print 'derived_props.txt'
+    print '- config.yaml'
+    print '- derived_props.txt'
     # move the fits files
     for f in fits_files:
-        print f
+        print '- '+f
 
     # move the pl files    
     for p in pl_files:
-        print p
+        print '- '+p
 
     # move the scale files
     for s in scale_files:
-        print s
+        print '- '+s
     print 'To copy this to your computer, run:'
-    print '--> scp /ssd1/'+file_stem+".tar.gz USER@HOST.astro.indiana.edu"
+    print '--> scp /ssd1/'+file_stem+".tar.gz USER@HOST.astro.indiana.edu:~"
     print '  where USER and HOST are your local user name and computer name.'
+    print '  This will place the file in your local home directory.'
     print 'Then notify Bob Lezotte (hlezotte [at] indiana.edu)'
     print '  that you are finished processing with wopr.'
     
