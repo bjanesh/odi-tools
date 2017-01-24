@@ -144,14 +144,14 @@ def photcfgparse(cfg_file):
     remove_tpv_flag : bool
         If ``True`` header cards with ``TPV`` will be removed from the stacked
         images previously produced by ``odi_process.py``
-    trim_image_flag : list
+    trim_image_flag : bool
         If ``True`` the stacked images previously produced by
         ``odi_process.py`` will be trimmed.
     wcs_flag : bool
         If ``True`` the a step will be taken to improve the WCS on
         the stacked images previously produced by
         ``odi_process.py``
-    trim_image_flag : list
+    trim_image_flag : bool
         The sections to trim from the stacked images.
     airmasses : list
         The airmasses of the images in the order they will be processed.
