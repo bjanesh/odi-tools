@@ -1,0 +1,303 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Reading configuration files &mdash; odi-tools 0.0.1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="odi-tools 0.0.1 documentation" href="index.html"/>
+        <link rel="up" title="Modules" href="modules.html"/>
+        <link rel="next" title="ODI helper functions" href="odi_helpers.html"/>
+        <link rel="prev" title="Modules" href="modules.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> odi-tools
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="running_qr.html">QuickReduce, ODI-PPA, and odi-tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example/index.html">An Introduction to working with Quick Reduced Images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="basic_usage.html">Basic usage</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">Modules</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Reading configuration files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="odi_helpers.html">ODI helper functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getfwhm.html">Measuring Stellar FWHM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mask_ota.html">Creating an OTA bad pixel mask</a></li>
+<li class="toctree-l2"><a class="reference internal" href="full_calibrate.html">Full Calibrate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="full_phot.html">Full Phot</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">odi-tools</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="modules.html">Modules</a> &raquo;</li>
+      
+    <li>Reading configuration files</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/odi_cfgparse.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-odi_cfgparse">
+<span id="reading-configuration-files"></span><h1>Reading configuration files<a class="headerlink" href="#module-odi_cfgparse" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="odi_cfgparse.cfgparse">
+<code class="descclassname">odi_cfgparse.</code><code class="descname">cfgparse</code><span class="sig-paren">(</span><em>cfg_file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/odi_cfgparse.html#cfgparse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#odi_cfgparse.cfgparse" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function reads the <code class="docutils literal"><span class="pre">yaml</span></code> configuration file that is needed
+to make the <code class="docutils literal"><span class="pre">odi_process.py</span></code> and <code class="docutils literal"><span class="pre">odi_scalestack_process.py</span></code> functions
+work. The configuration file must be given the name <code class="docutils literal"><span class="pre">config.yaml</span></code> and be
+in the same directory as the images that will be processed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cfg_file</strong> (<em>str</em>) &#8211; A string containing the name of the configuration file.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><ul class="simple">
+<li><strong>object_str</strong> (<em>str</em>) &#8211; Name of the object in the images (eg M53)</li>
+<li><strong>filters</strong> (<em>list</em>) &#8211; List of filters present in images</li>
+<li><strong>instrument</strong> (<em>str</em>) &#8211; Name of instrument used <code class="docutils literal"><span class="pre">podi</span></code> or <code class="docutils literal"><span class="pre">5odi</span></code></li>
+<li><strong>images</strong> (<em>list</em>) &#8211; List of images that will be processed</li>
+<li><strong>illcor_flag</strong> (<em>bool</em>) &#8211; If <code class="docutils literal"><span class="pre">True</span></code> an illumination correction will be applied to the images</li>
+<li><strong>skyflat_src</strong> (<em>str</em>) &#8211; Can be <code class="docutils literal"><span class="pre">object</span></code> or <code class="docutils literal"><span class="pre">master</span></code>. If <code class="docutils literal"><span class="pre">object</span></code> the dark sky flat is
+created from the images being processed. If <code class="docutils literal"><span class="pre">master</span></code> the dark sky
+flat is taken from a master calibration</li>
+<li><strong>wcs_flag</strong> (<em>bool</em>) &#8211; If <code class="docutils literal"><span class="pre">True</span></code> the a step will be taken to improve the WCS solution on each
+OTA</li>
+<li><strong>reproject_flag</strong> (<em>bool</em>) &#8211; If <code class="docutils literal"><span class="pre">True</span></code> all of the OTAs will be reprojected to OTA33 of the first
+image in the image list.</li>
+<li><strong>scale_flag</strong> (<em>bool</em>) &#8211; If <code class="docutils literal"><span class="pre">True</span></code> the OTAs will be scaled to the same level before stacking</li>
+<li><strong>stack_flag</strong> (<em>bool</em>) &#8211; If <code class="docutils literal"><span class="pre">True</span></code> the processed OTAs will be stacked into a final image</li>
+<li><strong>gaia_flag</strong> (<em>bool</em>) &#8211; If <code class="docutils literal"><span class="pre">True</span></code> the gaia catalog will be used as the sources in the fix WCS
+step</li>
+<li><strong>cluster_flag</strong> (<em>bool</em>) &#8211; If <code class="docutils literal"><span class="pre">True</span></code> the central regions of a crowded area, such as a globular
+cluster, are avoided when collecting the gaia sources to fix the WCS</li>
+<li><strong>ra_center</strong> (<em>float</em>) &#8211; If the <code class="docutils literal"><span class="pre">cluster_flag</span></code> is <code class="docutils literal"><span class="pre">True</span></code>, then the central <code class="docutils literal"><span class="pre">Ra</span></code> and <code class="docutils literal"><span class="pre">Dec</span></code>
+of the cluster, or area that is to be avoided must be given in the
+configuration file.</li>
+<li><strong>dec_center</strong> (<em>float</em>) &#8211; If the <code class="docutils literal"><span class="pre">cluster_flag</span></code> is <code class="docutils literal"><span class="pre">True</span></code>, then the central <code class="docutils literal"><span class="pre">Ra</span></code> and <code class="docutils literal"><span class="pre">Dec</span></code>
+of the cluster, or area that is to be avoided must be given in the
+configuration file.</li>
+<li><strong>min_radius</strong> (<em>float</em>) &#8211; If the <code class="docutils literal"><span class="pre">cluster_flag</span></code> is <code class="docutils literal"><span class="pre">True</span></code>, then a minimum radius in
+arcminutes, relative to <code class="docutils literal"><span class="pre">ra_center</span></code> and <code class="docutils literal"><span class="pre">dec_center</span></code>, must be given
+in the configuration file.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="odi_cfgparse.photcfgparse">
+<code class="descclassname">odi_cfgparse.</code><code class="descname">photcfgparse</code><span class="sig-paren">(</span><em>cfg_file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/odi_cfgparse.html#photcfgparse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#odi_cfgparse.photcfgparse" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function reads the <code class="docutils literal"><span class="pre">yaml</span></code> configuration file that is needed
+to make the <code class="docutils literal"><span class="pre">odi_phot_process.py</span></code> function work. The configuration file
+must be given the name <code class="docutils literal"><span class="pre">phot_config.yaml</span></code> and be in the same directory
+as the images that will be processed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cfg_file</strong> (<em>str</em>) &#8211; A string containing the name of the configuration file.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><ul class="simple">
+<li><strong>object_str</strong> (<em>str</em>) &#8211; Name of the object in the images (eg M53)</li>
+<li><strong>filters</strong> (<em>list</em>) &#8211; List of filters present in images</li>
+<li><strong>instrument</strong> (<em>str</em>) &#8211; Name of instrument used <code class="docutils literal"><span class="pre">podi</span></code> or <code class="docutils literal"><span class="pre">5odi</span></code></li>
+<li><strong>images</strong> (<em>list</em>) &#8211; List of images that will be processed</li>
+<li><strong>new_extension</strong> (<em>str</em>) &#8211; The new extension that will be given to the images resulting from
+<code class="docutils literal"><span class="pre">odi_phot_process.py</span></code></li>
+<li><strong>remove_tpv_flag</strong> (<em>bool</em>) &#8211; If <code class="docutils literal"><span class="pre">True</span></code> header cards with <code class="docutils literal"><span class="pre">TPV</span></code> will be removed from the stacked
+images previously produced by <code class="docutils literal"><span class="pre">odi_process.py</span></code></li>
+<li><strong>trim_image_flag</strong> (<em>list</em>) &#8211; If <code class="docutils literal"><span class="pre">True</span></code> the stacked images previously produced by
+<code class="docutils literal"><span class="pre">odi_process.py</span></code> will be trimmed.</li>
+<li><strong>wcs_flag</strong> (<em>bool</em>) &#8211; If <code class="docutils literal"><span class="pre">True</span></code> the a step will be taken to improve the WCS on
+the stacked images previously produced by
+<code class="docutils literal"><span class="pre">odi_process.py</span></code></li>
+<li><strong>trim_image_flag</strong> (<em>list</em>) &#8211; The sections to trim from the stacked images.</li>
+<li><strong>airmasses</strong> (<em>list</em>) &#8211; The airmasses of the images in the order they will be processed.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="odi_helpers.html" class="btn btn-neutral float-right" title="ODI helper functions" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="modules.html" class="btn btn-neutral" title="Modules" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Owen Boberg, Bill Janesh.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
