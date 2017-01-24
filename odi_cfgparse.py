@@ -1,4 +1,60 @@
 def cfgparse(cfg_file):
+    """
+    This function reads the ``yaml`` configuration file that is needed
+    to make the ``odi_process.py`` and ``odi_scalestack_process.py`` functions
+    work. The configuration file must be given the name ``config.yaml`` and be
+    in the same directory as the images that will be processed.
+
+    Parameters
+    ----------
+    cfg_file : str
+        A string containing the name of the configuration file.
+    Returns
+    -------
+    object_str : str
+        Name of the object in the images (eg M53)
+    filters : list
+        List of filters present in images
+    instrument : str
+        Name of instrument used ``podi`` or ``5odi``
+    images : list
+        List of images that will be processed
+    illcor_flag : bool
+        If ``True`` an illumination correction will be applied to the images
+    skyflat_src : str
+        Can be ``object`` or ``master``. If ``object`` the dark sky flat is
+        created from the images being processed. If ``master`` the dark sky
+        flat is taken from a master calibration
+    wcs_flag : bool
+        If ``True`` the a step will be taken to improve the WCS solution on each
+        OTA
+    reproject_flag : bool
+        If ``True`` all of the OTAs will be reprojected to OTA33 of the first
+        image in the image list.
+    scale_flag : bool
+        If ``True`` the OTAs will be scaled to the same level before stacking
+    stack_flag : bool
+        If ``True`` the processed OTAs will be stacked into a final image
+    gaia_flag : bool
+        If ``True`` the gaia catalog will be used as the sources in the fix WCS
+        step
+    cluster_flag : bool
+        If ``True`` the central regions of a crowded area, such as a globular
+        cluster, are avoided when collecting the gaia sources to fix the WCS
+    ra_center : float
+        If the ``cluster_flag`` is ``True``, then the central ``Ra`` and ``Dec``
+        of the cluster, or area that is to be avoided must be given in the
+        configuration file.
+    dec_center : float
+        If the ``cluster_flag`` is ``True``, then the central ``Ra`` and ``Dec``
+        of the cluster, or area that is to be avoided must be given in the
+        configuration file.
+    min_radius : float
+        If the ``cluster_flag`` is ``True``, then a minimum radius in
+        arcminutes, relative to ``ra_center`` and ``dec_center``, must be given
+        in the configuration file.
+
+    """
     from sys import exit
     from yaml import load, dump
     try:
@@ -62,6 +118,44 @@ def cfgparse(cfg_file):
         return object_str, filters, instrument, images, illcor_flag, skyflat_src, wcs_flag, reproject_flag, scale_flag, stack_flag, gaia_flag, cluster_flag, ra_center, dec_center, min_radius
 
 def photcfgparse(cfg_file):
+    """
+    This function reads the ``yaml`` configuration file that is needed
+    to make the ``odi_phot_process.py`` function work. The configuration file
+    must be given the name ``phot_config.yaml`` and be in the same directory
+    as the images that will be processed.
+
+    Parameters
+    ----------
+    cfg_file : str
+        A string containing the name of the configuration file.
+    Returns
+    -------
+    object_str : str
+        Name of the object in the images (eg M53)
+    filters : list
+        List of filters present in images
+    instrument : str
+        Name of instrument used ``podi`` or ``5odi``
+    images : list
+        List of images that will be processed
+    new_extension : str
+        The new extension that will be given to the images resulting from
+        ``odi_phot_process.py``
+    remove_tpv_flag : bool
+        If ``True`` header cards with ``TPV`` will be removed from the stacked
+        images previously produced by ``odi_process.py``
+    trim_image_flag : list
+        If ``True`` the stacked images previously produced by
+        ``odi_process.py`` will be trimmed.
+    wcs_flag : bool
+        If ``True`` the a step will be taken to improve the WCS on
+        the stacked images previously produced by
+        ``odi_process.py``
+    trim_image_flag : list
+        The sections to trim from the stacked images.
+    airmasses : list
+        The airmasses of the images in the order they will be processed.
+    """
     from sys import exit
     from yaml import load, dump
     try:

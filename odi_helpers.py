@@ -7,6 +7,23 @@ from pyraf import iraf
 import odi_config as odi
 
 def deg_to_sex(ra, dec):
+    """
+    Convert an Ra and Dec position in decimal degrees to hexadecimal
+    Parameters
+    ----------
+    ra : float
+        Ra in decimal degrees
+    dec : float
+        Dec in decimal degrees
+
+    Returns
+    -------
+    ra : str
+        Ra in hexadecimal HH:MM:SS
+
+    dec : str
+        Dec in hexadecimal DD:MM:SS
+    """
     from astropy import units as u
     from astropy.coordinates import Angle
     rad = Angle(ra * u.deg)
@@ -18,6 +35,25 @@ def deg_to_sex(ra, dec):
     return ra, dec
 
 def get_targ_ra_dec(img, ota):
+    """
+    Get and return the Ra and Dec of an OTA based on the ``RA`` and ``DEC``
+    header cards.
+
+    Parameters
+    ----------
+    img : str
+        Name of image
+    ota : str
+        Name of ota
+
+    Returns
+    -------
+    ra : float
+        Ra in decimal degrees
+
+    dec : str
+        Dec in decimal degrees
+    """
     from astropy.io import fits
     hdulist = fits.open(img)
     hdu = hdulist[0]
@@ -28,8 +64,26 @@ def get_targ_ra_dec(img, ota):
 
     return ra, dec
     hdulist.close()
-    
+
 def imcombine_lists(images, filters):
+    """
+    Create a list files for OTAs, sorted by filter, that will be later
+    combined to make a dark sky flat.
+
+    Parameters
+    ----------
+    images : list
+        List of images
+    filters : list
+        List of filters present in the images list
+
+    Note
+    ----
+    Nothing is returned by this function. A file will be created for each OTA
+    following this naming scheme: ``OTA##.SCI.filter.lis``. For example:
+    ``OTA22.SCI.odi_g.lis``. Within each of these files will be a list of
+    images to combine.
+    """
     from astropy.io import fits
     for filter in filters:
         for key in odi.OTA_dictionary:
@@ -45,6 +99,49 @@ def imcombine_lists(images, filters):
     return
 
 def reproject_ota(img, ota, rad, decd, wcsref):
+    """
+    Use the IRAF task ``mscimage`` in the ``mscred`` package to reproject
+    an OTA to a reference tangent plane with constant pixel scale.
+
+    Parameters
+    ----------
+    img : str
+        Name of image being processed
+    ota : str
+        Name of current ``ota`` being processed in ``img``
+    rad : float
+        Reference Ra position for reprojection
+    decd : float
+        Reference Ra position for reprojection
+    wcfreg : str
+        Name of image and ota to be used as the reference image for ``mscimage``
+
+    Note
+    ----
+    Nothing is returned by this function but the reprojected ota is saved to the
+    ``repreopath``. The pipeline is setup to use OTA33 of
+    the first image in the images list as the reference image for this function.
+
+    Here is how the ``mscimage`` IRAF parameters are set:
+
+    - iraf.mscred.mscimage.format='image'
+    - iraf.mscred.mscimage.pixmask='yes'
+    - iraf.mscred.mscimage.verbose='yes'
+    - iraf.mscred.mscimage.wcssour='image'
+    - iraf.mscred.mscimage.ref=wcsref
+    - iraf.mscred.mscimage.ra=rad
+    - iraf.mscred.mscimage.dec=decd
+    - iraf.mscred.mscimage.scale=0.11
+    - iraf.mscred.mscimage.rotation=0.0
+    - iraf.mscred.mscimage.blank=-999
+    - iraf.mscred.mscimage.interpo='poly5'
+    - iraf.mscred.mscimage.minterp='poly5'
+    - iraf.mscred.mscimage.nxbl=4096
+    - iraf.mscred.mscimage.nybl=4096
+    - iraf.mscred.mscimage.fluxcon='yes'
+    - iraf.mscred.mscimage(image,imout)
+
+    """
     from pyraf import iraf
     image = odi.illcorpath+'illcor_'+ota+'.'+str(img[16:])
     imout = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
@@ -67,10 +164,36 @@ def reproject_ota(img, ota, rad, decd, wcsref):
     iraf.mscred.mscimage.nybl=4096
     iraf.mscred.mscimage.fluxcon='yes'
     iraf.mscred.mscimage(image,imout)
-    
+
     return
 
 def bgsub_ota(img, ota, apply=False):
+    """
+    Subtract a background level from an OTA.
+
+    Parameters
+    ----------
+    img : str
+        Name of image being processed
+    ota : str
+        Name of current ``ota`` being processed in ``img``
+    apply : bool
+        If ``True`` the background level is calculated and subtracted. If
+        ``False``, the background level is calculated by not subtracted from
+        the current ``ota``.
+    Returns
+    -------
+    bg_mean : float
+        Mean background level
+    bg_median : float
+        Meidan background level
+    bg_std : float
+        Standard deviation of background
+
+    Note
+    ----
+    This function calls ``odi.mask_ota`` to calculate the background statistics
+    """
     from pyraf import iraf
     image = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
     imout = odi.bgsubpath+'bgsub_'+ota+'.'+str(img[16:])
@@ -87,10 +210,35 @@ def bgsub_ota(img, ota, apply=False):
     return bg_mean, bg_median, bg_std
 
 def stack_otas(ota):
+    """
+    (Currently not used)
+    Stack the OTAs at the end of the ``odi_process.py`` using the ``IRAF`` total
+    ``imcombine``. Here are the the settings used by ``imcombine``:
+
+    - combine='average'
+    - reject='none'
+    - offsets='wcs'
+    - masktype='goodvalue'
+    - maskval=0
+    - blank=-999
+    - scale='none'
+    - zero='none'
+    - lthresh=-900
+    - hthresh=60000
+    - logfile=ota+'_stack.log'
+
+    Parameters
+    ----------
+    ota : str
+        Name of current ``ota`` being processed
+    """
     from pyraf import iraf
-    iraf.immatch.imcombine(odi.scaledpath+'scaled_'+ota+'*.fits', odi.otastackpath+ota+'_stack.fits', combine='average', reject='none', offsets='wcs', masktype='goodvalue', maskval=0, blank=-999, scale='none', zero='none', lthresh=-900, hthresh=60000, logfile=ota+'_stack.log')   
+    iraf.immatch.imcombine(odi.scaledpath+'scaled_'+ota+'*.fits', odi.otastackpath+ota+'_stack.fits', combine='average', reject='none', offsets='wcs', masktype='goodvalue', maskval=0, blank=-999, scale='none', zero='none', lthresh=-900, hthresh=60000, logfile=ota+'_stack.log')
 
 def deep_obj_mask(img, ota, apply=False):
+    """
+    Currently not used
+    """
     from astropy.io import fits
     from astropy.stats import sigma_clipped_stats
     image = odi.scaledpath+'scaled_'+ota+'.'+str(img[16:])
@@ -100,7 +248,7 @@ def deep_obj_mask(img, ota, apply=False):
     # maskhdu = fits.open(bppath+ota_mask)
     gapshdu = fits.open(odi.bppath+'reproj_mask_'+ota+'.'+str(img[16:]))
     total_mask = gapshdu[0].data
-    #maskhdu[0].data + 
+    #maskhdu[0].data +
 
     nx, ny = hdu_ota.data.shape
     print nx, ny
@@ -117,28 +265,59 @@ def deep_obj_mask(img, ota, apply=False):
     return mean, median, std
 
 def find_new_bg(refimg, filter):
+    """
+    Calculate a new background level to be added to the OTAs before
+    stacking
+
+    Parameters
+    ----------
+    refimg : str
+        Reference image for background calculation
+    filter : str
+        Filter of the reference image
+
+    Returns
+    -------
+    sky_med : float
+        Median background level
+
+    """
     img, ota, filt, fwhm, zp_med, zp_std, bg_mean, bg_med, bg_std = np.loadtxt('derived_props.txt', usecols=(0,1,2,3,4,5,6,7,8), dtype=str, unpack=True)
     keep = np.where((img == refimg[16]) & (filt==filter))
-    
+
     sky_med = np.median(bg_med[keep].astype(float))
     print 'calculated sky median to re-add:', sky_med
     return sky_med
 
 def make_stack_list(object, filter):
-    """ makes a list of images to input to imcombine in the stack_images() function
-        that does not include the guiding OTAs in the stack using the measured values
-        for each OTA in derived_props.txt"""
-    
+    """
+    Makes a list of images to be stacked using ``stack_images()``. This list
+    does not include the guiding OTAs as determined by ``derived_props.txt``.
+
+    Parameters
+    ----------
+    object : str
+        Name of object in field
+
+    filter : str
+        Filter name of images being stacked
+
+    Note
+    ----
+    Produces a file with the following naming scheme ``object+'_'+filter+'_stack.list'``
+
+    """
+
     img, ota, filt = np.loadtxt('derived_props.txt', usecols=(0,1,2), dtype=str, unpack=True)
     fwhm, zp_med, zp_std, bg_mean, bg_med, bg_std = np.loadtxt('derived_props.txt', usecols=(3,4,5,6,7,8), dtype=float, unpack=True)
-    
+
     keep = np.where(filt==filter)
     bg_std_med, bg_std_std = np.median(bg_std[keep]), np.std(bg_std[keep])
     # print bg_std_med, bg_std_std
     scaled_imgs = glob.glob(odi.scaledpath+'*'+filter+'*.fits')
     head = scaled_imgs[0][:14]
     tail = scaled_imgs[0][25:]
-    
+
     with open(object+'_'+filter+'_stack.list','w+') as stack_file:
         for j,im in enumerate(img[keep]):
             factor = np.absolute(bg_std[keep][j] - bg_std_med)/bg_std_std
@@ -148,6 +327,30 @@ def make_stack_list(object, filter):
 
 
 def stack_images(stackname, refimg):
+    """
+    Stack the images that are in the list produced by ``make_stack_list`` using
+    the ``IRAF`` task ``imcombine``. The following are the parameters used by
+    ``imcombine``.
+
+    - combine='average'
+    - reject='none'
+    - offsets='wcs'
+    - masktype='goodvalue'
+    - maskval=0
+    - blank=-999
+    - scale='none'
+    - zero='none'
+    - lthresh=-900
+    - hthresh=60000
+    - logfile=ota+'_stack.log'
+
+    Parameters
+    ----------
+    stackname : str
+        Name given to final stacked images
+    refimg: str
+        Name of reference image used in background calculation
+    """
     from astropy.io import fits
     from pyraf import iraf
     print refimg
@@ -185,46 +388,53 @@ def stack_images(stackname, refimg):
     return output
 
 def instrument(img):
+    """
+    A function to grab what version of ODI has been used.
+
+    Parameters
+    ----------
+    img : str
+        Name of image
+
+    Returns
+    -------
+    instrument_name : str
+        Will return ``5odi`` or ``podi``.
+    """
+
     from astropy.io import fits
-    """
-    A function to grab what version of odi has been used
-    should return 'podi' or '5odi'
-    Add a line to this effect before all of the other
-    odi_process.py stuff
-    inst = odi.instument(images[0])
-    """
     hdulist = fits.open(img)
     instrument_name = hdulist[0].header['INSTRUME']
     hdulist.close()
-    print 'Setting instrument to: ', instrument_name 
+    print 'Setting instrument to: ', instrument_name
 
     if instrument_name == '5odi':
         # odi.OTA_dictionary = odi.odi5narrow_dictionary
         odi.OTA_dictionary = odi.odi5_dictionary
     else :
         odi.OTA_dictionary = odi.podi_dictionary
-        
+
     return instrument_name
 
 def qr_img_lists(odi_filter):
     """
+    (Currently not used)
     a function to build the image lists that will be fed into
     odi_process.py and other routines. This will be based on
     the filters provided.
-    
+
     Filter example = odi_g
-    
+
     """
     glob_cmd = '*_'+odi_filter+'*.fits'
     img_list = glob.glob(glob_cmd)
     img_list.sort()
-    
+
     return img_list
-    
+
 
 def main():
     pass
 
 if __name__ == '__main__':
     main()
-
