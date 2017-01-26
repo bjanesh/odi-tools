@@ -12,9 +12,9 @@
 
 1. `wopr` **is a restricted access machine**, meaning you need a user account to use it. Contact Bob Lezotte to request an account. 
 
-2. **Time on `wopr` is scheduled on a first-come-first-serve basis.** Don't schedule more time than you need. Full processing of a 9-point dither pattern takes about 3-4 hours per filter. The schedule can be found below or at [https://teamup.com/ks78bf366c93189e18](https://teamup.com/ks78bf366c93189e18). 
+2. **Time on `wopr` is scheduled on a first-come-first-serve basis.** Schedule as much time as you need, but please respect others' time and use the scheduled time. Full processing of a 9-point dither pattern takes about 3-4 hours per filter, so you shouldn't need more than 2 days per target. **After your scheduled time, add one (1) day of "Bob" time** so that the computer can be reset for the next user. The schedule can be found at the bottom of this page or at [https://teamup.com/ks78bf366c93189e18](https://teamup.com/ks78bf366c93189e18). 
 
-3. **All disk space on `wopr` will be treated as scratch space.** ODI data processing is extremely space intensive. The SSD is appropriately sized for full processing of ~30 5x6 ODI images. Use your space carefully! If you have not cleared your data by the end of your scheduled time, it will be cleared for you. Take your final data products with you! A few (representative) statistics about data size:
+3. **All disk space on `wopr` will be treated as scratch space.** ODI data processing is extremely space intensive. The SSD is appropriately sized for full processing of ~30 5x6 ODI images. Use your space carefully! At the end of your scheduled time, **the SSD will be cleared.** Take your final data products with you! A few (representative) statistics about data size:
     * A single compressed 5x6 ODI image: `250 MB`
     * A single uncompressed 5x6 ODI image: `2.0 GB`
     * One 9-point dither pattern (unprocessed): `18 GB`
