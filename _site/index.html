@@ -1,0 +1,87 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>odi-tools by bjanesh</title>
+
+    <link rel="stylesheet" href="/assets/css/style.css?v=98581b966a6e825f5c9021e0d820859ac2d0b8f7">
+    <meta name="viewport" content="width=device-width">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>odi-tools</h1>
+        <p>A suite of tools written in Pyraf, Astropy, Scipy, and Numpy to process individual QuickReduced images into single stacked images using a set of "best practices" for ODI data.</p>
+        
+        <p class="view"><a href="/">About</a></p>
+        <p class="view"><a href="/processing/">Processing</a></p>
+        <p class="view"><a href="/examples/">Examples</a></p>
+        <p class="view"><a href="http://odi-tools.readthedocs.io/">Documentation</a></p>
+        <p class="view"><a href="/wopr/">WOPR @ IU</a></p>
+        
+          <p class="view"><a href="http://github.com/bjanesh/odi-tools">View the Project on GitHub <small></small></a></p>
+        
+
+        
+
+        
+          <ul>
+            <li><a href="http://github.com/bjanesh/odi-tools/zipball/gh-pages">Download <strong>ZIP File</strong></a></li>
+            <li><a href="http://github.com/bjanesh/odi-tools/tarball/gh-pages">Download <strong>TAR Ball</strong></a></li>
+            <!-- <li><a href="http://github.com/bjanesh/odi-tools">View On <strong>GitHub</strong></a></li> -->
+          </ul>
+        
+      </header>
+      <section>
+
+      <h3 id="installation">Installation</h3>
+<p>simply fork this repository and clone onto your local machine, e.g.: <code class="highlighter-rouge">git clone https://github.com/bjanesh/odi-tools.git</code></p>
+
+<p>optionally add this folder to your <code class="highlighter-rouge">$PATH</code></p>
+
+<p>to run the scripts you’ll need to install a number of dependencies:</p>
+
+<p><code class="highlighter-rouge">pip install numpy scipy astropy photutils pyraf tqdm matplotlib pandas</code></p>
+
+<p>It is possible to install these packages without root access by using the <code class="highlighter-rouge">--user</code> option:</p>
+
+<p><code class="highlighter-rouge">pip install --user package-name</code></p>
+
+<p>As noted on the <a href="http://astropy.readthedocs.org/en/stable/install.html">astropy website</a>, it might also be beneficial to use the <code class="highlighter-rouge">--no-deps</code>
+option when installing astropy to stop pip from automatically upgrading any of your previously installed packages, such as numpy.</p>
+
+<p><code class="highlighter-rouge">pip install --no-deps astropy</code></p>
+
+<h3 id="usage">Usage</h3>
+<p>All you need to do to get started is download your QR-ed data from the ODI-PPA using the <code class="highlighter-rouge">wget</code> download command, then follow these steps (if you aren’t sure what to do, see below for more details).</p>
+
+<ol>
+  <li>move all individual .fz files into the top level folder: <code class="highlighter-rouge">mv calibrated/**/*.fz .</code></li>
+  <li>unpack the compressed fits files using <code class="highlighter-rouge">funpack</code> <a href="https://heasarc.gsfc.nasa.gov/fitsio/fpack/">link</a></li>
+  <li>you need to rename your files to match the appropriate dither pointing identification. for example, QR files are named by the pattern <code class="highlighter-rouge">OBSID_OBJECT_FILTER.JOBID.fits</code>. The final digit of the OBSID <code class="highlighter-rouge">e.g. 20151008T195949.1</code> needs to match the number sequence of the dithers 1-9. Your data may not match this pattern due to restarted observations, multiple night observations, etc.</li>
+  <li>copy <code class="highlighter-rouge">example_config.yaml</code> to your data directory as <code class="highlighter-rouge">config.yaml</code> and edit the file to match your preferences/data. Make sure that the number for each image matches the correct number in the dither sequence!</li>
+  <li>run <code class="highlighter-rouge">odi_process.py</code> in the folder containing the unpacked/renamed fits images. This will (optionally) illumination correct the images, fix their WCS, reproject them to a common pixel scale, and perform background subtraction on them.</li>
+  <li>this will take a while, so make sure nothing bad happened</li>
+  <li>run <code class="highlighter-rouge">odi_scalestack_process.py</code> in the folder containing the unpacked/renamed fits images. This will detect bright stellar sources in the images and use them to calculate a scaling factor relative to the image in the sequence with the lowest airmass, then apply the scale, stack the images, then add in a common background value.</li>
+  <li>finished! check your images to make sure everything went okay.</li>
+</ol>
+
+
+      </section>
+      <footer>
+        
+        <p>Maintained by <a href="http://github.com/bjanesh">bjanesh</a> &amp; <a href="https://github.com/oboberg">oboberg</a>.</p>
+        
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="/assets/js/scale.fix.js"></script>
+
+
+  
+  </body>
+</html>

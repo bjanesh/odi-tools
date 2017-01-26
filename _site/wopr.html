@@ -1,0 +1,114 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>odi-tools by bjanesh</title>
+
+    <link rel="stylesheet" href="/assets/css/style.css?v=98581b966a6e825f5c9021e0d820859ac2d0b8f7">
+    <meta name="viewport" content="width=device-width">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>odi-tools</h1>
+        <p>A suite of tools written in Pyraf, Astropy, Scipy, and Numpy to process individual QuickReduced images into single stacked images using a set of "best practices" for ODI data.</p>
+        
+        <p class="view"><a href="/">About</a></p>
+        <p class="view"><a href="/processing/">Processing</a></p>
+        <p class="view"><a href="/examples/">Examples</a></p>
+        <p class="view"><a href="http://odi-tools.readthedocs.io/">Documentation</a></p>
+        <p class="view"><a href="/wopr/">WOPR @ IU</a></p>
+        
+          <p class="view"><a href="http://github.com/bjanesh/odi-tools">View the Project on GitHub <small></small></a></p>
+        
+
+        
+
+        
+          <ul>
+            <li><a href="http://github.com/bjanesh/odi-tools/zipball/gh-pages">Download <strong>ZIP File</strong></a></li>
+            <li><a href="http://github.com/bjanesh/odi-tools/tarball/gh-pages">Download <strong>TAR Ball</strong></a></li>
+            <!-- <li><a href="http://github.com/bjanesh/odi-tools">View On <strong>GitHub</strong></a></li> -->
+          </ul>
+        
+      </header>
+      <section>
+
+      <p><code class="highlighter-rouge">wopr&gt; Greetings, Professor Falken.</code></p>
+
+<p><code class="highlighter-rouge">wopr&gt; Would you like to play a game of ODI data processing?</code></p>
+
+<p><strong>Summary</strong></p>
+
+<p><code class="highlighter-rouge">wopr</code> is a local IU Astro workstation. Its primary use is ODI data processing after the data has been reduced by the <a href="https://portal.odi.iu.edu">QuickReduce pipeline</a>. To account for a balance between processing speed and data volume, <code class="highlighter-rouge">wopr</code> is equipped with a 500GB solid state drive, a 1 TB spinning drive, 16GB of memory, and a fast workstation processor. We have also written a pipeline to process and stack pODI/5x6ODI data called <a href="https://github.com/bjanesh/odi-tools">odi-tools</a>, which is in use on <code class="highlighter-rouge">wopr</code>. Documentation for ODI data processing with <code class="highlighter-rouge">odi-tools</code> can be found <a href="http://odi-tools.readthedocs.io">here</a>.</p>
+
+<p><strong>General Policies</strong></p>
+
+<ol>
+  <li>
+    <p><code class="highlighter-rouge">wopr</code> <strong>is a restricted access machine</strong>, meaning you need a user account to use it. Contact Bob Lezotte to request an account.</p>
+  </li>
+  <li>
+    <p><strong>Time on <code class="highlighter-rouge">wopr</code> is scheduled on a first-come-first-serve basis.</strong> Don’t schedule more time than you need. Full processing of a 9-point dither pattern takes about 3-4 hours per filter. The schedule can be found below or at <a href="https://teamup.com/ks78bf366c93189e18">https://teamup.com/ks78bf366c93189e18</a>.</p>
+  </li>
+  <li><strong>All disk space on <code class="highlighter-rouge">wopr</code> will be treated as scratch space.</strong> ODI data processing is extremely space intensive. The SSD is appropriately sized for full processing of ~30 5x6 ODI images. Use your space carefully! If you have not cleared your data by the end of your scheduled time, it will be cleared for you. Take your final data products with you! A few (representative) statistics about data size:
+    <ul>
+      <li>A single compressed 5x6 ODI image: <code class="highlighter-rouge">250 MB</code></li>
+      <li>A single uncompressed 5x6 ODI image: <code class="highlighter-rouge">2.0 GB</code></li>
+      <li>One 9-point dither pattern (unprocessed): <code class="highlighter-rouge">18 GB</code></li>
+      <li>One 9-point dither pattern (processed): <code class="highlighter-rouge">130 GB</code></li>
+      <li>Two 9-point dither patterns (processed): <code class="highlighter-rouge">260 GB</code></li>
+      <li>Three 9-point dither patterns (processed): <code class="highlighter-rouge">390 GB</code></li>
+      <li>Maximum SSD disk capacity: <code class="highlighter-rouge">490 GB</code></li>
+    </ul>
+  </li>
+  <li>
+    <p><strong>Final data products will be stored/archived on the IU Scholarly Data Archive.</strong> The details of this process are still pending.</p>
+  </li>
+  <li><strong>Need help?</strong> If you have technical issues with <code class="highlighter-rouge">wopr</code> please report them to Bob Lezotte. Critical issues with <code class="highlighter-rouge">odi-tools</code> should be reported to Bill Janesh or Owen Boberg. Non-critical issues or feature requests should be submitted as a <a href="https://github.com/bjanesh/odi-tools/issues">Github issue</a>. All other communication should be directed to the <code class="highlighter-rouge">wopr-l</code> mailing list.</li>
+</ol>
+
+<p><strong>Getting started</strong></p>
+
+<ol>
+  <li>Log in to your account.</li>
+  <li>First time users should initialize <code class="highlighter-rouge">IRAF</code> by doing the following:
+    <ol>
+      <li>navigate to your home directory: <code class="highlighter-rouge">cd ~</code></li>
+      <li>create an IRAF folder: <code class="highlighter-rouge">mkdir iraf</code></li>
+      <li>navigate to the iraf folder: <code class="highlighter-rouge">cd iraf</code></li>
+      <li>initialize IRAF: <code class="highlighter-rouge">mkiraf</code></li>
+      <li>(optional) copy your preferred <code class="highlighter-rouge">login.cl</code> file with <code class="highlighter-rouge">scp</code> or <code class="highlighter-rouge">sftp</code></li>
+      <li>start, and then exit pyraf: <code class="highlighter-rouge">pyraf</code>, then <code class="highlighter-rouge">.exit</code></li>
+    </ol>
+  </li>
+  <li>Get your QuickReduced data using the Download option on ODI-PPA. You probably want to use the <code class="highlighter-rouge">wget</code> option, so leave the “Tar exposure directories” box <strong>unchecked</strong>. Navigate to <code class="highlighter-rouge">/ssd1</code> and paste the command.</li>
+  <li>Your images will download to a folder named, appropriately, <code class="highlighter-rouge">images</code>. Rename this folder to match your object name, e.g. <code class="highlighter-rouge">mv images m15</code>.</li>
+  <li>Navigate into the folder with the images and uncompress them: <code class="highlighter-rouge">funpack *.fz</code>. This will take a few minutes. If you’re worried about space, delete the compressed images <code class="highlighter-rouge">rm *.fz</code>. Otherwise you may wish to keep them until you are sure your data processed correctly.</li>
+  <li>Copy and edit a <code class="highlighter-rouge">config.yaml</code> file to include the appropriate options for your data: <code class="highlighter-rouge">cp $ODI_CONFIG config.yaml</code>. <strong>UPDATE 26 January 2017:</strong> illumination correction should be turned off.</li>
+  <li>Run the <code class="highlighter-rouge">odi-tools</code> data processing scripts <code class="highlighter-rouge">odi_process.py</code>, <code class="highlighter-rouge">odi_scalestack_process.py</code> as needed.</li>
+  <li>Run the clean-up script <code class="highlighter-rouge">odi_cleanup.py</code>. This will <em>compress &amp; move</em> your final products to a <code class="highlighter-rouge">.tar.gz</code> file in <code class="highlighter-rouge">/ssd1</code>. You can then copy this file to your own machine. Don’t do this until you are satisfied with your final results!</li>
+  <li>Notify an administrator (Bob) when you are finished processing your data.</li>
+</ol>
+
+<iframe src="https://teamup.com/ks78bf366c93189e18" frameborder="0" width="100%" height="400"></iframe>
+
+
+      </section>
+      <footer>
+        
+        <p>Maintained by <a href="http://github.com/bjanesh">bjanesh</a> &amp; <a href="https://github.com/oboberg">oboberg</a>.</p>
+        
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="/assets/js/scale.fix.js"></script>
+
+
+  
+  </body>
+</html>

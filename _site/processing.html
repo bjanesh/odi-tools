@@ -1,0 +1,93 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>odi-tools by bjanesh</title>
+
+    <link rel="stylesheet" href="/assets/css/style.css?v=98581b966a6e825f5c9021e0d820859ac2d0b8f7">
+    <meta name="viewport" content="width=device-width">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>odi-tools</h1>
+        <p>A suite of tools written in Pyraf, Astropy, Scipy, and Numpy to process individual QuickReduced images into single stacked images using a set of "best practices" for ODI data.</p>
+        
+        <p class="view"><a href="/">About</a></p>
+        <p class="view"><a href="/processing/">Processing</a></p>
+        <p class="view"><a href="/examples/">Examples</a></p>
+        <p class="view"><a href="http://odi-tools.readthedocs.io/">Documentation</a></p>
+        <p class="view"><a href="/wopr/">WOPR @ IU</a></p>
+        
+          <p class="view"><a href="http://github.com/bjanesh/odi-tools">View the Project on GitHub <small></small></a></p>
+        
+
+        
+
+        
+          <ul>
+            <li><a href="http://github.com/bjanesh/odi-tools/zipball/gh-pages">Download <strong>ZIP File</strong></a></li>
+            <li><a href="http://github.com/bjanesh/odi-tools/tarball/gh-pages">Download <strong>TAR Ball</strong></a></li>
+            <!-- <li><a href="http://github.com/bjanesh/odi-tools">View On <strong>GitHub</strong></a></li> -->
+          </ul>
+        
+      </header>
+      <section>
+
+      <h3 id="processing-details">Processing details</h3>
+<p><em>last modified 2 May 2016</em></p>
+
+<ol>
+  <li>Add the images you wish to reduce to a collection in the ODI-PPA and from the collection action menu, choose QuickReduce.</li>
+  <li>Run QuickReduce with the following options: <br />☑️ WCS <br />☑️ Photometry <br />☑️ Fringe (i- and z-band only) <br />☑️ Persistency <br />☑️ Nonlinearity <br />☑️ Pupil Ghost (calibrations) <br />❌ Pupil Ghost (science) <br />☑️ Use Bad Pixel Masks <br />☑️ Cosmic Ray Removal, 3 iteration(s) <br />Make sure you name the job and check the “Email me when finished” box. Wait.</li>
+  <li>Download the QuickReduce data to your hard drive using the “Download Results” button on the QuickReduce job page. You don’t need to select any of the optional boxes, just name the job and click submit. Eventually a <code class="highlighter-rouge">wget</code> command will pop up. Copy it to your clipboard, navigate to the folder you want the data to go into, then paste the <code class="highlighter-rouge">wget</code> command in your command line.</li>
+  <li>Move all individual .fz files into the top level folder: <code class="highlighter-rouge">mv calibrated/**/*.fz .</code></li>
+  <li>Unpack the compressed fits files using <code class="highlighter-rouge">funpack</code> <a href="https://heasarc.gsfc.nasa.gov/fitsio/fpack/">link</a></li>
+  <li>You need to rename your files to match the appropriate dither pointing identification. for example, QR files are named by the pattern <code class="highlighter-rouge">OBSID_OBJECT_FILTER.JOBID.fits</code>. The final digit of the OBSID <code class="highlighter-rouge">e.g. 20151008T195949.1</code> needs to match the number sequence of the dithers 1-9. <em>Your data may not match this pattern</em> due to restarted observations, multiple night observations, etc. Support will be added in the future for FITS header keywords providing this functionality without user interaction.</li>
+  <li>Once your files are uncompressed and renamed, run <code class="highlighter-rouge">odi_process.py</code> in the folder with the images. This script will do the following (most of these steps are applied on an OTA by OTA basis, not the entire image at once):</li>
+  <li>create catalogs of SDSS and 2MASS stars from the QuickReduce header tables. These will be used later for a bunch of things.</li>
+  <li>create lists of all object images</li>
+  <li>open each object image and create a mask of bad pixels <em>and a mask of all objects</em> in the image, write the name of these masks to the header.</li>
+  <li>take the object images and the bad pixel/object masks and do a masked median combine to create a dark sky flat (one per filter).</li>
+  <li>illumination correction – divide each object image by its filter’s dark sky flat.</li>
+  <li>use the SDSS coordinates from before to select bright stars and use them to correct the WCS in each image using <code class="highlighter-rouge">iraf.mscred.msccmatch</code> (this works poorly in crowded fields at the moment). Do three iterations of <code class="highlighter-rouge">fix_wcs</code>.</li>
+  <li>now that the WCS is good in each image, reproject each image of the object in all filters to a common system, using the <em>target</em> RA and Dec as the reference point. (using <code class="highlighter-rouge">iraf.mscred.mscimage</code>)</li>
+  <li>measure the mean stellar fwhm in each OTA using <code class="highlighter-rouge">iraf.imexam</code></li>
+  <li>measure and subtract the median background in each image. Put down 100 random boxes around the image, find the <em>median</em> value and subtract. This takes advantage of the object masks created earlier to know where objects are.</li>
+  <li>write out all the measured properties into a table so we know what happened and can see if anything went wrong.</li>
+  <li>Run <code class="highlighter-rouge">odi_scalestack_process.py</code> in the top-level folder. This will determine scaling factors, scale the image, and stack them into single images per filter.</li>
+  <li>find sources in the image using <code class="highlighter-rouge">daofind</code></li>
+  <li>build a matched catalog of stars, making sure all the stars are visible on all the other images and not in a cell gap/etc.</li>
+  <li>measure the fwhm to find an aperture size, then <code class="highlighter-rouge">iraf.apphot.phot</code> the sources in every image to get their total flux.</li>
+  <li>choose a reference image (<em>LOWEST AIRMASS</em>)</li>
+  <li>use the measured fluxes to compute a flux ratio between the reference image and all other images – then divide each image by this ratio to scale each image to a common flux.</li>
+  <li>stack the images using <code class="highlighter-rouge">iraf.imcombine(wcs='yes')</code>. This will take a long time since it is combining each individual OTA from each image. (with ODI5x6 data, around 270 images!) This produces a fits file named <code class="highlighter-rouge">object_filter.fits</code>.</li>
+  <li>Your images are now stacked. If you want to use our typical photometric calibration procedure, run <code class="highlighter-rouge">odi_phot_process.py</code> in the top-level folder. This will also (eventually) set some header keywords that will be useful to you in the future.</li>
+  <li>Fix the WCS for the full image (one iteration). If things are good, this will only be a few arcseconds of shift.</li>
+  <li>set the effective airmass for the stacked image to be that of the scaling reference image.</li>
+  <li>get photometry of all SDSS catalog stars from the stacked images using a large aperture (4.5x fwhm).</li>
+  <li>do matched pair photometric calibration using the photometry of the SDSS stars and the catalog values. See <code class="highlighter-rouge">full_calibrate.py:388</code> for full details.</li>
+  <li>determine an aperture correction for each filter using the brightest SDSS stars.</li>
+  <li>find <em>all</em> sources in the images using <code class="highlighter-rouge">daofind</code>, <code class="highlighter-rouge">iraf.apphot.phot</code> them, and determine their RA and Dec.</li>
+  <li>based on RA and Dec, match the sources between the images, and calibrate the photometry using predetermined coefficients. Print calibrated magnitudes out to a file, and make a CMD of the final sources.</li>
+</ol>
+
+
+      </section>
+      <footer>
+        
+        <p>Maintained by <a href="http://github.com/bjanesh">bjanesh</a> &amp; <a href="https://github.com/oboberg">oboberg</a>.</p>
+        
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="/assets/js/scale.fix.js"></script>
+
+
+  
+  </body>
+</html>

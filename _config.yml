@@ -1,1 +1,7 @@
 theme: jekyll-theme-minimal
+
+title: odi-tools
+description: A suite of tools written in Pyraf, Astropy, Scipy, and Numpy to process individual QuickReduced images into single stacked images using a set of "best practices" for ODI data.
+
+show_downloads: False
+google_analytics: UA-98827-2
