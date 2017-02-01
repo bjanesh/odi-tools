@@ -6,6 +6,7 @@ Modules
 
    odi_cfgparse
    odi_helpers
+   offlinecats
    getfwhm
    mask_ota
    full_calibrate

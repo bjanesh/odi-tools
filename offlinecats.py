@@ -17,6 +17,34 @@ from gaia.tap import cone_search
 from astropy.table import Table
 
 def get_sdss_coords_offline(img, ota, inst,output='test.sdss'):
+    """
+    Pull out and parse the ``CAT.PHOTCALIB`` table from ``img`` header. This
+    function will separate the SDSS stars in ``CAT.PHOTCALIB`` based on which
+    ``ota`` they fall on.
+
+    Parameters
+    ----------
+    img : str
+        Name of image
+    ota : str
+        Name of OTA
+    int : str
+        Version of ODI used, ``podi`` or ``5odi``
+
+    Returns
+    -------
+    xdim : int
+        Size of OTA in the x direction ``NAXIS1``
+    ydim : int
+        Size of OTA in the y direction ``NAXIS2``
+
+    Note
+    ----
+    If the images being processed do not fall in the SDSS footprint,
+    the QuickReduce pipeline will use PanSTARRS. This function will still
+    pull out these stars and treat them as SDSS stars. There will be no
+    ``u`` magnitudes available, however.
+    """
     hdulist = odi.fits.open(img)
     hdu = hdulist[ota]
 
@@ -98,6 +126,27 @@ def get_sdss_coords_offline(img, ota, inst,output='test.sdss'):
     return xdim, ydim
 
 def get_2mass_coords_offline(img, ota, inst,output='test.mass'):
+    """
+    Pull out and parse the ``CAT.ODI+2MASS`` table from ``img`` header. This
+    function will separate the 2MASS stars in ``CAT.ODI+2MASS`` based on which
+    ``ota`` they fall on.
+
+    Parameters
+    ----------
+    img : str
+        Name of image
+    ota : str
+        Name of OTA
+    int : str
+        Version of ODI used, ``podi`` or ``5odi``
+
+    Returns
+    -------
+    xdim : int
+        Size of OTA in the x direction ``NAXIS1``
+    ydim : int
+        Size of OTA in the y direction ``NAXIS2``
+    """
     hdulist = odi.fits.open(img)
     hdu = hdulist[ota]
 
@@ -123,6 +172,22 @@ def get_2mass_coords_offline(img, ota, inst,output='test.mass'):
     return xdim, ydim
 
 def get_gaia_coords(img,ota,inst,output='test.gaia',cluster=False,**kwargs):
+    """
+    Query the online Gaia DR1 based on the central coordinates of the current
+    OTA. If the ``cluster`` flag is set to ``True``, the querey will avoid
+    a crowded region based on coordinates and a radius set by the user in
+    the configuration files.
+
+    Parameters
+    ----------
+    img : str
+        Name of image
+    ota : str
+        Name of OTA
+    int : str
+        Version of ODI used, ``podi`` or ``5odi``
+
+    """
     from astropy import units as u
     from astropy.coordinates import SkyCoord
     hdulist = fits.open(img)
