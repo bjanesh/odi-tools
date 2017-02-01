@@ -8,14 +8,37 @@ import matplotlib.pyplot as plt
 from scipy.ndimage import binary_dilation
 def bkg_boxes(hdu,nboxes,length,sources):
     """
-    Function to calculate the sigma clipped statistics
-    of a number of randomly generated boxes
-    Variables:
-    frame: fits image
-    nboxes: number of boxes to generate
-    length: length of side of box in pixels
-    sources: if sources = True, the sources in each box will be detected and masked
-           if sources = False, no masking is done
+    Function to calculate the sigma clipped statistics of a number of randomly
+    generated boxes over an ota.
+
+    Parameters
+    ----------
+    hdu : fits object
+        Hdulist that as been opened by astropy.fits.io
+
+    nboxes : int
+        Number of random boxes to generate over the ota
+
+    length : int
+        Length of side of box in pixels
+
+    sources : bool
+        If ``True`` any sources detected in a given box will be masked before
+        calculating the background statistics
+
+    Returns
+    -------
+    bg_stats : numpy array
+        Array containing the background stats of all of the boxes
+    bg_median : float
+        Median background level of the boxes
+    med_std : float
+        Median standard deviation of the background level in each box
+    std_std : float
+        Standard deviation of the standard deviations in each box
+    centers : list
+        Pixel centers of each box
+
     """
     image = hdu.data
 

@@ -6,6 +6,7 @@ Modules
 
    odi_cfgparse
    odi_helpers
+   rand_bkg
    offlinecats
    getfwhm
    mask_ota
