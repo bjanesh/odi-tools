@@ -16,13 +16,30 @@ from astropy.modeling import models, fitting
 
 def source_find(img,ota,inst,nbg_std=10.0):
     """
-    This function will find sources on an OTA
-    using the detect_sources module from photutils.
-    This will return of csv file of the sources found
-    with the x,y,Ra,Dec,source_sum,max_value, and
-    elongation of the source. The elongation parameter is
-    semimajor_axis / semiminor_axis. This output is needed
-    for the source_xy function.
+    This function will find sources on an OTA using the detect_sources module
+    from photutils. This will return of csv file of the sources found with the
+    x,y,Ra,Dec,source_sum,max_value, and elongation of the source. The
+    elongation parameter is semimajor_axis / semiminor_axis.
+    This output is needed for the source_xy function. This function is set
+    to work on the reprojected otas.
+
+    Parameters
+    ----------
+    img : str
+        Name of image
+    ota : str
+        Name of OTA
+    int : str
+        Version of ODI used, ``podi`` or ``5odi``
+    nbg_std : float
+        Multiplier to the standard deviation of the background. It has a default
+        value of ``10`` to only detect bright sources
+
+    Note
+    ----
+    This function produces a ``csv`` file in ``odi.sourcepath`` with the
+    following naming convention ``'source_'+ota+'.'+str(img[16:-5])+'.csv'``.
+
     """
     image = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
     QR_raw = odi.fits.open(image)
@@ -54,9 +71,25 @@ def source_find(img,ota,inst,nbg_std=10.0):
 
 def source_xy(img,ota,gapmask,filter,inst):
     """
-    This function will return the x,y positions of
-    sources found by source_find that are not too
-    close to gaps or the edges of the ota.
+    This function will return the x,y positions of sources found by
+    :py:func:`source_find` that are not too close to gaps or the edges of the
+    ota.
+
+    Parameters
+    ----------
+    img : str
+        Name of image
+    ota : str
+        Name of OTA
+    int : str
+        Version of ODI used, ``podi`` or ``5odi``
+
+    Note
+    ----
+    This function produces a ``csv`` file in ``odi.sourcepath`` with the
+    following naming convention ``'source_'+ota+'.'+str(img[16:-5])+'.xy'``.
+
+
     """
     image = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
     #image = odi.bgsubpath+'bgsub_'+ota+'.'+str(img[16:])
@@ -91,8 +124,22 @@ def source_xy(img,ota,gapmask,filter,inst):
 
 def getfwhm_source(img, ota, radius=4.0, buff=7.0, width=5.0):
     """
-    Measure the FWHM using IRAF at the x,y positions that are
-    returned by source_xy.
+    This function will measure the FWHM of the sources in the catalog produced
+    by :py:func:`source_xy`. These are the sources that were not too close to
+    the edges of the OTA or the gaps. The FWHM measurement is done using the
+    same IRAF tasks outlined in :py:func:`getfwhm.getfwhm_ota`.
+
+    Parameters
+    ----------
+    img : str
+        Name of image
+    ota : str
+        Name of OTA
+
+    Returns
+    -------
+    sfwhm : float
+        Median value of the ``gfwhm`` measurements on the ``ota``.
     """
     image = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
     coords = odi.sourcepath+'source_'+ota+'.'+str(img[16:-5])+'.xy'
@@ -129,7 +176,45 @@ def getfwhm_source(img, ota, radius=4.0, buff=7.0, width=5.0):
 
 def phot_sources(img, ota, fwhm):
     """
-    Run IRAF phot on the the sources found.
+    Run IRAF phot on the sources filtered by :py:func:`source_xy`. The ``fwhm``
+    values used by phot is calculated by :py:func:`getfwhm_source`.
+
+    Parameters
+    ----------
+    img : str
+        Name of image
+    ota : str
+        Name of OTA
+
+    fwhm : float
+        Median value of the ``gfwhm`` measurements on the ``ota``.
+
+    Note
+    ----
+
+    IRAF phot is run with the following parameters:
+
+    - iraf.apphot.phot.setParam('interactive',"no")
+    - iraf.apphot.phot.setParam('verify',"no")
+    - iraf.datapars.setParam('datamax',50000.)
+    - iraf.datapars.setParam('gain',"gain")
+    - iraf.datapars.setParam('ccdread',"rdnoise")
+    - iraf.datapars.setParam('exposure',"exptime")
+
+    - iraf.datapars.setParam('filter',"filter")
+    - iraf.datapars.setParam('obstime',"time-obs")
+    - iraf.datapars.setParam('sigma',"INDEF")
+    - iraf.photpars.setParam('zmag',0.)
+    - iraf.centerpars.setParam('cbox',9.)
+    - iraf.centerpars.setParam('maxshift',3.)
+    - iraf.fitskypars.setParam('salgorithm',"median")
+    - iraf.fitskypars.setParam('dannulus',10.)
+
+    - iraf.datapars.setParam('airmass','airmass')
+    - iraf.datapars.setParam('fwhmpsf',fwhm)
+    - iraf.photpars.setParam('apertures',5.*fwhm)
+    - iraf.fitskypars.setParam('annulus',6.*fwhm)
+
     """
     iraf.ptools(_doprint=0)
     # values determined by ralf/daniel @ wiyn
@@ -182,9 +267,22 @@ def phot_sources(img, ota, fwhm):
 
 def phot_combine(img, ota):
     """
-    Combine all of the information gather on the found sources.
-    These will be all of the values returned by source_find,
-    source_xy, getfwhm_source, phot_sources.
+    Combine all of the information gathered on the found sources.
+    These will be all of the values returned by :py:func:`source_find`,
+    :py:func:`source_xy`, :py:func:`getfwhm_source`, :py:func:`phot_sources`.
+
+    Parameters
+    ----------
+    img : str
+        Name of image
+    ota : str
+        Name of OTA
+
+    Note
+    ----
+    This will produce a file with the following naming scheme
+    ``odi.sourcepath+img[0:-5]+'.'+ota+'.totphot'``.
+
     """
     coords = odi.sourcepath+'source_'+ota+'.'+str(img[16:-5])+'.xy'
 
@@ -207,11 +305,39 @@ def phot_combine(img, ota):
 
 def source_scale(img,ref,filter):
     """
-    This function calculates the scaling based on a reference image.
-    The tables returned by phot_combine are used to match the sources
-    in the image and the reference image, as well as make cuts based
-    and other source properties. These values will likely have to
-    adjusted based on your data.
+    This function calculates the scaling based on a reference image. The tables
+    returned by :py:func:`phot_combine` are used to match the sources in the
+    image and the reference image, as well as make cuts based and other source
+    properties. These values will likely have to adjusted based on your data.
+
+    Parameters
+    ----------
+    img : str
+        Name of image
+    ref : str
+        Name of reference image
+    filter : str
+        Name of current filter
+
+    Returns
+    -------
+    scale : float
+        Scaling factor needed to be applied to the ota
+    std : float
+        Standard deviation of the scaling factors determined for each star
+        in common between ``img`` and  ``ref``
+    len(rat) : int
+        Number of stars used in calculating the scaling factor
+
+    Note
+    ----
+    The following cuts are applied to the stars, on the image and reference
+    image, before they are used in determining the scaling.
+
+    - 1000.0 < ``peak_img and peak_ref`` < 45000.0
+    - ``fwhm_img`` < 900.0 and ``fwhm_ref`` < 900.0
+    - ``MAG_img`` < 900.0 and ``MAG_ref`` < 900.0
+
     """
     img_dither = img.split('.')[1][0]+'_'
     ref_dither = ref.split('.')[1][0]+'_'

@@ -61,7 +61,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'odi-tools'
-copyright = u'2016, Owen Boberg, Bill Janesh'
+copyright = u'2017, Owen Boberg, Bill Janesh'
 author = u'Owen Boberg, Bill Janesh'
 
 # The version info for the project you're documenting, acts as replacement for
