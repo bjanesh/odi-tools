@@ -1,0 +1,363 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Improving WCS solutions &mdash; odi-tools 0.0.1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="odi-tools 0.0.1 documentation" href="index.html"/>
+        <link rel="up" title="Modules" href="modules.html"/>
+        <link rel="next" title="Find sources for OTA scaling" href="ota_sourcefind.html"/>
+        <link rel="prev" title="Creating an OTA bad pixel mask" href="mask_ota.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> odi-tools
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="running_qr.html">QuickReduce, ODI-PPA, and odi-tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example/index.html">An Introduction to working with Quick Reduced Images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="basic_usage.html">Basic usage</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">Modules</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="odi_cfgparse.html">Reading configuration files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="odi_helpers.html">ODI helper functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rand_bkg.html">Calculating background statistics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="offlinecats.html">Source catalogs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getfwhm.html">Measuring Stellar FWHM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mask_ota.html">Creating an OTA bad pixel mask</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Improving WCS solutions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ota_sourcefind.html">Find sources for OTA scaling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="full_calibrate.html">Full Calibrate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="full_phot.html">Full Phot</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">odi-tools</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="modules.html">Modules</a> &raquo;</li>
+      
+    <li>Improving WCS solutions</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/fixwcs.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="improving-wcs-solutions">
+<h1>Improving WCS solutions<a class="headerlink" href="#improving-wcs-solutions" title="Permalink to this headline">¶</a></h1>
+<p>These are the functions that improve the WCS solutions of otas based on source
+catalogs with known Ra and Dec positions.</p>
+<span class="target" id="module-fixwcs"></span><dl class="function">
+<dt id="fixwcs.list_wcs_coords">
+<code class="descclassname">fixwcs.</code><code class="descname">list_wcs_coords</code><span class="sig-paren">(</span><em>img</em>, <em>ota</em>, <em>gapmask</em>, <em>inst</em>, <em>output='radec.coo'</em>, <em>gmaglim=20.0</em>, <em>stars_only=True</em>, <em>offline=False</em>, <em>source='sdss'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fixwcs.html#list_wcs_coords"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fixwcs.list_wcs_coords" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create the files needed to fix the WCS solution on a given ota. This
+function will create lists of SDSS, 2MASS, or Gaia sources depending on the
+options selected by the user. If this function is run in the <code class="docutils literal"><span class="pre">offline</span></code>
+mode, the source catalogs will be taken from the files produced by
+<a class="reference internal" href="offlinecats.html#module-offlinecats" title="offlinecats"><code class="xref py py-func docutils literal"><span class="pre">offlinecats()</span></code></a></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>img</strong> (<em>str</em>) &#8211; Name of image</li>
+<li><strong>ota</strong> (<em>str</em>) &#8211; Name of OTA</li>
+<li><strong>gapmask</strong> (<em>numpy array</em>) &#8211; A numpy array of the gap location on the ota. This can be produced by
+the function get_gaps.py. The gap mask is used to filter out stars
+that fall in or near gaps on the ota.</li>
+<li><strong>int</strong> (<em>str</em>) &#8211; Version of ODI used, <code class="docutils literal"><span class="pre">podi</span></code> or <code class="docutils literal"><span class="pre">5odi</span></code></li>
+<li><strong>output</strong> (<em>str</em>) &#8211; Desired name of the output catalog</li>
+<li><strong>gmaglim</strong> (<em>float</em>) &#8211; Magnitude limit in the g band for sources that will be included in the
+catalogs. This might need to be adjusted according to your data. If it
+is too bright, there might not be enough sources to produces a good
+WCS solution.</li>
+<li><strong>stars_only</strong> (<em>bool</em>) &#8211; When using SDSS sources this only includes sources flagged as stars</li>
+<li><strong>offline</strong> (<em>bool</em>) &#8211; When <code class="docutils literal"><span class="pre">True</span></code> this function will use the catalogs produced by
+<a class="reference internal" href="offlinecats.html#module-offlinecats" title="offlinecats"><code class="xref py py-func docutils literal"><span class="pre">offlinecats()</span></code></a>. If <code class="docutils literal"><span class="pre">False</span></code> this function will query the
+online <code class="docutils literal"><span class="pre">SDSS</span></code> catalog for sources.</li>
+<li><strong>source</strong> (<em>str</em>) &#8211; Name of desired source catalog. Must be either <code class="docutils literal"><span class="pre">sdss</span></code>,``twomass``, or
+<code class="docutils literal"><span class="pre">gaia</span></code>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>This functions produces three files for each ota in the <code class="docutils literal"><span class="pre">coords</span></code>
+directory with the following naming scheme:</p>
+<ol class="last arabic simple">
+<li><code class="docutils literal"><span class="pre">img[:-5]+'.'+ota+'.radec.coo'</span></code></li>
+<li><code class="docutils literal"><span class="pre">img[:-5]+'.'+ota+'.radec.coo.px'</span></code></li>
+<li><code class="docutils literal"><span class="pre">img[0:-5]+'.'+ota+'.sdssxy'</span></code></li>
+</ol>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="fixwcs.fix_wcs">
+<code class="descclassname">fixwcs.</code><code class="descname">fix_wcs</code><span class="sig-paren">(</span><em>img</em>, <em>ota</em>, <em>coords='radec.coo'</em>, <em>iters=3</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fixwcs.html#fix_wcs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fixwcs.fix_wcs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Try to improve the WCS solution of an OTA using the IRAF task <code class="docutils literal"><span class="pre">msccmatch</span></code>.
+This function will use the <code class="docutils literal"><span class="pre">img[:-5]+'.'+ota+'.radec.coo'</span></code> file produced
+by <a class="reference internal" href="#fixwcs.list_wcs_coords" title="fixwcs.list_wcs_coords"><code class="xref py py-func docutils literal"><span class="pre">list_wcs_coords()</span></code></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>img</strong> (<em>str</em>) &#8211; Name of image</li>
+<li><strong>ota</strong> (<em>str</em>) &#8211; Name of OTA</li>
+<li><strong>coords</strong> (<em>str</em>) &#8211; Name of coordinate file</li>
+<li><strong>iter</strong> (<em>int</em>) &#8211; Number of desired iterations of  <code class="docutils literal"><span class="pre">msccmatch</span></code>. It is still being
+tested, but one might be all that is necessary, especially if using the
+Gaia catalog.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>This function is set up to use the files in the <code class="docutils literal"><span class="pre">illcor</span></code> directory. The
+following are the parameters used by <code class="docutils literal"><span class="pre">msccmatch</span></code>.</p>
+<ul class="last simple">
+<li>verbose=&#8217;yes&#8217;</li>
+<li>usebpm=&#8217;no&#8217;</li>
+<li>nsearch=250</li>
+<li>search=30</li>
+<li>rsearch=0.2</li>
+<li>cfrac=.5</li>
+<li>csig=0.1</li>
+<li>nfit=5</li>
+<li>rms=1.0</li>
+<li>maxshif=5.0</li>
+<li>fitgeom=&#8221;general&#8221;</li>
+<li>update=&#8217;yes&#8217;</li>
+<li>interac=&#8217;yes&#8217;</li>
+<li>fit=&#8217;no&#8217;,</li>
+<li>accept=&#8217;yes&#8217;</li>
+<li>Stdout=1</li>
+</ul>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="fixwcs.fix_wcs_full">
+<code class="descclassname">fixwcs.</code><code class="descname">fix_wcs_full</code><span class="sig-paren">(</span><em>img</em>, <em>coords='radec.coo'</em>, <em>iters=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fixwcs.html#fix_wcs_full"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fixwcs.fix_wcs_full" title="Permalink to this definition">¶</a></dt>
+<dd><p>Try to improve the WCS solution of a final stacked image.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>img</strong> (<em>str</em>) &#8211; Name of image</li>
+<li><strong>coords</strong> (<em>str</em>) &#8211; Name of coordinate file</li>
+<li><strong>iter</strong> (<em>int</em>) &#8211; Number of desired iterations of  <code class="docutils literal"><span class="pre">msccmatch</span></code>. It is still being
+tested, but one might be all that is necessary, especially if using the
+Gaia catalog.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>This function is set up to use the files in the <code class="docutils literal"><span class="pre">illcor</span></code> directory. The
+following are the parameters used by <code class="docutils literal"><span class="pre">msccmatch</span></code>.</p>
+<ul class="last simple">
+<li>verbose=&#8217;yes&#8217;</li>
+<li>usebpm=&#8217;no&#8217;</li>
+<li>nsearch=250</li>
+<li>search=30</li>
+<li>rsearch=0.2</li>
+<li>cfrac=.5</li>
+<li>csig=0.1</li>
+<li>nfit=5</li>
+<li>rms=1.0</li>
+<li>maxshif=5.0</li>
+<li>fitgeom=&#8221;general&#8221;</li>
+<li>update=&#8217;yes&#8217;</li>
+<li>interac=&#8217;yes&#8217;</li>
+<li>fit=&#8217;no&#8217;,</li>
+<li>accept=&#8217;yes&#8217;</li>
+<li>Stdout=1</li>
+</ul>
+</div>
+</dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="ota_sourcefind.html" class="btn btn-neutral float-right" title="Find sources for OTA scaling" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="mask_ota.html" class="btn btn-neutral" title="Creating an OTA bad pixel mask" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Owen Boberg, Bill Janesh.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
