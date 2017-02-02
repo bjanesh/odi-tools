@@ -33,7 +33,7 @@
     <link rel="top" title="odi-tools 0.0.1 documentation" href="index.html"/>
         <link rel="up" title="Modules" href="modules.html"/>
         <link rel="next" title="Find sources for OTA scaling" href="ota_sourcefind.html"/>
-        <link rel="prev" title="Creating an OTA bad pixel mask" href="mask_ota.html"/> 
+        <link rel="prev" title="Create OTA gaps bad pixel masks" href="get_gaps.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -96,6 +96,7 @@
 <li class="toctree-l2"><a class="reference internal" href="offlinecats.html">Source catalogs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="getfwhm.html">Measuring Stellar FWHM</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mask_ota.html">Creating an OTA bad pixel mask</a></li>
+<li class="toctree-l2"><a class="reference internal" href="get_gaps.html">Create OTA gaps bad pixel masks</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Improving WCS solutions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ota_sourcefind.html">Find sources for OTA scaling</a></li>
 <li class="toctree-l2"><a class="reference internal" href="full_calibrate.html">Full Calibrate</a></li>
@@ -168,8 +169,8 @@ mode, the source catalogs will be taken from the files produced by
 <li><strong>img</strong> (<em>str</em>) &#8211; Name of image</li>
 <li><strong>ota</strong> (<em>str</em>) &#8211; Name of OTA</li>
 <li><strong>gapmask</strong> (<em>numpy array</em>) &#8211; A numpy array of the gap location on the ota. This can be produced by
-the function get_gaps.py. The gap mask is used to filter out stars
-that fall in or near gaps on the ota.</li>
+the function <a class="reference internal" href="get_gaps.html#get_gaps.get_gaps" title="get_gaps.get_gaps"><code class="xref py py-func docutils literal"><span class="pre">get_gaps.get_gaps()</span></code></a>. The gap mask is used to
+filter out stars that fall in or near gaps on the ota.</li>
 <li><strong>int</strong> (<em>str</em>) &#8211; Version of ODI used, <code class="docutils literal"><span class="pre">podi</span></code> or <code class="docutils literal"><span class="pre">5odi</span></code></li>
 <li><strong>output</strong> (<em>str</em>) &#8211; Desired name of the output catalog</li>
 <li><strong>gmaglim</strong> (<em>float</em>) &#8211; Magnitude limit in the g band for sources that will be included in the
@@ -302,7 +303,7 @@ following are the parameters used by <code class="docutils literal"><span class=
         <a href="ota_sourcefind.html" class="btn btn-neutral float-right" title="Find sources for OTA scaling" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="mask_ota.html" class="btn btn-neutral" title="Creating an OTA bad pixel mask" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="get_gaps.html" class="btn btn-neutral" title="Create OTA gaps bad pixel masks" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

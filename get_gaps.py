@@ -7,6 +7,20 @@ from tqdm import tqdm
 import odi_config as odi
 
 def get_gaps(img, ota):
+    """
+    Create a numpy array mask of the gaps in an ota.
+
+    Parameters
+    ----------
+    img : str
+        Name of image
+    ota : str
+        Name of OTA
+    Returns
+    -------
+    gaps_mask : numpy array
+        A numpy array of the gap location on the ota.
+    """
     hdulist = odi.fits.open(img)
     hdu = hdulist[ota]
     gaps_mask = (np.isnan(hdu.data)).astype(int)
@@ -14,6 +28,21 @@ def get_gaps(img, ota):
     return gaps_mask
 
 def get_gaps_rep(img, ota):
+    """
+    Create a numpy array mask of the gaps in a reprojected ota.
+
+    Parameters
+    ----------
+    img : str
+        Name of image
+    ota : str
+        Name of OTA
+    Returns
+    -------
+    gaps_mask : numpy array
+        A numpy array of the gap location on the ota.
+    """
+
     image = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
     hdulist = odi.fits.open(image)
     hdu = hdulist[0]
@@ -21,9 +50,9 @@ def get_gaps_rep(img, ota):
     # plt.show()
     gaps_mask1 = (hdu.data<1.0).astype(int)
     selem = np.ones((5,5))    # dilate using a 25x25 box
-    gaps_mask = odi.binary_dilation(gaps_mask1, selem) 
+    gaps_mask = odi.binary_dilation(gaps_mask1, selem)
     hdulist.close()
-    
+
     # also update the bad pixel mask for the image to make sure the cell gaps are masked
     # this is necessary for the final imcombine
     mask_name = odi.bppath+'reproj_mask_'+ota+'.'+str(img[16:])
@@ -48,7 +77,7 @@ def get_gaps_rep(img, ota):
     iraf.imutil.hedit.setParam('verify','no')
     iraf.imutil.hedit.setParam('update','yes')
     iraf.imutil.hedit(mode='h')
-        
+
     return gaps_mask
 
 
@@ -57,4 +86,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

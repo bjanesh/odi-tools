@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Creating an OTA bad pixel mask &mdash; odi-tools 0.0.1 documentation</title>
+  <title>Create OTA gaps bad pixel masks &mdash; odi-tools 0.0.1 documentation</title>
   
 
   
@@ -32,8 +32,8 @@
   
     <link rel="top" title="odi-tools 0.0.1 documentation" href="index.html"/>
         <link rel="up" title="Modules" href="modules.html"/>
-        <link rel="next" title="Create OTA gaps bad pixel masks" href="get_gaps.html"/>
-        <link rel="prev" title="Measuring Stellar FWHM" href="getfwhm.html"/> 
+        <link rel="next" title="Improving WCS solutions" href="fixwcs.html"/>
+        <link rel="prev" title="Creating an OTA bad pixel mask" href="mask_ota.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -95,8 +95,8 @@
 <li class="toctree-l2"><a class="reference internal" href="rand_bkg.html">Calculating background statistics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="offlinecats.html">Source catalogs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="getfwhm.html">Measuring Stellar FWHM</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Creating an OTA bad pixel mask</a></li>
-<li class="toctree-l2"><a class="reference internal" href="get_gaps.html">Create OTA gaps bad pixel masks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mask_ota.html">Creating an OTA bad pixel mask</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Create OTA gaps bad pixel masks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fixwcs.html">Improving WCS solutions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ota_sourcefind.html">Find sources for OTA scaling</a></li>
 <li class="toctree-l2"><a class="reference internal" href="full_calibrate.html">Full Calibrate</a></li>
@@ -135,11 +135,11 @@
       
           <li><a href="modules.html">Modules</a> &raquo;</li>
       
-    <li>Creating an OTA bad pixel mask</li>
+    <li>Create OTA gaps bad pixel masks</li>
       <li class="wy-breadcrumbs-aside">
         
           
-            <a href="_sources/mask_ota.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/get_gaps.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -149,41 +149,54 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="module-mask_ota">
-<span id="creating-an-ota-bad-pixel-mask"></span><h1>Creating an OTA bad pixel mask<a class="headerlink" href="#module-mask_ota" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-get_gaps">
+<span id="create-ota-gaps-bad-pixel-masks"></span><h1>Create OTA gaps bad pixel masks<a class="headerlink" href="#module-get_gaps" title="Permalink to this headline">¶</a></h1>
 <dl class="function">
-<dt id="mask_ota.mask_ota">
-<code class="descclassname">mask_ota.</code><code class="descname">mask_ota</code><span class="sig-paren">(</span><em>img</em>, <em>ota</em>, <em>reproj=False</em>, <em>deep_obj=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mask_ota.html#mask_ota"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mask_ota.mask_ota" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a numpy array that will be used to create the bad pixel mask
-for an ota. The function finds the pixel locations of the gaps in the
-ota as well as hot and dead pixels.</p>
+<dt id="get_gaps.get_gaps">
+<code class="descclassname">get_gaps.</code><code class="descname">get_gaps</code><span class="sig-paren">(</span><em>img</em>, <em>ota</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/get_gaps.html#get_gaps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#get_gaps.get_gaps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a numpy array mask of the gaps in an ota.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>img</strong> (<em>str</em>) &#8211; String containing name of the image currently in use</li>
-<li><strong>ota</strong> (<em>str</em>) &#8211; Name of ota extension to be used (e.g. OTA33.SCI)</li>
-<li><strong>reproj</strong> (<em>boolean</em>) &#8211; If <code class="docutils literal"><span class="pre">reproj</span></code> is <code class="docutils literal"><span class="pre">True</span></code> this function returns background statistics on
-the OTA, but the mask is still produced.</li>
-<li><strong>deep_obj</strong> (<em>boolean</em>) &#8211; If <code class="docutils literal"><span class="pre">deep_obj</span></code> is <code class="docutils literal"><span class="pre">True</span></code> the threshold for dead pixels is set to -900.</li>
+<li><strong>img</strong> (<em>str</em>) &#8211; Name of image</li>
+<li><strong>ota</strong> (<em>str</em>) &#8211; Name of OTA</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
-<li><strong>total_mask</strong> (<em>2D array</em>) &#8211; Array mask for hot pixels, dead pixels, and the gaps.</li>
-<li><strong>gap_mask</strong> (<em>2D array</em>) &#8211; Array mask for the gaps.</li>
-</ul>
-</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>gaps_mask</strong> &#8211; A numpy array of the gap location on the ota.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">numpy array</p>
 </td>
 </tr>
 </tbody>
 </table>
-<p class="rubric">Notes</p>
-<p>Here are the limits used to located the pixels that are to be masked</p>
-<p><code class="docutils literal"><span class="pre">hot_pixels</span></code> : hdu_ota.data &gt; 58000.0</p>
-<p><code class="docutils literal"><span class="pre">dead_pixels</span></code> : hdu_ota.data &lt; 1.0</p>
-<p><code class="docutils literal"><span class="pre">gap_pixels</span></code> : hdu_ota.data = <code class="docutils literal"><span class="pre">NaN</span></code></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="get_gaps.get_gaps_rep">
+<code class="descclassname">get_gaps.</code><code class="descname">get_gaps_rep</code><span class="sig-paren">(</span><em>img</em>, <em>ota</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/get_gaps.html#get_gaps_rep"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#get_gaps.get_gaps_rep" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a numpy array mask of the gaps in a reprojected ota.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>img</strong> (<em>str</em>) &#8211; Name of image</li>
+<li><strong>ota</strong> (<em>str</em>) &#8211; Name of OTA</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>gaps_mask</strong> &#8211; A numpy array of the gap location on the ota.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">numpy array</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>
@@ -195,10 +208,10 @@ the OTA, but the mask is still produced.</li>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="get_gaps.html" class="btn btn-neutral float-right" title="Create OTA gaps bad pixel masks" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="fixwcs.html" class="btn btn-neutral float-right" title="Improving WCS solutions" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="getfwhm.html" class="btn btn-neutral" title="Measuring Stellar FWHM" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="mask_ota.html" class="btn btn-neutral" title="Creating an OTA bad pixel mask" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

@@ -10,6 +10,7 @@ Modules
    offlinecats
    getfwhm
    mask_ota
+   get_gaps
    fixwcs
    ota_sourcefind
    full_calibrate

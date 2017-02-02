@@ -22,8 +22,8 @@ def list_wcs_coords(img, ota, gapmask, inst,output='radec.coo', gmaglim=20., sta
         Name of OTA
     gapmask : numpy array
         A numpy array of the gap location on the ota. This can be produced by
-        the function get_gaps.py. The gap mask is used to filter out stars
-        that fall in or near gaps on the ota.
+        the function :py:func:`get_gaps.get_gaps`. The gap mask is used to
+        filter out stars that fall in or near gaps on the ota.
     int : str
         Version of ODI used, ``podi`` or ``5odi``
     output : str

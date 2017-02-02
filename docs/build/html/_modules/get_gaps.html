@@ -1,0 +1,284 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>get_gaps &mdash; odi-tools 0.0.1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="odi-tools 0.0.1 documentation" href="../index.html"/>
+        <link rel="up" title="Module code" href="index.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> odi-tools
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../running_qr.html">QuickReduce, ODI-PPA, and odi-tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../example/index.html">An Introduction to working with Quick Reduced Images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../basic_usage.html">Basic usage</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">Modules</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">odi-tools</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">Module code</a> &raquo;</li>
+      
+    <li>get_gaps</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for get_gaps</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">glob</span><span class="o">,</span> <span class="nn">string</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">astropy</span> <span class="k">as</span> <span class="nn">ast</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">pyraf</span> <span class="k">import</span> <span class="n">iraf</span>
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="k">import</span> <span class="n">tqdm</span>
+<span class="kn">import</span> <span class="nn">odi_config</span> <span class="k">as</span> <span class="nn">odi</span>
+
+<div class="viewcode-block" id="get_gaps"><a class="viewcode-back" href="../get_gaps.html#get_gaps.get_gaps">[docs]</a><span class="k">def</span> <span class="nf">get_gaps</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">ota</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a numpy array mask of the gaps in an ota.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    img : str</span>
+<span class="sd">        Name of image</span>
+<span class="sd">    ota : str</span>
+<span class="sd">        Name of OTA</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    gaps_mask : numpy array</span>
+<span class="sd">        A numpy array of the gap location on the ota.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">hdulist</span> <span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+    <span class="n">hdu</span> <span class="o">=</span> <span class="n">hdulist</span><span class="p">[</span><span class="n">ota</span><span class="p">]</span>
+    <span class="n">gaps_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">hdu</span><span class="o">.</span><span class="n">data</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">hdulist</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">gaps_mask</span></div>
+
+<div class="viewcode-block" id="get_gaps_rep"><a class="viewcode-back" href="../get_gaps.html#get_gaps.get_gaps_rep">[docs]</a><span class="k">def</span> <span class="nf">get_gaps_rep</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">ota</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a numpy array mask of the gaps in a reprojected ota.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    img : str</span>
+<span class="sd">        Name of image</span>
+<span class="sd">    ota : str</span>
+<span class="sd">        Name of OTA</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    gaps_mask : numpy array</span>
+<span class="sd">        A numpy array of the gap location on the ota.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">image</span> <span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">reprojpath</span><span class="o">+</span><span class="s1">&#39;reproj_&#39;</span><span class="o">+</span><span class="n">ota</span><span class="o">+</span><span class="s1">&#39;.&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">img</span><span class="p">[</span><span class="mi">16</span><span class="p">:])</span>
+    <span class="n">hdulist</span> <span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+    <span class="n">hdu</span> <span class="o">=</span> <span class="n">hdulist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="c1"># plt.imshow(hdu.data, origin=&#39;lower&#39;, cmap=&#39;Greys_r&#39;, vmin=-10., vmax=500.)</span>
+    <span class="c1"># plt.show()</span>
+    <span class="n">gaps_mask1</span> <span class="o">=</span> <span class="p">(</span><span class="n">hdu</span><span class="o">.</span><span class="n">data</span><span class="o">&lt;</span><span class="mf">1.0</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">selem</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>    <span class="c1"># dilate using a 25x25 box</span>
+    <span class="n">gaps_mask</span> <span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">binary_dilation</span><span class="p">(</span><span class="n">gaps_mask1</span><span class="p">,</span> <span class="n">selem</span><span class="p">)</span>
+    <span class="n">hdulist</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="c1"># also update the bad pixel mask for the image to make sure the cell gaps are masked</span>
+    <span class="c1"># this is necessary for the final imcombine</span>
+    <span class="n">mask_name</span> <span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">bppath</span><span class="o">+</span><span class="s1">&#39;reproj_mask_&#39;</span><span class="o">+</span><span class="n">ota</span><span class="o">+</span><span class="s1">&#39;.&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">img</span><span class="p">[</span><span class="mi">16</span><span class="p">:])</span>
+    <span class="n">BPM</span> <span class="o">=</span> <span class="n">mask_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;fits&#39;</span><span class="p">,</span><span class="s1">&#39;pl&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">BPM</span><span class="p">):</span>
+        <span class="c1"># mask,gaps = mask_ota(img,ota)</span>
+        <span class="n">hdu</span> <span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">fits</span><span class="o">.</span><span class="n">PrimaryHDU</span><span class="p">(</span><span class="n">gaps_mask</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">mask_name</span><span class="p">):</span>
+            <span class="n">hdu</span><span class="o">.</span><span class="n">writeto</span><span class="p">(</span><span class="n">mask_name</span><span class="p">,</span><span class="n">clobber</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">mask_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;fits&#39;</span><span class="p">,</span><span class="s1">&#39;pl&#39;</span><span class="p">)):</span>
+        <span class="n">iraf</span><span class="o">.</span><span class="n">unlearn</span><span class="p">(</span><span class="n">iraf</span><span class="o">.</span><span class="n">imutil</span><span class="o">.</span><span class="n">imcopy</span><span class="p">)</span>
+        <span class="n">iraf</span><span class="o">.</span><span class="n">imutil</span><span class="o">.</span><span class="n">imcopy</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;input&#39;</span><span class="p">,</span><span class="n">mask_name</span><span class="p">)</span>
+        <span class="n">iraf</span><span class="o">.</span><span class="n">imutil</span><span class="o">.</span><span class="n">imcopy</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;output&#39;</span><span class="p">,</span><span class="n">mask_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;fits&#39;</span><span class="p">,</span><span class="s1">&#39;pl&#39;</span><span class="p">))</span>
+        <span class="n">iraf</span><span class="o">.</span><span class="n">imutil</span><span class="o">.</span><span class="n">imcopy</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;verbose&#39;</span><span class="p">,</span><span class="s1">&#39;no&#39;</span><span class="p">)</span>
+        <span class="n">iraf</span><span class="o">.</span><span class="n">imutil</span><span class="o">.</span><span class="n">imcopy</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;h&#39;</span><span class="p">)</span>
+    <span class="n">iraf</span><span class="o">.</span><span class="n">unlearn</span><span class="p">(</span><span class="n">iraf</span><span class="o">.</span><span class="n">imutil</span><span class="o">.</span><span class="n">hedit</span><span class="p">)</span>
+    <span class="n">iraf</span><span class="o">.</span><span class="n">imutil</span><span class="o">.</span><span class="n">hedit</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;images&#39;</span><span class="p">,</span><span class="n">image</span><span class="p">)</span>
+    <span class="n">iraf</span><span class="o">.</span><span class="n">imutil</span><span class="o">.</span><span class="n">hedit</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;fields&#39;</span><span class="p">,</span><span class="s1">&#39;BPM&#39;</span><span class="p">)</span>
+    <span class="n">iraf</span><span class="o">.</span><span class="n">imutil</span><span class="o">.</span><span class="n">hedit</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;value&#39;</span><span class="p">,</span><span class="n">BPM</span><span class="p">)</span>
+    <span class="n">iraf</span><span class="o">.</span><span class="n">imutil</span><span class="o">.</span><span class="n">hedit</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;add&#39;</span><span class="p">,</span><span class="s1">&#39;yes&#39;</span><span class="p">)</span>
+    <span class="n">iraf</span><span class="o">.</span><span class="n">imutil</span><span class="o">.</span><span class="n">hedit</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;addonly&#39;</span><span class="p">,</span><span class="s1">&#39;no&#39;</span><span class="p">)</span>
+    <span class="n">iraf</span><span class="o">.</span><span class="n">imutil</span><span class="o">.</span><span class="n">hedit</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;verify&#39;</span><span class="p">,</span><span class="s1">&#39;no&#39;</span><span class="p">)</span>
+    <span class="n">iraf</span><span class="o">.</span><span class="n">imutil</span><span class="o">.</span><span class="n">hedit</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;update&#39;</span><span class="p">,</span><span class="s1">&#39;yes&#39;</span><span class="p">)</span>
+    <span class="n">iraf</span><span class="o">.</span><span class="n">imutil</span><span class="o">.</span><span class="n">hedit</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;h&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">gaps_mask</span></div>
+
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="k">pass</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Owen Boberg, Bill Janesh.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
