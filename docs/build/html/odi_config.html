@@ -1,0 +1,348 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Python configuration to run odi-tools &mdash; odi-tools 0.0.1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="odi-tools 0.0.1 documentation" href="index.html"/>
+        <link rel="up" title="Modules" href="modules.html"/>
+        <link rel="next" title="Reading configuration files" href="odi_cfgparse.html"/>
+        <link rel="prev" title="Modules" href="modules.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> odi-tools
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="running_qr.html">QuickReduce, ODI-PPA, and odi-tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example/index.html">An Introduction to working with Quick Reduced Images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="basic_usage.html">Basic usage</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">Modules</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Python configuration to run odi-tools</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#the-ota-dictionaries">The OTA dictionaries</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#processing-directories">Processing directories</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="odi_cfgparse.html">Reading configuration files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="odi_helpers.html">ODI helper functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rand_bkg.html">Calculating background statistics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="offlinecats.html">Source catalogs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getfwhm.html">Measuring Stellar FWHM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mask_ota.html">Creating an OTA bad pixel mask</a></li>
+<li class="toctree-l2"><a class="reference internal" href="get_gaps.html">Create OTA gaps bad pixel masks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fixwcs.html">Improving WCS solutions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ota_sourcefind.html">Find sources for OTA scaling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="full_calibrate.html">Full Calibrate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="full_phot.html">Full Phot</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">odi-tools</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="modules.html">Modules</a> &raquo;</li>
+      
+    <li>Python configuration to run odi-tools</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/odi_config.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="python-configuration-to-run-odi-tools">
+<h1>Python configuration to run odi-tools<a class="headerlink" href="#python-configuration-to-run-odi-tools" title="Permalink to this headline">¶</a></h1>
+<p>The function <code class="docutils literal"><span class="pre">odi_config.py</span></code> imports all of the modules needed to run
+<code class="docutils literal"><span class="pre">odi-tools</span></code> as well as sets up the needed dictionaries and directories.
+It is imported in the following way in the main <code class="docutils literal"><span class="pre">odi-tool</span></code> scripts
+(<code class="docutils literal"><span class="pre">odi_process</span></code>, <code class="docutils literal"><span class="pre">odi_scalestack_process</span></code>, <code class="docutils literal"><span class="pre">odi_phot_process</span></code>).</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">odi_config</span> <span class="k">as</span> <span class="nn">odi</span>
+</pre></div>
+</div>
+<p>Once it is imported, the dictionaries are directories created in
+<code class="docutils literal"><span class="pre">odi_config.py</span></code> can be referenced throughout the <code class="docutils literal"><span class="pre">odi-tools</span></code> pipeline in
+the following manner</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">example_dict</span> <span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">dictionary</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">example_directory</span> <span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">directory</span>
+</pre></div>
+</div>
+<p>Similarly, we can also reference all of the modules and functions imported
+in <code class="docutils literal"><span class="pre">odi_config.py</span></code>.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">gaps</span> <span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">get_gaps</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">ota</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="section" id="the-ota-dictionaries">
+<h2>The OTA dictionaries<a class="headerlink" href="#the-ota-dictionaries" title="Permalink to this headline">¶</a></h2>
+<p>There are two dictionaries defined by this function that correspond to
+different versions of ODI.</p>
+<ol class="arabic simple">
+<li><code class="docutils literal"><span class="pre">podi_dictionary</span></code></li>
+<li><code class="docutils literal"><span class="pre">odi5_dictionary</span></code></li>
+</ol>
+<p>As an example, here are the contents of <code class="docutils literal"><span class="pre">podi_dictionary</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">podi_dictionary</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="s1">&#39;OTA33.SCI&#39;</span><span class="p">,</span>
+                   <span class="mi">2</span><span class="p">:</span> <span class="s1">&#39;OTA34.SCI&#39;</span><span class="p">,</span>
+                   <span class="mi">3</span><span class="p">:</span> <span class="s1">&#39;OTA44.SCI&#39;</span><span class="p">,</span>
+                   <span class="mi">4</span><span class="p">:</span> <span class="s1">&#39;OTA43.SCI&#39;</span><span class="p">,</span>
+                   <span class="mi">5</span><span class="p">:</span> <span class="s1">&#39;OTA42.SCI&#39;</span><span class="p">,</span>
+                   <span class="mi">6</span><span class="p">:</span> <span class="s1">&#39;OTA32.SCI&#39;</span><span class="p">,</span>
+                   <span class="mi">7</span><span class="p">:</span> <span class="s1">&#39;OTA22.SCI&#39;</span><span class="p">,</span>
+                   <span class="mi">8</span><span class="p">:</span> <span class="s1">&#39;OTA23.SCI&#39;</span><span class="p">,</span>
+                   <span class="mi">9</span><span class="p">:</span> <span class="s1">&#39;OTA24.SCI&#39;</span>
+                   <span class="p">}</span>
+</pre></div>
+</div>
+<p>For those that are not familiar with Python, a dictionary is made up of pairs
+of <code class="docutils literal"><span class="pre">keys</span></code> and <code class="docutils literal"><span class="pre">values</span></code>. The <code class="docutils literal"><span class="pre">keys</span></code> are to the left of the colon, and the
+<code class="docutils literal"><span class="pre">values</span></code> are to the right. In our case, the <code class="docutils literal"><span class="pre">keys</span></code> are the numbers 1-9, and
+the values are the names of the different OTAs, (e.g. <code class="docutils literal"><span class="pre">OTA33.SCI</span></code>). The
+dictionaries provide a clean way to work through a multi-extension fits image
+like those produced by ODI. The simpled code example below provides an
+illustration of how this is done in <code class="docutils literal"><span class="pre">odi-tools</span></code>.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">images</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;img1.fits&#39;</span><span class="p">,</span><span class="s1">&#39;img2.fits&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">img</span> <span class="ow">in</span> <span class="n">images</span><span class="p">:</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">podi_dictionary</span><span class="p">:</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="nb">print</span> <span class="n">img</span><span class="p">,</span> <span class="n">key</span>
+</pre></div>
+</div>
+<p>This would produce the following output:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="s1">&#39;img1.fits&#39;</span> <span class="s1">&#39;OTA33.SCI&#39;</span>
+<span class="s1">&#39;img1.fits&#39;</span> <span class="s1">&#39;OTA34.SCI&#39;</span>
+<span class="s1">&#39;img1.fits&#39;</span> <span class="s1">&#39;OTA44.SCI&#39;</span>
+<span class="s1">&#39;img1.fits&#39;</span> <span class="s1">&#39;OTA43.SCI&#39;</span>
+<span class="s1">&#39;img1.fits&#39;</span> <span class="s1">&#39;OTA42.SCI&#39;</span>
+<span class="s1">&#39;img1.fits&#39;</span> <span class="s1">&#39;OTA32.SCI&#39;</span>
+<span class="s1">&#39;img1.fits&#39;</span> <span class="s1">&#39;OTA22.SCI&#39;</span>
+<span class="s1">&#39;img1.fits&#39;</span> <span class="s1">&#39;OTA23.SCI&#39;</span>
+<span class="s1">&#39;img1.fits&#39;</span> <span class="s1">&#39;OTA24.SCI&#39;</span>
+<span class="s1">&#39;img2.fits&#39;</span> <span class="s1">&#39;OTA33.SCI&#39;</span>
+<span class="s1">&#39;img2.fits&#39;</span> <span class="s1">&#39;OTA34.SCI&#39;</span>
+<span class="s1">&#39;img2.fits&#39;</span> <span class="s1">&#39;OTA44.SCI&#39;</span>
+<span class="s1">&#39;img2.fits&#39;</span> <span class="s1">&#39;OTA43.SCI&#39;</span>
+<span class="s1">&#39;img2.fits&#39;</span> <span class="s1">&#39;OTA42.SCI&#39;</span>
+<span class="s1">&#39;img2.fits&#39;</span> <span class="s1">&#39;OTA32.SCI&#39;</span>
+<span class="s1">&#39;img2.fits&#39;</span> <span class="s1">&#39;OTA22.SCI&#39;</span>
+<span class="s1">&#39;img2.fits&#39;</span> <span class="s1">&#39;OTA23.SCI&#39;</span>
+<span class="s1">&#39;img2.fits&#39;</span> <span class="s1">&#39;OTA24.SCI&#39;</span>
+</pre></div>
+</div>
+<p>Although this is a simple example it illustrates the overall workflow of
+<code class="docutils literal"><span class="pre">odi-tools</span></code>.</p>
+<p>The <code class="docutils literal"><span class="pre">odi5_dictionary</span></code> works the same way, but simply has more OTAs. The
+correct dictionary is selected by <a class="reference internal" href="odi_helpers.html#odi_helpers.instrument" title="odi_helpers.instrument"><code class="xref py py-func docutils literal"><span class="pre">odi_helpers.instrument()</span></code></a>. If the
+instrument used was <code class="docutils literal"><span class="pre">5odi</span></code>, <code class="docutils literal"><span class="pre">odi5_dictionary</span></code> is used for <code class="docutils literal"><span class="pre">odi-tools</span></code>,
+if it was <code class="docutils literal"><span class="pre">podi</span></code>, <code class="docutils literal"><span class="pre">podi_dictionary</span></code> is used.</p>
+</div>
+<div class="section" id="processing-directories">
+<h2>Processing directories<a class="headerlink" href="#processing-directories" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal"><span class="pre">odi_config.py</span></code> also sets up a number of directories to hold the
+intermediate data products during the data processing. Here is an example
+of how one of those directories is created</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">bpmdirectory</span> <span class="o">=</span> <span class="s1">&#39;bpmasks&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">bpmdirectory</span><span class="p">):</span>
+<span class="gp">&gt;&gt;&gt; </span>   <span class="nb">print</span> <span class="s1">&#39;Creating directory for bad pixel masks...&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span>   <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">bpmdirectory</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">bppath</span> <span class="o">=</span> <span class="n">bpmdirectory</span><span class="o">+</span><span class="s1">&#39;/&#39;</span>
+</pre></div>
+</div>
+<p>The directory in this case is given the name <code class="docutils literal"><span class="pre">bpmasks</span></code>. Then, we check if
+the directory already exists. If is does not, the directory is created. Once
+this directory is created it can be accessed by other <code class="docutils literal"><span class="pre">odi-tools</span></code> modules
+and scripts using the following</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">odi</span><span class="o">.</span><span class="n">bppath</span>
+</pre></div>
+</div>
+<p>Here is a full list of the directories created</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">bpmasks</span></code> - directory for bad pixel masks</li>
+<li><code class="docutils literal"><span class="pre">illcor</span></code> - directory for illumination corrected ota images</li>
+<li><code class="docutils literal"><span class="pre">reproj</span></code> - directory for reprojected ota images</li>
+<li><code class="docutils literal"><span class="pre">bgsub</span></code> - directory for background subtracted ota images</li>
+<li><code class="docutils literal"><span class="pre">scaled</span></code> - directory for scaled ota images</li>
+<li><code class="docutils literal"><span class="pre">otastack</span></code> - directory for stacked ota images</li>
+<li><code class="docutils literal"><span class="pre">skyflat</span></code> - directory for sky flats</li>
+<li><code class="docutils literal"><span class="pre">coords</span></code> - directory for coordinate files</li>
+<li><code class="docutils literal"><span class="pre">match</span></code> - directory for match files</li>
+<li><code class="docutils literal"><span class="pre">sdssoffline</span></code>- directory for sdss catalogs</li>
+<li><code class="docutils literal"><span class="pre">twomassoffline</span></code> - directory for 2mass catalogs</li>
+<li><code class="docutils literal"><span class="pre">gaiaoffline</span></code> - directory for gaia catalogs</li>
+<li><code class="docutils literal"><span class="pre">sources</span></code> - directory for detected sources</li>
+</ul>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="odi_cfgparse.html" class="btn btn-neutral float-right" title="Reading configuration files" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="modules.html" class="btn btn-neutral" title="Modules" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Owen Boberg, Bill Janesh.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

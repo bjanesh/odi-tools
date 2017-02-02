@@ -4,6 +4,7 @@ Modules
 .. toctree::
    :maxdepth: 4
 
+   odi_config
    odi_cfgparse
    odi_helpers
    rand_bkg
