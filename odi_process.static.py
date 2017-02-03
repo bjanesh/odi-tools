@@ -71,7 +71,7 @@ if not os.path.isfile('derived_props.txt'):
             hdulist = odi.fits.open(img.f)
             hdr = hdulist[0].header
             filt = hdr['filter']
-            image_to_correct = img+'['+ota+']'
+            image_to_correct = img.f+'['+ota+']'
             correction_image = ota+'.'+filt+'.med.fits'
             corrected_image = 'illcor_'+ota+'.'+img.stem()
             if not os.path.isfile(odi.illcorpath+corrected_image):
@@ -123,7 +123,7 @@ else:
             if finishcheck in finished:
                 already = 0
             else:
-                image_to_correct = img+'['+ota+']'
+                image_to_correct = img.f+'['+ota+']'
                 correction_image = ota+'.'+filt+'.med.fits'
                 corrected_image = 'illcor_'+ota+'.'+img.stem()
                 if not os.path.isfile(odi.illcorpath+corrected_image):

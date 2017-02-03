@@ -190,7 +190,7 @@ def fix_wcs(img, ota, coords='radec.coo', iters=3):
                              fit='no',
                              accept='yes',
                              Stdout=1)
-        print 'fixing WCS for',img+'['+ota+'], iter ='+repr(i)
+        print 'fixing WCS for',img.f+'['+ota+'], iter ='+repr(i)
         print fix[-6]
         print fix[-5]
         print fix[-4]
@@ -257,7 +257,7 @@ def fix_wcs_full(img, coords='radec.coo', iters=1):
                              fit='no',
                              accept='yes',
                              Stdout=1)
-        print 'fixing WCS for',img+', iter ='+repr(i)
+        print 'fixing WCS for',img.f+', iter ='+repr(i)
         print fix[-6]
         print fix[-5]
         print fix[-4]
@@ -265,9 +265,9 @@ def fix_wcs_full(img, coords='radec.coo', iters=1):
         print fix[-2]
 
 def repair_bad_wcs(img, ota, refimg, refota):
-    print 'repairing bad wcs solution for',img+'['+ota+']...'
+    print 'repairing bad wcs solution for',img.f+'['+ota+']...'
     # get good CD matrix values from the reference image
-    # refimg = refimg+'['+refota+']'
+    # refimg = refimg.f+'['+refota+']'
     refhdu = odi.fits.open(refimg)
     pvlist = refhdu[refota].header['PV*']
     for pv in pvlist:
@@ -277,7 +277,7 @@ def repair_bad_wcs(img, ota, refimg, refota):
     print w_ref.wcs.cd, w_ref.wcs.crpix, w_ref.wcs.crval
 
     # get the bad WCS info so we can do some checking
-    # image = img+'['+ota+']'
+    # image = img.f+'['+ota+']'
     hdu = odi.fits.open(img.f)
     pvlist = hdu[refota].header['PV*']
     for pv in pvlist:

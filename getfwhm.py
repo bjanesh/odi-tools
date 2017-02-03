@@ -143,7 +143,7 @@ def getfwhm_full(img, radius=4.0, buff=7.0, width=5.0):
     # hdulist = ast.io.fits.open(image)
     # seeing = hdulist[0].header['FWHMSTAR']
     # gfwhm = seeing/0.11
-    print 'median gwfhm in ',img+': ',np.median(gfwhm),'pixels'# (determined via QR)'
+    print 'median gwfhm in ',img.f+': ',np.median(gfwhm),'pixels'# (determined via QR)'
     return np.median(gfwhm)
 
 def main():

@@ -36,7 +36,7 @@ def make_bpms(img, ota):
             iraf.imutil.imcopy.setParam('verbose','no')
             iraf.imutil.imcopy(mode='h')
     iraf.unlearn(iraf.imutil.hedit)
-    iraf.imutil.hedit.setParam('images',img+'['+ota+']')
+    iraf.imutil.hedit.setParam('images',img.f+'['+ota+']')
     iraf.imutil.hedit.setParam('fields','BPM')
     iraf.imutil.hedit.setParam('value',BPM)
     iraf.imutil.hedit.setParam('add','yes')
