@@ -84,7 +84,7 @@ def get_sdss_coords_offline(img, ota, inst,output='test.sdss'):
             junk_df = pd.DataFrame.from_dict(junkdict)
 
             matched_df = pd.merge(sdss_cat_img_df,junk_df ,on = [u'ODI_RA',u'ODI_DEC'],how='inner')
-
+            print matched_df.columns
             needed_columns = np.insert(sdss_cat_img_df.columns.values,0,u'ODI_OTA')
 
             full_df = matched_df[needed_columns]
