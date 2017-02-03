@@ -22,7 +22,7 @@ except IOError:
 # or rather, this script already handles that just fine
 # so just stick all the image names together into one long list
 images_ = []
-for filt in images:
+for filt in images.keys():
     for i,img in images[filt]:
         images_.append(img)
 
