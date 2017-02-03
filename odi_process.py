@@ -23,6 +23,7 @@ except IOError:
 # so just stick all the image names together into one long list
 images_ = []
 for filt in images.keys():
+    pring images[filt]
     for i,img in images[filt]:
         images_.append(img)
 
