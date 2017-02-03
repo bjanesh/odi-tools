@@ -24,12 +24,12 @@ except IOError:
 images_ = [img for sublist in images.values() for img in sublist]
 print images_
 
-rad, decd = odi.get_targ_ra_dec(images_[0].f, 'OTA33.SCI')
+rad, decd = odi.get_targ_ra_dec(images_[0], 'OTA33.SCI')
 if gaia_flag:
     source = 'gaia'
 else:
     source = 'sdss'
-inst = odi.instrument(images_[0].f)
+inst = odi.instrument(images_[0])
 #source = 'twomass'
 
 #Create offline catalogs
