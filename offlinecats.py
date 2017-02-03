@@ -78,17 +78,17 @@ def get_sdss_coords_offline(img, ota, inst,output='test.sdss'):
             ODI_DEC = np.squeeze( np.array(oditalbe_df['DEC']))
             ODI_OTA = np.squeeze( np.array(oditalbe_df['OTA']))
 
-            junkdict = OrderedDict([('ODI_RA',ODI_RA),
-                                    ('ODI_DEC',ODI_DEC),
-                                    ('ODI_OTA',ODI_OTA.astype(float))])
+            junkdict = OrderedDict([(u'ODI_RA',ODI_RA),
+                                    (u'ODI_DEC',ODI_DEC),
+                                    (u'ODI_OTA',ODI_OTA.astype(float))])
             junk_df = pd.DataFrame.from_dict(junkdict)
 
-            matched_df = pd.merge(sdss_cat_img_df,junk_df ,on = ['ODI_RA','ODI_DEC'],how='inner')
+            matched_df = pd.merge(sdss_cat_img_df,junk_df ,on = [u'ODI_RA',u'ODI_DEC'],how='inner')
 
-            needed_columns = np.insert(sdss_cat_img_df.columns.values,0,'ODI_OTA')
+            needed_columns = np.insert(sdss_cat_img_df.columns.values,0,u'ODI_OTA')
 
             full_df = matched_df[needed_columns]
-            ota_matches_df = full_df.iloc[np.where(full_df['ODI_OTA'] == ota)]
+            ota_matches_df = full_df.iloc[np.where(full_df[u'ODI_OTA'] == ota)]
             needed_columns = [u'SDSS_RA',u'SDSS_DEC',
                               u'SDSS_MAG_U',u'SDSS_ERR_U',
                               u'SDSS_MAG_G', u'SDSS_ERR_G',
@@ -99,20 +99,20 @@ def get_sdss_coords_offline(img, ota, inst,output='test.sdss'):
             output_df = ota_matches_df[needed_columns]
             output_df.to_csv(output,index=False)
     else:
-        ota_matches_df = sdss_cat_img_df.iloc[np.where(sdss_cat_img_df['ODI_OTA'] == ota)]
+        ota_matches_df = sdss_cat_img_df.iloc[np.where(sdss_cat_img_df[u'ODI_OTA'] == ota)]
         ota_matches_df = ota_matches_df.reset_index()
         junk_u = np.ones(len(ota_matches_df))
         junk_u_err = np.ones(len(ota_matches_df))
-        ota_matches_df['IPP_MAG_U'] = junk_u
-        ota_matches_df['IPP_ERR_U'] = junk_u_err
+        ota_matches_df[u'IPP_MAG_U'] = junk_u
+        ota_matches_df[u'IPP_ERR_U'] = junk_u_err
 
-        needed_columns = ['IPP_RA', 'IPP_DEC',
-                          'IPP_MAG_U', 'IPP_ERR_U',
-                          'IPP_MAG_G', 'IPP_ERR_G',
-                          'IPP_MAG_R', 'IPP_ERR_R',
-                          'IPP_MAG_I', 'IPP_ERR_I',
-                          'IPP_MAG_Z','IPP_ERR_Z',
-                          'ODI_OTA']
+        needed_columns = [u'IPP_RA', u'IPP_DEC',
+                          u'IPP_MAG_U', u'IPP_ERR_U',
+                          u'IPP_MAG_G', u'IPP_ERR_G',
+                          u'IPP_MAG_R', u'IPP_ERR_R',
+                          u'IPP_MAG_I', u'IPP_ERR_I',
+                          u'IPP_MAG_Z',u'IPP_ERR_Z',
+                          u'ODI_OTA']
 
         output_df = ota_matches_df[needed_columns]
         output_df.to_csv(output,index=False)
