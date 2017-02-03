@@ -60,7 +60,7 @@ def get_sdss_coords_offline(img, ota, inst,output='test.sdss'):
     # print sdss_cat_img_df.keys()
     ota = float(ota.strip('OTA.SCI'))
     print 'catalog source:', hdulist[0].header['PHOTMCAT']
-    if 'sdss' in hdulist[0].header['PHOTMCAT']:
+    if 'sdss' in hdulist[0].header['PHOTMCAT'] or 'SDSS' in hdulist[0].header['PHOTMCAT']:
         try:
             ota_matches_df = sdss_cat_img_df.iloc[np.where(sdss_cat_img_df[u'ODI_OTA'] == ota)]
             needed_columns = [u'REF_RA',u'REF_DEC',u'REF_U',
