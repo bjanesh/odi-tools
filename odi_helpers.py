@@ -434,7 +434,10 @@ def qr_img_lists(odi_filter):
 
 
 def main():
-    pass
+    object_str, filters, instrument, images, illcor_flag, skyflat_src, wcs_flag, reproject_flag, scale_flag, stack_flag, gaia_flag, cluster_flag, ra_center, dec_center, min_radius = odi.cfgparse('example_config.yaml', verbose=False)
+    for k in images.keys():
+        for img in images[k]:
+            print img.f, img.d, img.stem(), img.base()
 
 if __name__ == '__main__':
     main()

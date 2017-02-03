@@ -4,7 +4,7 @@ from collections import OrderedDict
 import shutil
 import numpy as np
 from pyraf import iraf
-from photutils.detection import detect_sources
+from photutils import detect_sources
 from photutils import source_properties, properties_table
 import odi_config as odi
 import pandas as pd

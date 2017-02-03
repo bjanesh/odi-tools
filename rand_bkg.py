@@ -3,7 +3,7 @@ import matplotlib.pylab as plt
 from astropy.stats import sigma_clipped_stats
 from astropy.io import fits as pyfits
 from astropy.convolution import Gaussian2DKernel
-from photutils.detection import detect_sources
+from photutils import detect_sources
 import matplotlib.pyplot as plt
 from scipy.ndimage import binary_dilation
 def bkg_boxes(hdu,nboxes,length,sources):

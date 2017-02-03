@@ -4,7 +4,7 @@ from astropy.wcs import WCS
 from rand_bkg import bkg_boxes
 from astropy.convolution import Gaussian2DKernel
 from astropy.stats import sigma_clipped_stats
-from photutils.detection import detect_sources
+from photutils import detect_sources
 from photutils.utils import random_cmap
 from scipy.ndimage import binary_dilation
 
@@ -82,6 +82,30 @@ odi5mosaic_dictionary = {
     8 :'OTA42.SCI',
     13:'OTA22.SCI',
 }
+
+class ODIImage:
+    def __init__(self, filename, dither, inst):
+        self.f = filename
+        self.d = dither
+        self.inst = inst
+        # if self.inst == 'podi':
+        #     self.otas = podi_dictionary
+        # elif self.inst = 'mosaic':
+        #     self.otas = odi5mosaic_dictionary
+        # else:
+        #     self.otas = odi5_dictionary
+        # self.bg = dict.fromkeys(otas.keys(),0.0)
+        # self.bgsig = dict.fromkeys(otas.keys(),0.0)
+        # self.fwhm = dict.fromkeys(otas.keys(),0.0)
+        # self.bpm = dict.fromkeys(otas.keys(),'')
+        # self.dsf = dict.fromkeys(otas.keys(),'')
+        
+        
+    def stem(self):
+        return repr(self.d)+str(self.f[17:])
+        
+    def base(self):
+        return repr(self.d)+str(self.f[17:-5])
 
 bpmdirectory = 'bpmasks'
 if not os.path.exists(bpmdirectory):

@@ -57,6 +57,7 @@ def cfgparse(cfg_file):
     """
     from sys import exit
     from yaml import load, dump
+    from odi_config import ODIImage
     try:
         from yaml import CLoader as Loader, CDumper as Dumper
     except ImportError:
@@ -82,39 +83,50 @@ def cfgparse(cfg_file):
         instrument = (data['basic'])['instrument']
 
         images = {}
-        print '----------------------------------'
-        print 'odi_tools | Basic data:'
-        print '----------------------------------'
-        print 'object:                 ', object_str
-        print 'filters:                ', filters
-        print 'instrument:             ', instrument
-        print '----------------------------------'
-        print 'Steps to perform:'
-        print '----------------------------------'
-        print 'illumination correction:', illcor_flag
-        print 'dark sky flat source:   ', skyflat_src
-        print 'wcs correction:         ', wcs_flag
-        print 'reprojection:           ', reproject_flag
-        print 'scaling:                ', scale_flag
-        print 'stacking:               ', stack_flag
-        print '----------------------------------'
-        print 'Images:'
-        print '----------------------------------'
+        dithers = {}
+        if verbose:
+            print '----------------------------------'
+            print 'odi_tools | Basic data:'
+            print '----------------------------------'
+            print 'object:                 ', object_str
+            print 'filters:                ', filters
+            print 'instrument:             ', instrument
+            print '----------------------------------'
+            print 'Steps to perform:'
+            print '----------------------------------'
+            print 'illumination correction:', illcor_flag
+            print 'dark sky flat source:   ', skyflat_src
+            print 'wcs correction:         ', wcs_flag
+            print 'reprojection:           ', reproject_flag
+            print 'scaling:                ', scale_flag
+            print 'stacking:               ', stack_flag
+            print '----------------------------------'
+            print 'Images:'
+            print '----------------------------------'
         header_string = 'dither '
         for filter in filters:
+            imglist = []
             try:
-                images[filter] = data[filter]
-                # print data[filter].keys()
+                for d,f in data[filter].iteritems():
+                    imglist.append(ODIImage(f, d, instrument))
+                images[filter] = imglist
             except KeyError:
                 print "images for filter '"+filter+"' not defined in configuration file..."
                 exit()
-            header_string = header_string + filter + ' '*(len(images[filter][1])-len(filter)+1)
-        print header_string
-        for dither in images[filters[0]].keys():
-            dither_string = '     '+repr(dither)+' '
-            for filter in filters:
-                dither_string = dither_string + images[filter][dither]+' '
-            print dither_string
+            header_string = header_string + filter + ' '*(len(data[filter][1])-len(filter)+1)
+        if verbose:
+            print header_string
+            dithernos = set()
+            for filt in filters:
+                dithernos = dithernos | set(data[filt].keys())
+            for dither in dithernos:
+                dither_string = '     '+repr(dither)+' '
+                for filter in filters:
+                    try:
+                        dither_string = dither_string + data[filter][dither]+' '
+                    except KeyError:
+                        dither_string = dither_string + '--no data'+'-'*(len(data[filter][1])-9)+' '
+                print dither_string        
         return object_str, filters, instrument, images, illcor_flag, skyflat_src, wcs_flag, reproject_flag, scale_flag, stack_flag, gaia_flag, cluster_flag, ra_center, dec_center, min_radius
 
 def photcfgparse(cfg_file):
@@ -210,4 +222,4 @@ def main():
     pass
 
 if __name__ == '__main__':
-    cfgparse('default_config.yaml')
+    cfgparse('example_config.yaml')

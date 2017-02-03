@@ -36,7 +36,7 @@ inst = odi.instrument(images_[0])
 
 #Create offline catalogs
 for img in images_:
-    print 'Retrieving QR SDSS and 2MASS catalogs for:', img
+    print 'Retrieving QR SDSS and Gaia catalogs for:', img
     for key in odi.OTA_dictionary:
         ota = odi.OTA_dictionary[key]
         outputsd = odi.sdsspath+'offline_'+ota+'.'+str(img[16:-5])+'.sdss'
