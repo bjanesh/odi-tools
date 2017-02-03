@@ -60,9 +60,9 @@ def get_sdss_coords_offline(img, ota, inst,output='test.sdss'):
     # print sdss_cat_img_df.keys()
     ota = float(ota.strip('OTA.SCI'))
     print 'catalog source:', hdulist[0].header['PHOTMCAT']
-    if 'sdss' in hdulist[0].header['PHOTMCAT'] or 'SDSS' in hdulist[0].header['PHOTMCAT']:
+    if 'sdss_dr' in hdulist[0].header['PHOTMCAT']:
         try:
-            print sdss_cat_img_df.columns
+            # print sdss_cat_img_df.columns
             ota_matches_df = sdss_cat_img_df.iloc[np.where(sdss_cat_img_df[u'ODI_OTA'] == ota)]
             needed_columns = [u'REF_RA',u'REF_DEC',u'REF_U',
                               u'REF_ERR_U', u'REF_G', u'REF_ERR_G', u'REF_R',
@@ -85,9 +85,48 @@ def get_sdss_coords_offline(img, ota, inst,output='test.sdss'):
             junk_df = pd.DataFrame.from_dict(junkdict)
 
             matched_df = pd.merge(sdss_cat_img_df,junk_df ,on = [u'ODI_RA',u'ODI_DEC'],how='inner')
-            print matched_df.columns
+            # print matched_df.columns
             needed_columns = np.insert(sdss_cat_img_df.columns.values,0,u'ODI_OTA')
 
+            full_df = matched_df[needed_columns]
+            ota_matches_df = full_df.iloc[np.where(full_df[u'ODI_OTA'] == ota)]
+            needed_columns = [u'SDSS_RA',u'SDSS_DEC',
+                              u'SDSS_MAG_U',u'SDSS_ERR_U',
+                              u'SDSS_MAG_G', u'SDSS_ERR_G',
+                              u'SDSS_MAG_R',u'SDSS_ERR_R',
+                              u'SDSS_MAG_I', u'SDSS_ERR_I',
+                              u'SDSS_MAG_Z',u'SDSS_ERR_Z',
+                              u'ODI_OTA']
+            output_df = ota_matches_df[needed_columns]
+            output_df.to_csv(output,index=False)
+    if 'SDSS' in hdulist[0].header['PHOTMCAT']:
+        try:
+            # print sdss_cat_img_df.columns
+            ota_matches_df = sdss_cat_img_df.iloc[np.where(sdss_cat_img_df[u'ODI_OTA'] == ota)]
+            needed_columns = [u'SDSS_RA',u'SDSS_DEC',u'SDSS_U',
+                              u'SDSS_ERR_U', u'SDSS_G', u'SDSS_ERR_G', u'SDSS_R',
+                              u'SDSS_ERR_R', u'SDSS_I', u'SDSS_ERR_I', u'SDSS_Z',
+                              u'SDSS_ERR_Z', u'ODI_OTA']
+    
+            output_df = ota_matches_df[needed_columns]
+            output_df.to_csv(output,index=False)
+        except KeyError:
+            oditable = hdulist['CAT.ODI'].data
+            oditalbe_df = pd.DataFrame.from_dict(oditable)
+    
+            ODI_RA = np.squeeze(np.array(oditalbe_df['RA']))
+            ODI_DEC = np.squeeze( np.array(oditalbe_df['DEC']))
+            ODI_OTA = np.squeeze( np.array(oditalbe_df['OTA']))
+    
+            junkdict = OrderedDict([(u'ODI_RA',ODI_RA),
+                                    (u'ODI_DEC',ODI_DEC),
+                                    (u'ODI_OTA',ODI_OTA.astype(float))])
+            junk_df = pd.DataFrame.from_dict(junkdict)
+    
+            matched_df = pd.merge(sdss_cat_img_df,junk_df ,on = [u'ODI_RA',u'ODI_DEC'],how='inner')
+            # print matched_df.columns
+            needed_columns = np.insert(sdss_cat_img_df.columns.values,0,u'ODI_OTA')
+    
             full_df = matched_df[needed_columns]
             ota_matches_df = full_df.iloc[np.where(full_df[u'ODI_OTA'] == ota)]
             needed_columns = [u'SDSS_RA',u'SDSS_DEC',

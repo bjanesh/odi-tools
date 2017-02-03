@@ -22,7 +22,7 @@ except IOError:
 # or rather, this script already handles that just fine
 # so just stick all the image names together into one long list
 images_ = [img for sublist in images.values() for img in sublist]
-print images_
+# print images_
 
 rad, decd = odi.get_targ_ra_dec(images_[0], 'OTA33.SCI')
 if gaia_flag:
