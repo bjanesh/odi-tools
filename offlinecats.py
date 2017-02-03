@@ -103,9 +103,9 @@ def get_sdss_coords_offline(img, ota, inst,output='test.sdss'):
         try:
             # print sdss_cat_img_df.columns
             ota_matches_df = sdss_cat_img_df.iloc[np.where(sdss_cat_img_df[u'ODI_OTA'] == ota)]
-            needed_columns = [u'SDSS_RA',u'SDSS_DEC',u'SDSS_U',
-                              u'SDSS_ERR_U', u'SDSS_G', u'SDSS_ERR_G', u'SDSS_R',
-                              u'SDSS_ERR_R', u'SDSS_I', u'SDSS_ERR_I', u'SDSS_Z',
+            needed_columns = [u'SDSS_RA',u'SDSS_DEC',u'SDSS_MAG_U',
+                              u'SDSS_ERR_U', u'SDSS_MAG_G', u'SDSS_ERR_G', u'SDSS_MAG_R',
+                              u'SDSS_ERR_R', u'SDSS_MAG_I', u'SDSS_ERR_I', u'SDSS_MAG_Z',
                               u'SDSS_ERR_Z', u'ODI_OTA']
     
             output_df = ota_matches_df[needed_columns]
