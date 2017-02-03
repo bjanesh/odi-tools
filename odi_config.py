@@ -88,18 +88,6 @@ class ODIImage:
         self.f = filename
         self.d = dither
         self.inst = inst
-        # if self.inst == 'podi':
-        #     self.otas = podi_dictionary
-        # elif self.inst = 'mosaic':
-        #     self.otas = odi5mosaic_dictionary
-        # else:
-        #     self.otas = odi5_dictionary
-        # self.bg = dict.fromkeys(otas.keys(),0.0)
-        # self.bgsig = dict.fromkeys(otas.keys(),0.0)
-        # self.fwhm = dict.fromkeys(otas.keys(),0.0)
-        # self.bpm = dict.fromkeys(otas.keys(),'')
-        # self.dsf = dict.fromkeys(otas.keys(),'')
-        
         
     def stem(self):
         return repr(self.d)+str(self.f[17:])
