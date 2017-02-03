@@ -15,13 +15,8 @@ def get_sdss_coords(img, ota, inst,output='test.sdss'):
     default_fmt='csv'
 
     hdulist = odi.fits.open(img)
-    hdu = hdulist[ota]
-
-    if inst == 'podi':
-        pvlist = hdu.header['PV*']
-        for pv in pvlist:
-            tpv = 'T'+pv
-            hdu.header.rename_keyword(pv, tpv, force=False)
+    hdu = odi.tan_header_fix(hdulist[ota])
+    
     xdim = hdu.header['NAXIS1']
     ydim = hdu.header['NAXIS2']
 
@@ -107,14 +102,10 @@ def refetch_sdss_coords(img, ota, gapmask, inst,gmaglim=19.,offline = False,sour
     image = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
     outcoords = odi.coordspath+'reproj_'+ota+'.'+str(img[16:-5])+'.sdss'
     hdulist = odi.fits.open(image)
-
-    if inst == 'podi':
-        pvlist = hdulist[0].header['PV*']
-        for pv in pvlist:
-            tpv = 'T'+pv
-            hdulist[0].header.rename_keyword(pv, tpv, force=False)
-    xdim = hdulist[0].header['NAXIS1']
-    ydim = hdulist[0].header['NAXIS2']
+    
+    hdu = odi.tan_header_fix(hdulist[0])
+    xdim = hdu.header['NAXIS1']
+    ydim = hdu.header['NAXIS2']
 
     if offline == False:
         formats = ['csv','xml','html']
@@ -128,19 +119,19 @@ def refetch_sdss_coords(img, ota, gapmask, inst,gmaglim=19.,offline = False,sour
             yc = ydim/2.0
 
             # get the CD matrix keywords
-            cd11 = hdulist[0].header['CD1_1']
-            cd22 = hdulist[0].header['CD2_2']
+            cd11 = hdu.header['CD1_1']
+            cd22 = hdu.header['CD2_2']
             # try to load cd12 and cd21, if they don't exist, set them to zero
             try :
-                cd12 = hdulist[0].header['CD1_2']
+                cd12 = hdu.header['CD1_2']
             except:
                 cd12 = 0.0
             try :
-                cd21 = hdulist[0].header['CD2_1']
+                cd21 = hdu.header['CD2_1']
             except:
                 cd21 = 0.0
 
-            w = odi.WCS(hdulist[0].header)
+            w = odi.WCS(hdu.header)
 
             # Some pixel coordinates of interest.
             pixcrd = np.array([[xc,yc]], np.float_)
@@ -197,7 +188,7 @@ def refetch_sdss_coords(img, ota, gapmask, inst,gmaglim=19.,offline = False,sour
 
         ras,decs,psfMag_u,psfMagErr_u,psfMag_g,psfMagErr_g,psfMag_r,psfMagErr_r,psfMag_i,psfMagErr_i,psfMag_z,psfMagErr_z = np.loadtxt(outcoords,usecols=(0,1,2,3,4,5,6,7,8,9,10,11), unpack=True, delimiter=',', skiprows=2)
         probPSF = np.loadtxt(outcoords, usecols=(12,), dtype=int, unpack=True, delimiter=',', skiprows=2)
-        w = odi.WCS(hdulist[0].header)
+        w = odi.WCS(hdu.header)
         with open(odi.coordspath+'reproj_'+ota+'.'+str(img[16:-5])+'.sdssxy', 'w+') as fxy:
             j=0
             # k=0
@@ -250,7 +241,7 @@ def refetch_sdss_coords(img, ota, gapmask, inst,gmaglim=19.,offline = False,sour
             psfMag_z       = np.ones(len(ras))
             psfMagErr_z    = np.ones(len(ras))
         print 'Using Ra and Dec from:',outcoords, 'for reproject'
-        w = odi.WCS(hdulist[0].header)
+        w = odi.WCS(hdu.header)
         with open(odi.coordspath+'reproj_'+ota+'.'+str(img[16:-5])+'.sdssxy', 'w+') as fxy:
             for i,c in enumerate(ras):
                 coords2 = [[ras[i],decs[i]]]
@@ -269,13 +260,9 @@ def refetch_sdss_coords(img, ota, gapmask, inst,gmaglim=19.,offline = False,sour
 def repoxy_offline(img, ota, gapmask, inst,gmaglim=19.,source='sdss'):
     image = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
     hdulist = odi.fits.open(image)
-    if inst == 'podi':
-        pvlist = hdulist[0].header['PV*']
-        for pv in pvlist:
-            tpv = 'T'+pv
-            hdulist[0].header.rename_keyword(pv, tpv, force=False)
-    xdim = hdulist[0].header['NAXIS1']
-    ydim = hdulist[0].header['NAXIS2']
+    hdu = odi.tan_header_fix(hdulist[0])
+    xdim = hdu.header['NAXIS1']
+    ydim = hdu.header['NAXIS2']
     if source == 'sdss':
         outcoords =  odi.sdsspath+'offline_'+ota+'.'+str(img[16:-5])+'.sdss'
         ras,decs,psfMag_u,psfMagErr_u,psfMag_g,psfMagErr_g,psfMag_r,psfMagErr_r,psfMag_i,psfMagErr_i,psfMag_z,psfMagErr_z = np.loadtxt(outcoords,usecols=(0,1,2,3,4,5,6,7,8,9,10,11), unpack=True, delimiter=',', skiprows=1)
@@ -312,7 +299,7 @@ def repoxy_offline(img, ota, gapmask, inst,gmaglim=19.,source='sdss'):
         psfMag_z       = np.ones(len(ras))
         psfMagErr_z    = np.ones(len(ras))
     print 'Using Ra and Dec from:',outcoords, 'for reproject'
-    w = odi.WCS(hdulist[0].header)
+    w = odi.WCS(hdu.header)
     with open(outputxy, 'w+') as fxy:
         for i,c in enumerate(ras):
             coords2 = [[ras[i],decs[i]]]
@@ -342,16 +329,12 @@ def sdss_coords_full(img, inst,gmaglim=19.):
     outcoords = img[:-5]+'.sdss'
 
     hdulist = odi.fits.open(image)
-    data = hdulist[0].data
+    hdu = odi.tan_header_fix(hdulist[0])
+    data = hdu.data
     # hdu = hdulist[ota]
 
-    if inst == 'podi':
-        pvlist = hdulist[0].header['PV*']
-        for pv in pvlist:
-            tpv = 'T'+pv
-            hdulist[0].header.rename_keyword(pv, tpv, force=False)
-    xdim = hdulist[0].header['NAXIS1']
-    ydim = hdulist[0].header['NAXIS2']
+    xdim = hdu.header['NAXIS1']
+    ydim = hdu.header['NAXIS2']
 
     if not os.path.isfile(outcoords):
       # and find the image center
@@ -359,22 +342,22 @@ def sdss_coords_full(img, inst,gmaglim=19.):
       yc = ydim/2.0
 
       # get the CD matrix keywords
-      cd11 = hdulist[0].header['CD1_1']
-      cd22 = hdulist[0].header['CD2_2']
+      cd11 = hdu.header['CD1_1']
+      cd22 = hdu.header['CD2_2']
       # try to load cd12 and cd21, if they don't exist, set them to zero
       try :
-          cd12 = hdulist[0].header['CD1_2']
+          cd12 = hdu.header['CD1_2']
       except:
           cd12 = 0.0
       try :
-          cd21 = hdulist[0].header['CD2_1']
+          cd21 = hdu.header['CD2_1']
       except:
           cd21 = 0.0
 
       # print xdim, ydim, cd12, cd21
 
       # Parse the WCS keywords in the primary HDU
-      w = odi.WCS(hdulist[0].header)
+      w = odi.WCS(hdu.header)
 
       # Some pixel coordinates of interest.
       pixcrd = np.array([[xc,yc]], np.float_)
@@ -432,7 +415,7 @@ def sdss_coords_full(img, inst,gmaglim=19.):
     probPSF = np.loadtxt(outcoords, usecols=(12,), dtype=int, unpack=True, delimiter=',', skiprows=2)
     # print ras, decs
 
-    w = odi.WCS(hdulist[0].header)
+    w = odi.WCS(hdu.header)
     with open(img[:-5]+'.wcs.coo','w+') as f:
         with open(img[:-5]+'.sdssxy', 'w+') as fxy:
             for i,c in enumerate(ras):
@@ -452,13 +435,8 @@ def sdss_coords_full(img, inst,gmaglim=19.):
 
 def get_sdss_coords_offline(img, ota, inst,output='test.sdss'):
     hdulist = odi.fits.open(img)
-    hdu = hdulist[ota]
 
-    if inst == 'podi':
-        pvlist = hdu.header['PV*']
-        for pv in pvlist:
-            tpv = 'T'+pv
-            hdu.header.rename_keyword(pv, tpv, force=False)
+    hdu = odi.tan_header_fix(hdulist[ota])
     xdim = hdu.header['NAXIS1']
     ydim = hdu.header['NAXIS2']
 
@@ -483,35 +461,31 @@ def refetch_sdss_coords_offline(img, ota, gapmask, inst,gmaglim=19.):
     outcoords = odi.coordspath+'reproj_'+ota+'.'+str(img[16:-5])+'.sdss'
 
     hdulist = odi.fits.open(image)
-    if inst == 'podi':
-        pvlist = hdulist[0].header['PV*']
-        for pv in pvlist:
-            tpv = 'T'+pv
-            hdulist[0].header.rename_keyword(pv, tpv, force=False)
-    xdim = hdulist[0].header['NAXIS1']
-    ydim = hdulist[0].header['NAXIS2']
+    hdu = odi.tan_header_fix(hdulist[0])
+    xdim = hdu.header['NAXIS1']
+    ydim = hdu.header['NAXIS2']
 
     if not os.path.isfile(outcoords):
       xc = xdim/2.0
       yc = ydim/2.0
 
       # get the CD matrix keywords
-      cd11 = hdulist[0].header['CD1_1']
-      cd22 = hdulist[0].header['CD2_2']
+      cd11 = hdu.header['CD1_1']
+      cd22 = hdu.header['CD2_2']
       # try to load cd12 and cd21, if they don't exist, set them to zero
       try :
-          cd12 = hdulist[0].header['CD1_2']
+          cd12 = hdu.header['CD1_2']
       except:
           cd12 = 0.0
       try :
-          cd21 = hdulist[0].header['CD2_1']
+          cd21 = hdu.header['CD2_1']
       except:
           cd21 = 0.0
 
       # print xdim, ydim, cd12, cd21
 
       # Parse the WCS keywords in the primary HDU
-      w = odi.WCS(hdulist[0].header)
+      w = odi.WCS(hdu.header)
 
       # Some pixel coordinates of interest.
       pixcrd = np.array([[xc,yc]], np.float_)
@@ -543,7 +517,7 @@ def refetch_sdss_coords_offline(img, ota, gapmask, inst,gmaglim=19.):
     probPSF = np.loadtxt(outcoords, usecols=(12,), dtype=int, unpack=True, delimiter=',', skiprows=2)
     # print ras, decs
 
-    w = odi.WCS(hdulist[0].header)
+    w = odi.WCS(hdu.header)
 
     with open(odi.coordspath+'reproj_'+ota+'.'+str(img[16:-5])+'.sdssxy', 'w+') as fxy:
         j=0

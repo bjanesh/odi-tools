@@ -96,12 +96,8 @@ def list_wcs_coords(img, ota, gapmask, inst,output='radec.coo', gmaglim=20., sta
         coords2 = zip(ras,decs)
 
     hdulist = odi.fits.open(img)
-    hdu = hdulist[ota]
-    if inst == 'podi':
-        pvlist = hdu.header['PV*']
-        for pv in pvlist:
-            tpv = 'T'+pv
-            hdu.header.rename_keyword(pv, tpv, force=False)
+    hdu = odi.tan_header_fix(hdulist[ota])
+    
     if offline == True:
         xdim = hdu.header['NAXIS1']
         ydim = hdu.header['NAXIS2']

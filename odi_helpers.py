@@ -432,6 +432,13 @@ def qr_img_lists(odi_filter):
 
     return img_list
 
+def tan_header_fix(hdu):
+    if 'TAN' in hdu.header['CTYPE1']:
+        pvlist = hdu.header['PV*']
+        for pv in pvlist:
+            tpv = 'T'+pv
+            hdu.header.rename_keyword(pv, tpv, force=False)
+    return hdu
 
 def main():
     object_str, filters, instrument, images, illcor_flag, skyflat_src, wcs_flag, reproject_flag, scale_flag, stack_flag, gaia_flag, cluster_flag, ra_center, dec_center, min_radius = odi.cfgparse('example_config.yaml', verbose=False)

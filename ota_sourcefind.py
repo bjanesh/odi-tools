@@ -43,13 +43,10 @@ def source_find(img,ota,inst,nbg_std=10.0):
     """
     image = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
     QR_raw = odi.fits.open(image)
-    hdu_ota = QR_raw[0]
+    # hdu_ota = QR_raw[0]
 
-    if inst == 'podi':
-        pvlist = hdu_ota.header['PV*']
-        for pv in pvlist:
-            tpv = 'T'+pv
-            hdu_ota.header.rename_keyword(pv, tpv, force=False)
+    hdu_ota = odi.tan_header_fix(QR_raw[0])
+    
     w = odi.WCS(hdu_ota.header)
     if inst == '5odi':
         w.wcs.ctype = ["RA---TPV", "DEC--TPV"]
@@ -97,13 +94,9 @@ def source_xy(img,ota,gapmask,filter,inst):
     outputxy = odi.sourcepath+'source_'+ota+'.'+str(img[16:-5])+'.xy'
     id,xcentroid,ycentroid,ra_icrs_centroid,dec_icrs_centroid,source_sum,max_value,elongation = np.loadtxt(input_xy,usecols=(0,1,2,3,4,5,6,7), unpack=True, delimiter=',', skiprows=1)
     QR_raw = odi.fits.open(image)
-    hdu_ota = QR_raw[0]
+    # hdu_ota = QR_raw[0]
 
-    if inst == 'podi':
-        pvlist = hdu_ota.header['PV*']
-        for pv in pvlist:
-            tpv = 'T'+pv
-            hdu_ota.header.rename_keyword(pv, tpv, force=False)
+    hdu_ota = odi.tan_header_fix(QR_raw[0])
 
     w = odi.WCS(hdu_ota.header)
     xdim = hdu_ota.header['NAXIS1']
