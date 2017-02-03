@@ -21,11 +21,8 @@ except IOError:
 # for basic processing, filter shouldn't matter enough to consider separately
 # or rather, this script already handles that just fine
 # so just stick all the image names together into one long list
-images_ = []
-for filt in images.keys():
-    pring images[filt]
-    for i,img in images[filt]:
-        images_.append(img)
+images_ = [img for sublist in images.values() for img in sublist]
+print images_
 
 rad, decd = odi.get_targ_ra_dec(images_[0], 'OTA33.SCI')
 if gaia_flag:
