@@ -59,26 +59,28 @@ for img in images_:
                                         cluster=cluster_flag)
 
 
-
-listfiles = glob.glob('*.lis')
-if len(listfiles) == 0:
-    odi.imcombine_lists(images_, filters)
-else:
-    print 'imcombine lists done'
-
-if not os.path.isfile('bpms.done'):
-    for img in images_:
-        print 'updating bpms for', img.stem()
-        for key in tqdm(odi.OTA_dictionary):
-            ota = odi.OTA_dictionary[key]
-            odi.make_bpms(img, ota)
-
-listfiles = glob.glob(odi.skyflatpath+'*.med.fits')
-if len(listfiles) == 0:
-    for filter in filters:
-        odi.dark_sky_flat(filter)
-else:
-    print 'dark sky flats done'
+if illcor_flag:
+    listfiles = glob.glob('*.lis')
+    if len(listfiles) == 0:
+        odi.imcombine_lists(images_, filters)
+    else:
+        print 'imcombine lists done'
+    
+    if not os.path.isfile('bpms.done'):
+        for img in images_:
+            print 'updating bpms for', img.stem()
+            for key in tqdm(odi.OTA_dictionary):
+                ota = odi.OTA_dictionary[key]
+                odi.make_bpms(img, ota)
+        with open('bpms.done', 'w+') as bpm:
+            print >> bpm, 'bpms are done!'
+    
+    listfiles = glob.glob(odi.skyflatpath+'*.med.fits')
+    if len(listfiles) == 0:
+        for filter in filters:
+            odi.dark_sky_flat(filter)
+    else:
+        print 'dark sky flats done'
 
 
 if not os.path.isfile('derived_props.txt'):
