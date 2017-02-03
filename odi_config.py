@@ -89,6 +89,12 @@ class ODIImage:
         self.d = dither
         self.inst = inst
         
+    def nofits(self):
+        return str(self.f[:-5])
+        
+    def dither(self):
+        return repr(self.d)
+        
     def stem(self):
         return repr(self.d)+str(self.f[17:])
         
