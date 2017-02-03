@@ -68,7 +68,7 @@ else:
 
 if not os.path.isfile('bpms.done'):
     for img in images_:
-        print 'updating bpms for', img
+        print 'updating bpms for', img.stem()
         for key in tqdm(odi.OTA_dictionary):
             ota = odi.OTA_dictionary[key]
             odi.make_bpms(img, ota)
