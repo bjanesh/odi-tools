@@ -23,8 +23,8 @@ except IOError:
 # so just stick all the image names together into one long list
 images_ = []
 for filt in images:
-    for key in images[filt]:
-        images_.append(images[filt][key])
+    for i,img in images[filt]:
+        images_.append(img)
 
 rad, decd = odi.get_targ_ra_dec(images_[0], 'OTA33.SCI')
 if gaia_flag:
