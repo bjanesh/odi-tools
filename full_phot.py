@@ -140,7 +140,7 @@ def phot_sources_xy2sky(img,inst):
     """
     phot_tbl = img.nofits()+'.srcphot'
     outputradec = img.nofits()+'.srcphotrd'
-    hdulist= odi.fits.open(img)
+    hdulist= odi.fits.open(img.f)
 
     #if inst == 'podi':
     #    header = hdulist[0].header

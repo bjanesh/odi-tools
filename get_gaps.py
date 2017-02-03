@@ -21,7 +21,7 @@ def get_gaps(img, ota):
     gaps_mask : numpy array
         A numpy array of the gap location on the ota.
     """
-    hdulist = odi.fits.open(img)
+    hdulist = odi.fits.open(img.f)
     hdu = hdulist[ota]
     gaps_mask = (np.isnan(hdu.data)).astype(int)
     hdulist.close()

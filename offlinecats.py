@@ -45,7 +45,7 @@ def get_sdss_coords_offline(img, ota, inst,output='test.sdss'):
     pull out these stars and treat them as SDSS stars. There will be no
     ``u`` magnitudes available, however.
     """
-    hdulist = odi.fits.open(img)
+    hdulist = odi.fits.open(img.f)
     hdu = odi.tan_header_fix(hdulist[ota])
     
     xdim = hdu.header['NAXIS1']
@@ -142,7 +142,7 @@ def get_2mass_coords_offline(img, ota, inst,output='test.mass'):
     ydim : int
         Size of OTA in the y direction ``NAXIS2``
     """
-    hdulist = odi.fits.open(img)
+    hdulist = odi.fits.open(img.f)
     hdu = odi.tan_header_fix(hdulist[ota])
     
     xdim = hdu.header['NAXIS1']
@@ -180,7 +180,7 @@ def get_gaia_coords(img,ota,inst,output='test.gaia',cluster=False,**kwargs):
     """
     from astropy import units as u
     from astropy.coordinates import SkyCoord
-    hdulist = fits.open(img)
+    hdulist = fits.open(img.f)
     hdu_ota = odi.tan_header_fix(hdulist[ota])
     w = WCS(hdu_ota.header)
     ota_center_radec = w.wcs_pix2world([[2018.0,2007.5]],1)

@@ -95,7 +95,7 @@ def list_wcs_coords(img, ota, gapmask, inst,output='radec.coo', gmaglim=20., sta
         psfMagErr_z    = np.ones(len(ras))
         coords2 = zip(ras,decs)
 
-    hdulist = odi.fits.open(img)
+    hdulist = odi.fits.open(img.f)
     hdu = odi.tan_header_fix(hdulist[ota])
     
     if offline == True:
@@ -278,7 +278,7 @@ def repair_bad_wcs(img, ota, refimg, refota):
 
     # get the bad WCS info so we can do some checking
     # image = img+'['+ota+']'
-    hdu = odi.fits.open(img)
+    hdu = odi.fits.open(img.f)
     pvlist = hdu[refota].header['PV*']
     for pv in pvlist:
         tpv = 'T'+pv

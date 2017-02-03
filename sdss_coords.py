@@ -14,7 +14,7 @@ def get_sdss_coords(img, ota, inst,output='test.sdss'):
     default_url=public_url
     default_fmt='csv'
 
-    hdulist = odi.fits.open(img)
+    hdulist = odi.fits.open(img.f)
     hdu = odi.tan_header_fix(hdulist[ota])
     
     xdim = hdu.header['NAXIS1']
@@ -434,7 +434,7 @@ def sdss_coords_full(img, inst,gmaglim=19.):
     hdulist.close()
 
 def get_sdss_coords_offline(img, ota, inst,output='test.sdss'):
-    hdulist = odi.fits.open(img)
+    hdulist = odi.fits.open(img.f)
 
     hdu = odi.tan_header_fix(hdulist[ota])
     xdim = hdu.header['NAXIS1']

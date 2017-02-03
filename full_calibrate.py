@@ -39,7 +39,7 @@ def tpv_remove(img):
     """
     if not os.path.isfile(img.nofits()+'-nopv.fits'):
         print 'Removing PV keywords from: ',img
-        hdulist = odi.fits.open(img)
+        hdulist = odi.fits.open(img.f)
         header = hdulist[0].header
         pvlist = header['PV*']
         for pv in pvlist:
@@ -206,7 +206,7 @@ def sdss_source_props_full(img):
     Use photutils to get the elongation of all of the sdss sources
     can maybe use for point source filter
     """""
-    hdulist = odi.fits.open(img)
+    hdulist = odi.fits.open(img.f)
     data = hdulist[0].data
 
     sdss_source_file = img.nofits()+'.match.sdssxy'
@@ -291,7 +291,7 @@ def get_airmass(image_list):
     """
     airmasses = []
     for img in image_list:
-        hdulist = odi.fits.open(img)
+        hdulist = odi.fits.open(img.f)
         airmasses.append(hdulist[0].header['airmass'])
         hdulist.close()
     return np.median(airmasses)
@@ -363,7 +363,7 @@ def sdss_phot_full(img,fwhm,airmass):
     from pyraf import iraf
     iraf.ptools(_doprint=0)
     # first grab the header and hang on to it so we can use other values
-    hdulist = odi.fits.open(img)
+    hdulist = odi.fits.open(img.f)
     hdr1 = hdulist[0].header
     filter = hdr1['filter']
     hdulist.close()
@@ -540,7 +540,7 @@ def apcor_sdss(img,fwhm,inspect=False):
                   +repr(aps[10])+','+repr(aps[11])+','
                   +repr(aps[12])+'"')
 
-    hdulist = odi.fits.open(img)
+    hdulist = odi.fits.open(img.f)
     hdr1 = hdulist[0].header
     data = hdulist[0].data
     filter = hdr1['filter']

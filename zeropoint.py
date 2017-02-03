@@ -15,7 +15,7 @@ def zeropoint_ota(img, ota, fwhm):
     ki = 0.058
 
     # first grab the header and hang on to it so we can use other values
-    # hdulist = ast.io.fits.open(img)
+    # hdulist = ast.io.fits.open(img.f)
     # hdr = hdulist[ota].header
     # hdulist.close()
 
@@ -126,7 +126,7 @@ def zeropoint_full(img, fwhm):
     ki = 0.058
     
     # first grab the header and hang on to it so we can use other values
-    # hdulist = ast.io.fits.open(img)
+    # hdulist = ast.io.fits.open(img.f)
     # hdr = hdulist[ota].header
     # hdulist.close()
     

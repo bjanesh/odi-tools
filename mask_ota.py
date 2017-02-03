@@ -57,7 +57,7 @@ def mask_ota(img, ota, reproj=False, deep_obj=False):
       QR_raw = odi.fits.open(image)
       hdu_ota = QR_raw[0]
     else:
-      QR_raw = odi.fits.open(img)
+      QR_raw = odi.fits.open(img.f)
       hdu_ota = QR_raw[ota]
 
     # Mask hot pixels count greater than 58000

@@ -50,7 +50,7 @@ def getscale(images, refimg, verbose=True):
 		print 'Calculating scaling factor for', img
 		fitsref = fits.open(refimg)
 		hduref = fitsref[0]
-		fitsimg = fits.open(img)
+		fitsimg = fits.open(img.f)
 		hduimg = fitsimg[0]
 
 		exp_ref = hduref.header['EXPTIME']

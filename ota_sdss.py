@@ -19,7 +19,7 @@ OTA_dictionary = {1:'OTA33.SCI',2: 'OTA34.SCI',3 :'OTA44.SCI', 4:'OTA43.SCI',5:'
           7:'OTA22.SCI' ,8:'OTA23.SCI',9:'OTA24.SCI'}
 
 def ota_sdss(img,ota):
-  full_hdulist = fits.open(img)
+  full_hdulist = fits.open(img.f)
   sdss_cat = full_hdulist['CAT.PHOTCALIB']
   ota_cat = sdss_cat.data[np.where(sdss_cat.data['ODI_OTA'] == float(ota))]
   full_hdulist.close()

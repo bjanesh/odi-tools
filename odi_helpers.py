@@ -55,7 +55,7 @@ def get_targ_ra_dec(img, ota):
         Dec in decimal degrees
     """
     from astropy.io import fits
-    hdulist = fits.open(img)
+    hdulist = fits.open(img.f)
     hdu = hdulist[0]
     # hdulist.info()
     # print hdu.header
@@ -89,11 +89,11 @@ def imcombine_lists(images, filters):
         for key in odi.OTA_dictionary:
             list_name =  open(odi.OTA_dictionary[key]+'.'+filter+'.lis',"w")
             for i in range(len(images)):
-                hdulist = fits.open(images[i])
+                hdulist = fits.open(images[i].f)
                 hdr = hdulist[0].header
                 filt = hdr['filter']
                 if filt == filter:
-                    print >>list_name,images[i]+'['+str(key)+']'
+                    print >>list_name,images[i].f+'['+str(key)+']'
                 hdulist.close()
             list_name.close()
     return
@@ -403,7 +403,7 @@ def instrument(img):
     """
 
     from astropy.io import fits
-    hdulist = fits.open(img)
+    hdulist = fits.open(img.f)
     instrument_name = hdulist[0].header['INSTRUME']
     hdulist.close()
     print 'Setting instrument to: ', instrument_name

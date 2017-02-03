@@ -14,7 +14,7 @@ def img_sdss(ref_img,img,source='sdss'):
 	sdss_cat_ref_img_df = pd.DataFrame.from_dict(sdss_cat_ref_img.data)
 	hdulist1.close()
     
-	hdulist2 = odi.fits.open(img)
+	hdulist2 = odi.fits.open(img.f)
 	sdss_cat_img = hdulist2['CAT.PHOTCALIB']
 	sdss_cat_img_df = pd.DataFrame.from_dict(sdss_cat_img.data)
 	hdulist2.close()
@@ -49,7 +49,7 @@ def img_sdss(ref_img,img,source='sdss'):
 	new_ref = mass_cat_ref_df.apply(lambda x: x.values.byteswap().newbyteorder())
 	hdulist1.close()
     
-	hdulist2 = odi.fits.open(img)
+	hdulist2 = odi.fits.open(img.f)
 	mass_cat_img = hdulist2['CAT.ODI+2MASS']
 	img_ra =  mass_cat_img.data['TWOMASS_RA']
 	img_dec = mass_cat_img.data['TWOMASS_DEC']
@@ -84,7 +84,7 @@ def img_twomass(ref_img,img):
 
     hdulist1.close()
     
-    hdulist2 = odi.fits.open(img)
+    hdulist2 = odi.fits.open(img.f)
     mass_cat_img = hdulist2['CAT.ODI+2MASS']
     img_ra =  mass_cat_img.data['TWOMASS_RA']
     img_dec = mass_cat_img.data['TWOMASS_DEC']
@@ -469,7 +469,7 @@ def new_getscale(img,ref_img,filter,verbose=False):
     print 'Calculating scaling factor for', img
     fitsref = odi.fits.open(ref_img)
     hduref = fitsref[0]
-    fitsimg = odi.fits.open(img)
+    fitsimg = odi.fits.open(img.f)
     hduimg = fitsimg[0]
     
     exp_ref = hduref.header['EXPTIME']

@@ -68,7 +68,7 @@ if not os.path.isfile('derived_props.txt'):
     for img in images:
         for key in tqdm(odi.OTA_dictionary):
             ota = odi.OTA_dictionary[key]
-            hdulist = odi.fits.open(img)
+            hdulist = odi.fits.open(img.f)
             hdr = hdulist[0].header
             filt = hdr['filter']
             image_to_correct = img+'['+ota+']'
@@ -116,7 +116,7 @@ else:
     for img in images:
         for key in tqdm(odi.OTA_dictionary):
             ota = odi.OTA_dictionary[key]
-            hdulist = odi.fits.open(img)
+            hdulist = odi.fits.open(img.f)
             hdr = hdulist[0].header
             filt = hdr['filter']
             finishcheck = (int(str(img[16])),ota,filt)
