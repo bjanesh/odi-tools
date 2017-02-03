@@ -130,7 +130,7 @@ if not os.path.isfile('derived_props.txt'):
                 bg_mean, bg_median, bg_std = odi.bgsub_ota(img, ota, apply=True)
             else:
                 bg_mean, bg_median, bg_std = odi.bgsub_ota(img, ota, apply=False)
-            print >> f1, img[16], ota, filt, fwhm, zp_med, zp_std, bg_mean, bg_median, bg_std
+            print >> f1, img.dither(), ota, filt, fwhm, zp_med, zp_std, bg_mean, bg_median, bg_std
             dim_stats = odi.check_mask_dim(img,ota)
             if not dim_stats:
                 print 'mask dimensions do not match image'
@@ -189,10 +189,10 @@ else:
                     bg_mean, bg_median, bg_std = odi.bgsub_ota(img, ota, apply=True)
                 else:
                     bg_mean, bg_median, bg_std = odi.bgsub_ota(img, ota, apply=False)
-                print >> f1, img[16], ota, filt, fwhm, zp_med, zp_std, bg_mean, bg_median, bg_std
+                print >> f1, img.dither(), ota, filt, fwhm, zp_med, zp_std, bg_mean, bg_median, bg_std
                 dim_stats = odi.check_mask_dim(img,ota)
                 if not dim_stats:
                     print 'mask dimensions do not match image'
-                    print 'redo', img, ota
+                    print 'redo', img.stem(), ota
                     raise ValueError
     f1.close()
