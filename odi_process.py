@@ -35,7 +35,7 @@ inst = odi.instrument(images_[0])
 #Create offline catalogs
 for img in images_:
     print 'Retrieving QR SDSS and Gaia catalogs for:', img.stem()
-    for key in odi.OTA_dictionary:
+    for key in tqdm(odi.OTA_dictionary):
         ota = odi.OTA_dictionary[key]
         outputsd = odi.sdsspath+'offline_'+ota+'.'+img.base()+'.sdss'
         if not os.path.isfile(outputsd):

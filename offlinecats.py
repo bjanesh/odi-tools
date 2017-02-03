@@ -235,7 +235,7 @@ def get_gaia_coords(img,ota,inst,output='test.gaia',cluster=False,**kwargs):
                                coord2[0][1]*u.deg,frame='icrs')
     cone_radius = center_skycoord.separation(corner_skycoord).value
 
-    print 'Retrieving Gaia sources for: ', ota
+    # print 'Retrieving Gaia sources for: ', ota
     ota_gaia_sources = cone_search(ota_center_radec[0][0],
                                    ota_center_radec[0][1],
                                    cone_radius)
