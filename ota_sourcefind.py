@@ -38,10 +38,10 @@ def source_find(img,ota,inst,nbg_std=10.0):
     Note
     ----
     This function produces a ``csv`` file in ``odi.sourcepath`` with the
-    following naming convention ``'source_'+ota+'.'+str(img[16:-5])+'.csv'``.
+    following naming convention ``'source_'+ota+'.'+img.base()+'.csv'``.
 
     """
-    image = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
+    image = odi.reprojpath+'reproj_'+ota+'.'+img.stem()
     QR_raw = odi.fits.open(image)
     # hdu_ota = QR_raw[0]
 
@@ -61,7 +61,7 @@ def source_find(img,ota,inst,nbg_std=10.0):
     source_tbl = properties_table(source_props,columns=columns)
     source_tbl_df = source_tbl.to_pandas()
 
-    outputfile = odi.sourcepath+'source_'+ota+'.'+str(img[16:-5])+'.csv'
+    outputfile = odi.sourcepath+'source_'+ota+'.'+img.base()+'.csv'
 
     source_tbl_df.to_csv(outputfile,index=False)
     QR_raw.close()
@@ -84,14 +84,14 @@ def source_xy(img,ota,gapmask,filter,inst):
     Note
     ----
     This function produces a ``csv`` file in ``odi.sourcepath`` with the
-    following naming convention ``'source_'+ota+'.'+str(img[16:-5])+'.xy'``.
+    following naming convention ``'source_'+ota+'.'+img.base()+'.xy'``.
 
 
     """
-    image = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
-    #image = odi.bgsubpath+'bgsub_'+ota+'.'+str(img[16:])
-    input_xy = odi.sourcepath+'source_'+ota+'.'+str(img[16:-5])+'.csv'
-    outputxy = odi.sourcepath+'source_'+ota+'.'+str(img[16:-5])+'.xy'
+    image = odi.reprojpath+'reproj_'+ota+'.'+img.stem()
+    #image = odi.bgsubpath+'bgsub_'+ota+'.'+img.stem()
+    input_xy = odi.sourcepath+'source_'+ota+'.'+img.base()+'.csv'
+    outputxy = odi.sourcepath+'source_'+ota+'.'+img.base()+'.xy'
     id,xcentroid,ycentroid,ra_icrs_centroid,dec_icrs_centroid,source_sum,max_value,elongation = np.loadtxt(input_xy,usecols=(0,1,2,3,4,5,6,7), unpack=True, delimiter=',', skiprows=1)
     QR_raw = odi.fits.open(image)
     # hdu_ota = QR_raw[0]
@@ -134,10 +134,10 @@ def getfwhm_source(img, ota, radius=4.0, buff=7.0, width=5.0):
     sfwhm : float
         Median value of the ``gfwhm`` measurements on the ``ota``.
     """
-    image = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
-    coords = odi.sourcepath+'source_'+ota+'.'+str(img[16:-5])+'.xy'
+    image = odi.reprojpath+'reproj_'+ota+'.'+img.stem()
+    coords = odi.sourcepath+'source_'+ota+'.'+img.base()+'.xy'
     print image, coords
-    outputfile = odi.sourcepath+img[0:-5]+'.'+ota+'.fwhm.log'
+    outputfile = odi.sourcepath+img.nofits()+'.'+ota+'.fwhm.log'
 
     iraf.tv.rimexam.setParam('radius',radius)
     iraf.tv.rimexam.setParam('buffer',buff)
@@ -215,10 +215,10 @@ def phot_sources(img, ota, fwhm):
     kr = 0.12
     ki = 0.058
 
-    image = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
-    coords = odi.sourcepath+'source_'+ota+'.'+str(img[16:-5])+'.xy'
-    output = odi.sourcepath+img[0:-5]+'.'+ota+'.phot.1'
-    phot_tbl = odi.sourcepath+img[0:-5]+'.'+ota+'.sourcephot'
+    image = odi.reprojpath+'reproj_'+ota+'.'+img.stem()
+    coords = odi.sourcepath+'source_'+ota+'.'+img.base()+'.xy'
+    output = odi.sourcepath+img.nofits()+'.'+ota+'.phot.1'
+    phot_tbl = odi.sourcepath+img.nofits()+'.'+ota+'.sourcephot'
 
     # alas, we must use IRAF apphot to do the measuring
     # first set common parameters (these shouldn't change if you're using ODI)
@@ -274,22 +274,22 @@ def phot_combine(img, ota):
     Note
     ----
     This will produce a file with the following naming scheme
-    ``odi.sourcepath+img[0:-5]+'.'+ota+'.totphot'``.
+    ``odi.sourcepath+img.nofits()+'.'+ota+'.totphot'``.
 
     """
-    coords = odi.sourcepath+'source_'+ota+'.'+str(img[16:-5])+'.xy'
+    coords = odi.sourcepath+'source_'+ota+'.'+img.base()+'.xy'
 
     x, y, id,ra_icrs_centroid,dec_icrs_centroid,source_sum,max_value,elongation = np.loadtxt(coords,usecols=(0,1,2,3,4,5,6,7),unpack=True)
 
-    phot_tbl = odi.sourcepath+img[0:-5]+'.'+ota+'.sourcephot'
+    phot_tbl = odi.sourcepath+img.nofits()+'.'+ota+'.sourcephot'
 
     MAG, MERR, SKY, SERR, RAPERT, XPOS, YPOS = np.loadtxt(phot_tbl, usecols=(1,2,3,4,5,6,7), dtype=float, unpack=True)
 
-    fwhmfile = odi.sourcepath+img[0:-5]+'.'+ota+'.fwhm.log'
+    fwhmfile = odi.sourcepath+img.nofits()+'.'+ota+'.fwhm.log'
 
     peak,fwhm = np.loadtxt(fwhmfile, usecols=(9,10), unpack=True)
 
-    output = odi.sourcepath+img[0:-5]+'.'+ota+'.totphot'
+    output = odi.sourcepath+img.nofits()+'.'+ota+'.totphot'
 
     with open(output, 'w+') as xy:
 	for i in range(len(x)):
@@ -434,11 +434,11 @@ def sdss_source_props_ota(img,ota):
     through the center of the star
     """
 
-    image = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
+    image = odi.reprojpath+'reproj_'+ota+'.'+img.stem()
     hdulist = odi.fits.open(image)
     data = hdulist[0].data
 
-    sdss_source_file = odi.coordspath+'reproj_'+ota+'.'+str(img[16:-5])+'.sdssxy'
+    sdss_source_file = odi.coordspath+'reproj_'+ota+'.'+img.base()+'.sdssxy'
 
     x,y,ra,dec,g,g_err,r,r_err = np.loadtxt(sdss_source_file,usecols=(0,1,2,3,
                                                                       6,7,8,9),unpack=True)

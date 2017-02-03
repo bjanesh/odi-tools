@@ -711,6 +711,6 @@ def calibrate(img1, img2, fwhm1, fwhm2, airmass1, airmass2):
 # # else:
 # i_img = 'm13-se.r.fits'
 # print '--------------------------------------------------------------------------'
-# if not os.path.isfile(g_img[:-5]+'.sdssxy'):        
+# if not os.path.isfile(g_img.nofits()+'.sdssxy'):        
 #     download_sdss(g_img, i_img)
 # calibrate(img1=g_img, img2=i_img)

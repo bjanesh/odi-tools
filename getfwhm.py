@@ -44,14 +44,14 @@ def getfwhm_ota(img, ota, gaia=False, radius=4.0, buff=7.0, width=5.0):
     >>> gfwhm = getfwhm_ota(img,ota)
 
     """
-    # coords= img[0:-5]+'.'+ota+'.sdssxy'
-    image = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
+    # coords= img.nofits()+'.'+ota+'.sdssxy'
+    image = odi.reprojpath+'reproj_'+ota+'.'+img.stem()
     if gaia:
-        coords = odi.coordspath+'reproj_'+ota+'.'+str(img[16:-5])+'.gaiaxy'
+        coords = odi.coordspath+'reproj_'+ota+'.'+img.base()+'.gaiaxy'
     else:
-        coords = odi.coordspath+'reproj_'+ota+'.'+str(img[16:-5])+'.sdssxy'
+        coords = odi.coordspath+'reproj_'+ota+'.'+img.base()+'.sdssxy'
     print image, coords
-    outputfile = odi.coordspath+img[0:-5]+'.'+ota+'.fwhm.log'
+    outputfile = odi.coordspath+img.nofits()+'.'+ota+'.fwhm.log'
 
     iraf.tv.rimexam.setParam('radius',radius)
     iraf.tv.rimexam.setParam('buffer',buff)
@@ -114,8 +114,8 @@ def getfwhm_full(img, radius=4.0, buff=7.0, width=5.0):
     >>> gfwhm = getfwhm_full(img)
 
     """
-    coords = img[:-5]+'.sdssxy'
-    outputfile = img[0:-5]+'.fwhm.log'
+    coords = img.nofits()+'.sdssxy'
+    outputfile = img.nofits()+'.fwhm.log'
 
     iraf.tv.rimexam.setParam('radius',radius)
     iraf.tv.rimexam.setParam('buffer',buff)

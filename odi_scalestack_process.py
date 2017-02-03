@@ -34,7 +34,7 @@ for filter in filters:
         dither  = repr(dith)+'_'
         for key in tqdm(odi.OTA_dictionary):
             ota = odi.OTA_dictionary[key]
-            if not os.path.isfile(odi.sourcepath+'source_'+ota+'.'+str(img[16:-5])+'.csv'):
+            if not os.path.isfile(odi.sourcepath+'source_'+ota+'.'+img.base()+'.csv'):
                 odi.source_find(img,ota,inst)
                 gaps = odi.get_gaps_rep(img, ota)
                 odi.source_xy(img,ota,gaps,filter,inst)
@@ -91,7 +91,7 @@ for filter in filters:
             img = images_[dith]
             for key in odi.OTA_dictionary:
                 ota = odi.OTA_dictionary[key]
-                if not os.path.isfile(odi.scaledpath+'scaled_'+ota+'.'+str(img[16:])):
+                if not os.path.isfile(odi.scaledpath+'scaled_'+ota+'.'+img.stem()):
                     # gaps = odi.get_gaps_rep(img, ota)
                     odi.scale_ota(img, ota, scales_[img])
                     odi.force_update_bpm(img, ota)

@@ -48,12 +48,12 @@ def mask_ota(img, ota, reproj=False, deep_obj=False):
     """
 
     if reproj:
-      image = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
+      image = odi.reprojpath+'reproj_'+ota+'.'+img.stem()
       QR_raw = odi.fits.open(image)
       hdu_ota = QR_raw[0]
     elif deep_obj:
       image = odi.otastackpath+ota+'_stack.fits'
-      refimg = odi.scaledpath+'scaled_'+ota+'.'+str(img[16:])
+      refimg = odi.scaledpath+'scaled_'+ota+'.'+img.stem()
       QR_raw = odi.fits.open(image)
       hdu_ota = QR_raw[0]
     else:
@@ -100,7 +100,7 @@ def mask_ota(img, ota, reproj=False, deep_obj=False):
           hdu = odi.fits.PrimaryHDU(source_mask2.astype(float))
           hdu.writeto(bppath+mask_name,clobber=True)
 
-      ota_mask = 'objmask_'+ota+'.'+str(img[16:17])+'.fits'
+      ota_mask = 'objmask_'+ota+'.'+str(img.dither())+'.fits'
 
       if not os.path.isfile(odi.bppath+ota_mask):
           iraf.unlearn(iraf.mscred.mscimage)

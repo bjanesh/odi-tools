@@ -31,7 +31,7 @@ for i,img in enumerate(images_):
         x1, x2, y1, y2 = trim_section[0], trim_section[1], trim_section[2], trim_section[3]
         odi.trim_img(img,x1,x2,y1,y2)
     if remove_tpv_flag == True:
-        img_nopv = odi.tpv_remove(img[:-5]+'.trim.fits')
+        img_nopv = odi.tpv_remove(img.nofits()+'.trim.fits')
         nopv_images[i] = img_nopv
 
 if wcs_flag == True:

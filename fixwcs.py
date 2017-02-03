@@ -48,23 +48,23 @@ def list_wcs_coords(img, ota, gapmask, inst,output='radec.coo', gmaglim=20., sta
     This functions produces three files for each ota in the ``coords``
     directory with the following naming scheme:
 
-    1. ``img[:-5]+'.'+ota+'.radec.coo'``
-    2. ``img[:-5]+'.'+ota+'.radec.coo.px'``
-    3. ``img[0:-5]+'.'+ota+'.sdssxy'``
+    1. ``img.nofits()+'.'+ota+'.radec.coo'``
+    2. ``img.nofits()+'.'+ota+'.radec.coo.px'``
+    3. ``img.nofits()+'.'+ota+'.sdssxy'``
     """
 
     if offline == False:
-        xdim, ydim = odi.get_sdss_coords(img, ota, inst,output=odi.coordspath+img[0:-5]+'.'+ota+'.sdss')
-        ras,decs,psfMag_u,psfMagErr_u,psfMag_g,psfMagErr_g,psfMag_r,psfMagErr_r,psfMag_i,psfMagErr_i,psfMag_z,psfMagErr_z = np.loadtxt(odi.coordspath+img[0:-5]+'.'+ota+'.sdss',usecols=(0,1,2,3,4,5,6,7,8,9,10,11), unpack=True, delimiter=',', skiprows=2)
-        probPSF = np.loadtxt(odi.coordspath+img[0:-5]+'.'+ota+'.sdss', usecols=(12,), dtype=int, unpack=True, delimiter=',', skiprows=2)
+        xdim, ydim = odi.get_sdss_coords(img, ota, inst,output=odi.coordspath+img.nofits()+'.'+ota+'.sdss')
+        ras,decs,psfMag_u,psfMagErr_u,psfMag_g,psfMagErr_g,psfMag_r,psfMagErr_r,psfMag_i,psfMagErr_i,psfMag_z,psfMagErr_z = np.loadtxt(odi.coordspath+img.nofits()+'.'+ota+'.sdss',usecols=(0,1,2,3,4,5,6,7,8,9,10,11), unpack=True, delimiter=',', skiprows=2)
+        probPSF = np.loadtxt(odi.coordspath+img.nofits()+'.'+ota+'.sdss', usecols=(12,), dtype=int, unpack=True, delimiter=',', skiprows=2)
         coords2 = zip(ras[np.where((psfMag_g<gmaglim) & (probPSF==1))],decs[np.where((psfMag_g<gmaglim) & (probPSF==1))])
     if offline == True and source == 'sdss':
-        sdss_cat = odi.sdsspath+'offline_'+ota+'.'+str(img[16:-5])+'.sdss'
+        sdss_cat = odi.sdsspath+'offline_'+ota+'.'+img.base()+'.sdss'
         print 'Using Ra and Dec from:', sdss_cat,'for fixwcs'
         ras,decs,psfMag_u,psfMagErr_u,psfMag_g,psfMagErr_g,psfMag_r,psfMagErr_r,psfMag_i,psfMagErr_i,psfMag_z,psfMagErr_z = np.loadtxt(sdss_cat,usecols=(0,1,2,3,4,5,6,7,8,9,10,11), unpack=True, delimiter=',', skiprows=1)
         coords2 = zip(ras[np.where(psfMag_g<gmaglim)],decs[np.where(psfMag_g<gmaglim)])
     if offline == True and source == 'twomass':
-        twomass_cat = odi.twomasspath+'offline_'+ota+'.'+str(img[16:-5])+'.mass'
+        twomass_cat = odi.twomasspath+'offline_'+ota+'.'+img.base()+'.mass'
         ras,decs = np.loadtxt(twomass_cat,usecols=(2,3), unpack=True, delimiter=',', skiprows=1)
         # Just creating dummy variables so that the file formats remain the same for other functions
         psfMag_u       = np.ones(len(ras))
@@ -79,7 +79,7 @@ def list_wcs_coords(img, ota, gapmask, inst,output='radec.coo', gmaglim=20., sta
         psfMagErr_z    = np.ones(len(ras))
         coords2 = zip(ras,decs)
     if source == 'gaia':
-        gaia_cat = odi.gaiapath+'offline_'+ota+'.'+str(img[16:-5])+'.gaia'
+        gaia_cat = odi.gaiapath+'offline_'+ota+'.'+img.base()+'.gaia'
         ras,decs = np.loadtxt(gaia_cat,usecols=(0,1), unpack=True, delimiter=',', skiprows=1)
         # Just creating dummy variables so that the file formats remain the same
         # for other functions
@@ -107,7 +107,7 @@ def list_wcs_coords(img, ota, gapmask, inst,output='radec.coo', gmaglim=20., sta
     pixid = []
     with open(odi.coordspath+output,'w+') as f:
         with open(odi.coordspath+output+'.pix', 'w+') as fp:
-            with open(odi.coordspath+img[0:-5]+'.'+ota+'.sdssxy', 'w+') as fxy:
+            with open(odi.coordspath+img.nofits()+'.'+ota+'.sdssxy', 'w+') as fxy:
                 for i,c in enumerate(coords2):
                     if  20.0 <= pixcrd2[i,0] < xdim-100.0 and 20.0 <= pixcrd2[i,1] < ydim-100.0:
                         # make an image cutout of the gap mask
@@ -129,7 +129,7 @@ def list_wcs_coords(img, ota, gapmask, inst,output='radec.coo', gmaglim=20., sta
 def fix_wcs(img, ota, coords='radec.coo', iters=3):
     """
     Try to improve the WCS solution of an OTA using the IRAF task ``msccmatch``.
-    This function will use the ``img[:-5]+'.'+ota+'.radec.coo'`` file produced
+    This function will use the ``img.nofits()+'.'+ota+'.radec.coo'`` file produced
     by :py:func:`list_wcs_coords`.
 
     Parameters
@@ -167,7 +167,7 @@ def fix_wcs(img, ota, coords='radec.coo', iters=3):
     - accept='yes'
     - Stdout=1
     """
-    image = odi.illcorpath+'illcor_'+ota+'.'+str(img[16:])
+    image = odi.illcorpath+'illcor_'+ota+'.'+img.stem()
     iraf.mscred(_doprint=0)
     iraf.unlearn(iraf.mscred.msccmatch)
 

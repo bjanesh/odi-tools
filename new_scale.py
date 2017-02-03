@@ -119,7 +119,7 @@ def img_twomass(ref_img,img):
 
 
 def list_wcs_coords_match(img,ref_img, ota, gapmask, gmaglim=23.):
-    image = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
+    image = odi.reprojpath+'reproj_'+ota+'.'+img.stem()
     outcoords = odi.matchpath+img.split('.')[1][0] + '-'+ref_img.split('.')[1][0]+'.match'
     
     hdulist = ast.io.odi.fits.open(image)
@@ -167,7 +167,7 @@ def list_wcs_coords_match(img,ref_img, ota, gapmask, gmaglim=23.):
     
     w = odi.WCS(hdulist[0].header)
     
-    with open(odi.matchpath+'reproj_'+ota+'.'+str(img[16:-5])+'.sdssxy', 'w+') as fxy:
+    with open(odi.matchpath+'reproj_'+ota+'.'+img.base()+'.sdssxy', 'w+') as fxy:
       for i,c in enumerate(ras):
         coords2 = [[ras[i],decs[i]]]
         pixcrd2 = w.wcs_world2pix(coords2, 1)
@@ -185,9 +185,9 @@ def match_xy(img,ref_img,ota,gapmask, gmaglim=23., source ='sdss'):
     outcoords = odi.matchpath+img.split('.')[1][0] + '-'+ref_img.split('.')[1][0]+suffix
     if source == 'sdss':
 	ras,decs,psfMag_u,psfMagErr_u,psfMag_g,psfMagErr_g,psfMag_r,psfMagErr_r,psfMag_i,psfMagErr_i,psfMag_z,psfMagErr_z,ODI_OTA_ref,ODI_OTA_img = np.loadtxt(outcoords,usecols=(0,1,2,3,4,5,6,7,8,9,10,11,12,13), unpack=True, delimiter=',', skiprows=1)
-	outputxy  = odi.matchpath+'reproj_'+ota+'.'+str(img[16:-5])+'.sdssxy'
+	outputxy  = odi.matchpath+'reproj_'+ota+'.'+img.base()+'.sdssxy'
     if source == 'twomass':
-	outputxy  = odi.matchpath+'reproj_'+ota+'.'+str(img[16:-5])+'.massxy'
+	outputxy  = odi.matchpath+'reproj_'+ota+'.'+img.base()+'.massxy'
 	ras,decs,ODI_OTA_ref,ODI_OTA_img = np.loadtxt(outcoords,usecols=(0,1,2,3), unpack=True, delimiter=',', skiprows=1)
 	psfMag_u       = np.ones(len(ras))
 	psfMagErr_u    = np.ones(len(ras))
@@ -215,7 +215,7 @@ def match_xy(img,ref_img,ota,gapmask, gmaglim=23., source ='sdss'):
     ODI_OTA_ref   =  ODI_OTA_ref[stars_on_ota[0]] 
     ODI_OTA_img   =  ODI_OTA_img[stars_on_ota[0]]
 
-    image = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
+    image = odi.reprojpath+'reproj_'+ota+'.'+img.stem()
     hdulist = odi.fits.open(image)
     
     pvlist = hdulist[0].header['PV*']
@@ -284,8 +284,8 @@ def ref_xy(img,ref_img,ota,gmaglim=23.,source='sdss'):
 	suffix = '.sdssxy'
     if source == 'twomass':
 	suffix = '.massxy'
-    print 'reading',odi.matchpath+'reproj_'+ota+'.'+str(img[16:-5])+suffix
-    inputxy = odi.matchpath+'reproj_'+ota+'.'+str(img[16:-5])+suffix
+    print 'reading',odi.matchpath+'reproj_'+ota+'.'+img.base()+suffix
+    inputxy = odi.matchpath+'reproj_'+ota+'.'+img.base()+suffix
     pix1,pix2,ras,decs,psfMag_u,psfMagErr_u,psfMag_g,psfMagErr_g,psfMag_r,psfMagErr_r,psfMag_i,psfMagErr_i,psfMag_z,psfMagErr_z,ODI_OTA_ref,ODI_OTA_img = np.loadtxt(inputxy,usecols=(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15), unpack=True)
     
     if type(pix1) == np.float64:
@@ -293,7 +293,7 @@ def ref_xy(img,ref_img,ota,gmaglim=23.,source='sdss'):
     
     for o in range(len(ODI_OTA_ref)):
 	ota_ref = 'OTA'+str(int(ODI_OTA_ref[o]))+'.SCI'
-	image = odi.reprojpath+'reproj_'+ota_ref+'.'+str(ref_img[16:])
+	image = odi.reprojpath+'reproj_'+ota_ref+'.'+str(ref_ref_img.stem())
 	hdulist = odi.fits.open(image)
 	pvlist = hdulist[0].header['PV*']
 	for pv in pvlist:
@@ -307,8 +307,8 @@ def ref_xy(img,ref_img,ota,gmaglim=23.,source='sdss'):
 	gapmask = odi.get_gaps_rep(ref_img,ota_ref)
 	
 	
-	ref_output = odi.matchpath+'reproj_'+ota+'.'+str(img[16:-5])+suffix+'.ref'
-	reg_output = odi.matchpath+'reproj_'+ota+'.'+str(img[16:-5])+suffix+'.ref'+'.reg'
+	ref_output = odi.matchpath+'reproj_'+ota+'.'+img.base()+suffix+'.ref'
+	reg_output = odi.matchpath+'reproj_'+ota+'.'+img.base()+suffix+'.ref'+'.reg'
 	with open(ref_output, 'w+') as fxy:
 	    with open(reg_output,'w+') as rx:
 		j=0
@@ -331,7 +331,7 @@ def ref_xy(img,ref_img,ota,gmaglim=23.,source='sdss'):
 			    #if not (cutout.astype(bool)).any():
 			#print >> fxy, pixcrd2[0][0], pixcrd2[0][1], ras[i],decs[i],psfMag_u[i],psfMagErr_u[i],psfMag_g[i],psfMagErr_g[i],psfMag_r[i],psfMagErr_r[i],psfMag_i[i],psfMagErr_i[i],psfMag_z[i],psfMagErr_z[i],ODI_OTA_ref[i],ODI_OTA_img[i]
 	hdulist.close()
-	if (os.stat(odi.matchpath+'reproj_'+ota+'.'+str(img[16:-5])+suffix+'.ref').st_size != 0):
+	if (os.stat(odi.matchpath+'reproj_'+ota+'.'+img.base()+suffix+'.ref').st_size != 0):
 	    match_status = 'OK'
 	else:
 	    match_status = 'BAD'
@@ -342,16 +342,16 @@ def match_phot_coords(img,ref_img, ota,source='sdss'):
 	suffix = '.sdssxy'
     if source == 'twomass':
 	suffix = '.massxy'
-    ota_cat = pix1,pix2,ras,decs,psfMag_u,psfMagErr_u,psfMag_g,psfMagErr_g,psfMag_r,psfMagErr_r,psfMag_i,psfMagErr_i,psfMag_z,psfMagErr_z,ODI_OTA_ref,ODI_OTA_img  = np.loadtxt(odi.matchpath+'reproj_'+ota+'.'+str(img[16:-5])+suffix,usecols=(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15), unpack=True)
-    ref_cat = pix1_ref,pix2_ref,ras_ref,decs_ref,psfMag_u_ref,psfMagErr_u_ref,psfMag_g_ref,psfMagErr_g_ref,psfMag_r_ref,psfMagErr_r_ref,psfMag_i_ref,psfMagErr_i_ref,psfMag_z_ref,psfMagErr_z_ref,ODI_OTA_ref_ref,ODI_OTA_img_ref = np.loadtxt(odi.matchpath+'reproj_'+ota+'.'+str(img[16:-5])+suffix+'.ref',usecols=(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15), unpack=True)
+    ota_cat = pix1,pix2,ras,decs,psfMag_u,psfMagErr_u,psfMag_g,psfMagErr_g,psfMag_r,psfMagErr_r,psfMag_i,psfMagErr_i,psfMag_z,psfMagErr_z,ODI_OTA_ref,ODI_OTA_img  = np.loadtxt(odi.matchpath+'reproj_'+ota+'.'+img.base()+suffix,usecols=(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15), unpack=True)
+    ref_cat = pix1_ref,pix2_ref,ras_ref,decs_ref,psfMag_u_ref,psfMagErr_u_ref,psfMag_g_ref,psfMagErr_g_ref,psfMag_r_ref,psfMagErr_r_ref,psfMag_i_ref,psfMagErr_i_ref,psfMag_z_ref,psfMagErr_z_ref,ODI_OTA_ref_ref,ODI_OTA_img_ref = np.loadtxt(odi.matchpath+'reproj_'+ota+'.'+img.base()+suffix+'.ref',usecols=(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15), unpack=True)
     
     if type(ras) == np.float64:
-	pix1,pix2,ras,decs,psfMag_u,psfMagErr_u,psfMag_g,psfMagErr_g,psfMag_r,psfMagErr_r,psfMag_i,psfMagErr_i,psfMag_z,psfMagErr_z,ODI_OTA_ref,ODI_OTA_img  = np.loadtxt(odi.matchpath+'reproj_'+ota+'.'+str(img[16:-5])+suffix,usecols=(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15), unpack=True).reshape((-1,1))
+	pix1,pix2,ras,decs,psfMag_u,psfMagErr_u,psfMag_g,psfMagErr_g,psfMag_r,psfMagErr_r,psfMag_i,psfMagErr_i,psfMag_z,psfMagErr_z,ODI_OTA_ref,ODI_OTA_img  = np.loadtxt(odi.matchpath+'reproj_'+ota+'.'+img.base()+suffix,usecols=(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15), unpack=True).reshape((-1,1))
     if type(ras_ref) == np.float64:
-	pix1_ref,pix2_ref,ras_ref,decs_ref,psfMag_u_ref,psfMagErr_u_ref,psfMag_g_ref,psfMagErr_g_ref,psfMag_r_ref,psfMagErr_r_ref,psfMag_i_ref,psfMagErr_i_ref,psfMag_z_ref,psfMagErr_z_ref,ODI_OTA_ref_ref,ODI_OTA_img_ref = np.loadtxt(odi.matchpath+'reproj_'+ota+'.'+str(img[16:-5])+suffix+'.ref',usecols=(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15), unpack=True).reshape((-1,1))
+	pix1_ref,pix2_ref,ras_ref,decs_ref,psfMag_u_ref,psfMagErr_u_ref,psfMag_g_ref,psfMagErr_g_ref,psfMag_r_ref,psfMagErr_r_ref,psfMag_i_ref,psfMagErr_i_ref,psfMag_z_ref,psfMagErr_z_ref,ODI_OTA_ref_ref,ODI_OTA_img_ref = np.loadtxt(odi.matchpath+'reproj_'+ota+'.'+img.base()+suffix+'.ref',usecols=(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15), unpack=True).reshape((-1,1))
     
-    ota_cat_outfile = odi.matchpath+'reproj_'+ota+'.'+str(img[16:-5])+suffix+'.coo'
-    ref_cat_outfile = odi.matchpath+'reproj_'+ota+'.'+str(img[16:-5])+suffix+'.ref.coo'
+    ota_cat_outfile = odi.matchpath+'reproj_'+ota+'.'+img.base()+suffix+'.coo'
+    ref_cat_outfile = odi.matchpath+'reproj_'+ota+'.'+img.base()+suffix+'.ref.coo'
     with open(ota_cat_outfile, 'w+') as oxy:
 	with open(ref_cat_outfile, 'w+') as rox:
 	    for i in range(len(ras)):
@@ -368,8 +368,8 @@ def img_ref_fwhm(img,ref_img, ota,source = 'sdss'):
 	suffix = '.sdssxy'
     if source == 'twomass':
 	suffix = '.massxy'    
-    ota_coo_file = odi.matchpath+'reproj_'+ota+'.'+str(img[16:-5])+suffix+'.coo'
-    ref_coo_file = odi.matchpath+'reproj_'+ota+'.'+str(img[16:-5])+suffix+'.ref.coo'
+    ota_coo_file = odi.matchpath+'reproj_'+ota+'.'+img.base()+suffix+'.coo'
+    ref_coo_file = odi.matchpath+'reproj_'+ota+'.'+img.base()+suffix+'.ref.coo'
     ota_cat = pix1,pix2,ras,decs,psfMag_u,psfMagErr_u,psfMag_g,psfMagErr_g,psfMag_r,psfMagErr_r,psfMag_i,psfMagErr_i,psfMag_z,psfMagErr_z,ODI_OTA_ref,ODI_OTA_img  = np.loadtxt(ota_coo_file,usecols=(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15), unpack=True)
     ref_cat = pix1_ref,pix2_ref,ras_ref,decs_ref,psfMag_u_ref,psfMagErr_u_ref,psfMag_g_ref,psfMagErr_g_ref,psfMag_r_ref,psfMagErr_r_ref,psfMag_i_ref,psfMagErr_i_ref,psfMag_z_ref,psfMagErr_z_ref,ODI_OTA_ref_ref,ODI_OTA_img_ref = np.loadtxt(ref_coo_file,usecols=(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15), unpack=True)
     
@@ -384,9 +384,9 @@ def img_ref_fwhm(img,ref_img, ota,source = 'sdss'):
     buff=7.0 
     width=5.0
     
-    image = odi.bgsubpath+'bgsub_'+ota+'.'+str(img[16:])
-    coords = odi.matchpath+'reproj_'+ota+'.'+str(img[16:-5])+suffix+'.coo'
-    outputfile = odi.matchpath+img[0:-5]+'.'+ota+'.fwhm.log'
+    image = odi.bgsubpath+'bgsub_'+ota+'.'+img.stem()
+    coords = odi.matchpath+'reproj_'+ota+'.'+img.base()+suffix+'.coo'
+    outputfile = odi.matchpath+img.nofits()+'.'+ota+'.fwhm.log'
 
     print 'hello',image, coords
     
@@ -415,9 +415,9 @@ def img_ref_fwhm(img,ref_img, ota,source = 'sdss'):
     print 'median gwfhm in ota',ota+': ',np.median(gfwhm_ota),'pixels'# (determined via QR)'
     
     ota_ref = 'OTA'+str(int(ODI_OTA_ref_ref[0]))+'.SCI'
-    image = odi.bgsubpath+'bgsub_'+ota_ref+'.'+str(ref_img[16:])
-    coords = odi.matchpath+'reproj_'+ota+'.'+str(img[16:-5])+suffix+'.ref.coo'
-    outputfile = odi.matchpath+img[0:-5]+'.'+ota+'.fwhm.ref.log'
+    image = odi.bgsubpath+'bgsub_'+ota_ref+'.'+str(ref_ref_img.stem())
+    coords = odi.matchpath+'reproj_'+ota+'.'+img.base()+suffix+'.ref.coo'
+    outputfile = odi.matchpath+img.nofits()+'.'+ota+'.fwhm.ref.log'
     
     print image, coords
     

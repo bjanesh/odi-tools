@@ -143,8 +143,8 @@ def reproject_ota(img, ota, rad, decd, wcsref):
 
     """
     from pyraf import iraf
-    image = odi.illcorpath+'illcor_'+ota+'.'+str(img[16:])
-    imout = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
+    image = odi.illcorpath+'illcor_'+ota+'.'+img.stem()
+    imout = odi.reprojpath+'reproj_'+ota+'.'+img.stem()
     iraf.mscred(_doprint=0)
     iraf.clobber='no'
     iraf.unlearn(iraf.mscred.mscimage)
@@ -195,8 +195,8 @@ def bgsub_ota(img, ota, apply=False):
     This function calls ``odi.mask_ota`` to calculate the background statistics
     """
     from pyraf import iraf
-    image = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
-    imout = odi.bgsubpath+'bgsub_'+ota+'.'+str(img[16:])
+    image = odi.reprojpath+'reproj_'+ota+'.'+img.stem()
+    imout = odi.bgsubpath+'bgsub_'+ota+'.'+img.stem()
     bg_mean, bg_median, bg_std = odi.mask_ota(img, ota, reproj=True)
     if apply:
         # print bg_mean, bg_median, bg_std
@@ -241,12 +241,12 @@ def deep_obj_mask(img, ota, apply=False):
     """
     from astropy.io import fits
     from astropy.stats import sigma_clipped_stats
-    image = odi.scaledpath+'scaled_'+ota+'.'+str(img[16:])
-    ota_mask = 'objmask_'+ota+'.'+str(img[16:17])+'.fits'
+    image = odi.scaledpath+'scaled_'+ota+'.'+img.stem()
+    ota_mask = 'objmask_'+ota+'.'+str(img.dither())+'.fits'
     hdulist = fits.open(image)
     hdu_ota = hdulist[0]
     # maskhdu = fits.open(bppath+ota_mask)
-    gapshdu = fits.open(odi.bppath+'reproj_mask_'+ota+'.'+str(img[16:]))
+    gapshdu = fits.open(odi.bppath+'reproj_mask_'+ota+'.'+img.stem())
     total_mask = gapshdu[0].data
     #maskhdu[0].data +
 

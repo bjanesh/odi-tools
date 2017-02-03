@@ -41,8 +41,8 @@ def find_ref_image(images):
     return ref_img
 
 def getscale(images, refimg, verbose=True):
-	# img = bgsubpath+'bgsub_'+ota+'.'+str(img[16:])
-	# refimg = bgsubpath+'bgsub_'+ota+'.'+str(refimg[16:])
+	# img = bgsubpath+'bgsub_'+ota+'.'+img.stem()
+	# refimg = bgsubpath+'bgsub_'+ota+'.'+str(refref_img.stem())
 	scale = {}
 	std = {}
 	sigThreshold = 0.006
@@ -63,12 +63,12 @@ def getscale(images, refimg, verbose=True):
 
 		for key in odi.OTA_dictionary.keys():
 			ota = odi.OTA_dictionary[key] 
-			img_phot = odi.coordspath+img[0:-5]+'.'+ota+'.sdssphot'
-			ref_phot = odi.coordspath+refimg[0:-5]+'.'+ota+'.sdssphot'
-			img_peak = odi.coordspath+img[0:-5]+'.'+ota+'.fwhm.log'
-			ref_peak = odi.coordspath+refimg[0:-5]+'.'+ota+'.fwhm.log'
-			img_coords = odi.coordspath+'reproj_'+ota+'.'+str(img[16:-5])+'.sdssxy'
-			ref_coords = odi.coordspath+'reproj_'+ota+'.'+str(refimg[16:-5])+'.sdssxy'
+			img_phot = odi.coordspath+img.nofits()+'.'+ota+'.sdssphot'
+			ref_phot = odi.coordspath+refimg.nofits()+'.'+ota+'.sdssphot'
+			img_peak = odi.coordspath+img.nofits()+'.'+ota+'.fwhm.log'
+			ref_peak = odi.coordspath+refimg.nofits()+'.'+ota+'.fwhm.log'
+			img_coords = odi.coordspath+'reproj_'+ota+'.'+img.base()+'.sdssxy'
+			ref_coords = odi.coordspath+'reproj_'+ota+'.'+str(refrefimg.base())+'.sdssxy'
 			# print 'getting data from'
 			# print img_phot
 			# print ref_phot
@@ -195,8 +195,8 @@ def getscale(images, refimg, verbose=True):
 	return scale, std
 
 def scale_ota(img, ota, scale):
-	image = odi.bgsubpath+'bgsub_'+ota+'.'+str(img[16:])
-	imout = odi.scaledpath+'scaled_'+ota+'.'+str(img[16:])
+	image = odi.bgsubpath+'bgsub_'+ota+'.'+img.stem()
+	imout = odi.scaledpath+'scaled_'+ota+'.'+img.stem()
 	iraf.unlearn(iraf.imutil.imarith)
 	iraf.imutil.imarith.setParam('operand1',image)
 	iraf.imutil.imarith.setParam('op','/')

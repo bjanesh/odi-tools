@@ -19,10 +19,10 @@ def zeropoint_ota(img, ota, fwhm):
     # hdr = hdulist[ota].header
     # hdulist.close()
 
-    image = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
-    coords = odi.coordspath+'reproj_'+ota+'.'+str(img[16:-5])+'.sdssxy'
-    output = odi.coordspath+img[0:-5]+'.'+ota+'.phot.1'
-    phot_tbl = odi.coordspath+img[0:-5]+'.'+ota+'.sdssphot'
+    image = odi.reprojpath+'reproj_'+ota+'.'+img.stem()
+    coords = odi.coordspath+'reproj_'+ota+'.'+img.base()+'.sdssxy'
+    output = odi.coordspath+img.nofits()+'.'+ota+'.phot.1'
+    phot_tbl = odi.coordspath+img.nofits()+'.'+ota+'.sdssphot'
 
     # alas, we must use IRAF apphot to do the measuring
     # first set common parameters (these shouldn't change if you're using ODI)
@@ -130,10 +130,10 @@ def zeropoint_full(img, fwhm):
     # hdr = hdulist[ota].header
     # hdulist.close()
     
-    # image = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
-    coords = img[:-5]+'.sdssxy'
-    output = img[0:-5]+'.phot.1'
-    phot_tbl = img[0:-5]+'.sdssphot'
+    # image = odi.reprojpath+'reproj_'+ota+'.'+img.stem()
+    coords = img.nofits()+'.sdssxy'
+    output = img.nofits()+'.phot.1'
+    phot_tbl = img.nofits()+'.sdssphot'
     
     # alas, we must use IRAF apphot to do the measuring
     # first set common parameters (these shouldn't change if you're using ODI)

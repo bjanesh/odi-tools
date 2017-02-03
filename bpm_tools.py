@@ -4,8 +4,8 @@ import odi_config as odi
 from pyraf import iraf
 
 def force_update_bpm(img, ota):
-    image = odi.scaledpath+'scaled_'+ota+'.'+str(img[16:])
-    mask_name = odi.bppath+'reproj_mask_'+ota+'.'+str(img[16:])
+    image = odi.scaledpath+'scaled_'+ota+'.'+img.stem()
+    mask_name = odi.bppath+'reproj_mask_'+ota+'.'+img.stem()
     BPM = mask_name.replace('fits','pl')
     iraf.unlearn(iraf.imutil.hedit)
     iraf.imutil.hedit.setParam('images',image)
@@ -22,7 +22,7 @@ def make_bpms(img, ota):
     # for i in range(len(images)):
     #   for key in OTA_dictionary:
     # create string for mask fits name
-    mask_name = odi.bppath+'mask_'+ota+'.'+str(img[16:])
+    mask_name = odi.bppath+'mask_'+ota+'.'+img.stem()
     BPM = mask_name.replace('fits','pl')
     if not os.path.isfile(BPM):
         mask,gaps = odi.mask_ota(img,ota)
@@ -57,9 +57,9 @@ def get_dims(header_string):
 
 
 def check_mask_dim(img,ota):
-    mask_name = odi.bppath+'reproj_mask_'+ota+'.'+str(img[16:])
-    reproj_img = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
-    bgsub_img = odi.bgsubpath+'bgsub_'+ota+'.'+str(img[16:])
+    mask_name = odi.bppath+'reproj_mask_'+ota+'.'+img.stem()
+    reproj_img = odi.reprojpath+'reproj_'+ota+'.'+img.stem()
+    bgsub_img = odi.bgsubpath+'bgsub_'+ota+'.'+img.stem()
 
     mask_header = iraf.imhead(mask_name,Stdout=1)[0]
     mask_dim1, mask_dim2 = get_dims(mask_header)

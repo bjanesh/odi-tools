@@ -39,7 +39,7 @@ for img in images_g:
     for key in tqdm(odi.OTA_dictionary):
         ota = odi.OTA_dictionary[key]
         img_id = (int(img.split('.')[1][0]),ota,'odi_NB695')
-        if not os.path.isfile(odi.sourcepath+'source_'+ota+'.'+str(img[16:-5])+'.csv'):
+        if not os.path.isfile(odi.sourcepath+'source_'+ota+'.'+img.base()+'.csv'):
             odi.source_find(img,ota,inst)
             gaps = odi.get_gaps_rep(img, ota)
             odi.source_xy(img,ota,gaps,filters[0],inst)
@@ -79,7 +79,7 @@ if new_ref != ref_img:
 for img in images_g:
     for key in odi.OTA_dictionary:
         ota = odi.OTA_dictionary[key]
-        if not os.path.isfile(odi.scaledpath+'scaled_'+ota+'.'+str(img[16:])):
+        if not os.path.isfile(odi.scaledpath+'scaled_'+ota+'.'+img.stem()):
             gaps = odi.get_gaps_rep(img, ota)
             odi.scale_ota(img, ota, scales_g[img])
             odi.force_update_bpm(img, ota)
@@ -90,7 +90,7 @@ for img in images_r:
     dither  = img.split('.')[1][0]+'_'
     for key in tqdm(odi.OTA_dictionary):
         ota = odi.OTA_dictionary[key]
-        if not os.path.isfile(odi.sourcepath+'source_'+ota+'.'+str(img[16:-5])+'.csv'):
+        if not os.path.isfile(odi.sourcepath+'source_'+ota+'.'+img.base()+'.csv'):
             odi.source_find(img,ota,inst)
             gaps = odi.get_gaps_rep(img, ota)
             odi.source_xy(img,ota,gaps,filters[1],inst)
@@ -127,7 +127,7 @@ if new_ref != ref_img:
 for img in images_r:
     for key in odi.OTA_dictionary:
         ota = odi.OTA_dictionary[key]
-        if not os.path.isfile(odi.scaledpath+'scaled_'+ota+'.'+str(img[16:])):
+        if not os.path.isfile(odi.scaledpath+'scaled_'+ota+'.'+img.stem()):
             gaps = odi.get_gaps_rep(img, ota)
             odi.scale_ota(img, ota, scales_r[img])
             odi.force_update_bpm(img, ota)
@@ -139,7 +139,7 @@ for img in images_i:
     dither  = img.split('.')[1][0]+'_'
     for key in tqdm(odi.OTA_dictionary):
         ota = odi.OTA_dictionary[key]
-        if not os.path.isfile(odi.sourcepath+'source_'+ota+'.'+str(img[16:-5])+'.csv'):
+        if not os.path.isfile(odi.sourcepath+'source_'+ota+'.'+img.base()+'.csv'):
             odi.source_find(img,ota,inst)
             gaps = odi.get_gaps_rep(img, ota)
             odi.source_xy(img,ota,gaps,filters[1],inst)
@@ -165,7 +165,7 @@ for img in images_i:
 for img in images_i:
     for key in odi.OTA_dictionary:
         ota = odi.OTA_dictionary[key]
-        if not os.path.isfile(odi.scaledpath+'scaled_'+ota+'.'+str(img[16:])):
+        if not os.path.isfile(odi.scaledpath+'scaled_'+ota+'.'+img.stem()):
             gaps = odi.get_gaps_rep(img, ota)
             odi.scale_ota(img, ota, scales_r[img])
             odi.force_update_bpm(img, ota)

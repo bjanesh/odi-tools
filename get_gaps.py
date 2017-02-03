@@ -43,7 +43,7 @@ def get_gaps_rep(img, ota):
         A numpy array of the gap location on the ota.
     """
 
-    image = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
+    image = odi.reprojpath+'reproj_'+ota+'.'+img.stem()
     hdulist = odi.fits.open(image)
     hdu = hdulist[0]
     # plt.imshow(hdu.data, origin='lower', cmap='Greys_r', vmin=-10., vmax=500.)
@@ -55,7 +55,7 @@ def get_gaps_rep(img, ota):
 
     # also update the bad pixel mask for the image to make sure the cell gaps are masked
     # this is necessary for the final imcombine
-    mask_name = odi.bppath+'reproj_mask_'+ota+'.'+str(img[16:])
+    mask_name = odi.bppath+'reproj_mask_'+ota+'.'+img.stem()
     BPM = mask_name.replace('fits','pl')
     if not os.path.isfile(BPM):
         # mask,gaps = mask_ota(img,ota)

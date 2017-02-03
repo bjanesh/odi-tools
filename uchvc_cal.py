@@ -1100,6 +1100,6 @@ if __name__ == '__main__':
     # # else:
     i_img = folder+'_odi_r.fits'
     # print '--------------------------------------------------------------------------'
-    # if not os.path.isfile(g_img[:-5]+'.sdssxy'):        
+    # if not os.path.isfile(g_img.nofits()+'.sdssxy'):        
     download_sdss(g_img, i_img)
     js_calibrate(img1=g_img, img2=i_img)

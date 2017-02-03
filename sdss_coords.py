@@ -99,8 +99,8 @@ def get_sdss_coords(img, ota, inst,output='test.sdss'):
 
 def refetch_sdss_coords(img, ota, gapmask, inst,gmaglim=19.,offline = False,source='sdss'):
 
-    image = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
-    outcoords = odi.coordspath+'reproj_'+ota+'.'+str(img[16:-5])+'.sdss'
+    image = odi.reprojpath+'reproj_'+ota+'.'+img.stem()
+    outcoords = odi.coordspath+'reproj_'+ota+'.'+img.base()+'.sdss'
     hdulist = odi.fits.open(image)
     
     hdu = odi.tan_header_fix(hdulist[0])
@@ -189,7 +189,7 @@ def refetch_sdss_coords(img, ota, gapmask, inst,gmaglim=19.,offline = False,sour
         ras,decs,psfMag_u,psfMagErr_u,psfMag_g,psfMagErr_g,psfMag_r,psfMagErr_r,psfMag_i,psfMagErr_i,psfMag_z,psfMagErr_z = np.loadtxt(outcoords,usecols=(0,1,2,3,4,5,6,7,8,9,10,11), unpack=True, delimiter=',', skiprows=2)
         probPSF = np.loadtxt(outcoords, usecols=(12,), dtype=int, unpack=True, delimiter=',', skiprows=2)
         w = odi.WCS(hdu.header)
-        with open(odi.coordspath+'reproj_'+ota+'.'+str(img[16:-5])+'.sdssxy', 'w+') as fxy:
+        with open(odi.coordspath+'reproj_'+ota+'.'+img.base()+'.sdssxy', 'w+') as fxy:
             j=0
             # k=0
             for i,c in enumerate(ras):
@@ -209,10 +209,10 @@ def refetch_sdss_coords(img, ota, gapmask, inst,gmaglim=19.,offline = False,sour
 
     if offline == True:
         if source == 'sdss':
-            outcoords =  odi.sdsspath+'offline_'+ota+'.'+str(img[16:-5])+'.sdss'
+            outcoords =  odi.sdsspath+'offline_'+ota+'.'+img.base()+'.sdss'
             ras,decs,psfMag_u,psfMagErr_u,psfMag_g,psfMagErr_g,psfMag_r,psfMagErr_r,psfMag_i,psfMagErr_i,psfMag_z,psfMagErr_z = np.loadtxt(outcoords,usecols=(0,1,2,3,4,5,6,7,8,9,10,11), unpack=True, delimiter=',', skiprows=1)
         if source == 'twomass':
-            outcoords =  odi.twomasspath+'offline_'+ota+'.'+str(img[16:-5])+'.mass'
+            outcoords =  odi.twomasspath+'offline_'+ota+'.'+img.base()+'.mass'
             ras,decs = np.loadtxt(outcoords,usecols=(2,3), unpack=True, delimiter=',', skiprows=1)
             # Just creating dummy variables so that the file formats remain the same for other functions
             psfMag_u       = np.ones(len(ras))
@@ -226,7 +226,7 @@ def refetch_sdss_coords(img, ota, gapmask, inst,gmaglim=19.,offline = False,sour
             psfMag_z       = np.ones(len(ras))
             psfMagErr_z    = np.ones(len(ras))
         if source == 'gaia':
-            outcoords = odi.gaiapath+'offline_'+ota+'.'+str(img[16:-5])+'.gaia'
+            outcoords = odi.gaiapath+'offline_'+ota+'.'+img.base()+'.gaia'
             ras,decs = np.loadtxt(outcoords,usecols=(0,1), unpack=True, delimiter=',', skiprows=1)
             # Just creating dummy variables so that the file formats remain the same
             # for other functions
@@ -242,7 +242,7 @@ def refetch_sdss_coords(img, ota, gapmask, inst,gmaglim=19.,offline = False,sour
             psfMagErr_z    = np.ones(len(ras))
         print 'Using Ra and Dec from:',outcoords, 'for reproject'
         w = odi.WCS(hdu.header)
-        with open(odi.coordspath+'reproj_'+ota+'.'+str(img[16:-5])+'.sdssxy', 'w+') as fxy:
+        with open(odi.coordspath+'reproj_'+ota+'.'+img.base()+'.sdssxy', 'w+') as fxy:
             for i,c in enumerate(ras):
                 coords2 = [[ras[i],decs[i]]]
                 pixcrd2 = w.wcs_world2pix(coords2, 1)
@@ -258,18 +258,18 @@ def refetch_sdss_coords(img, ota, gapmask, inst,gmaglim=19.,offline = False,sour
     hdulist.close()
 
 def repoxy_offline(img, ota, gapmask, inst,gmaglim=19.,source='sdss'):
-    image = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
+    image = odi.reprojpath+'reproj_'+ota+'.'+img.stem()
     hdulist = odi.fits.open(image)
     hdu = odi.tan_header_fix(hdulist[0])
     xdim = hdu.header['NAXIS1']
     ydim = hdu.header['NAXIS2']
     if source == 'sdss':
-        outcoords =  odi.sdsspath+'offline_'+ota+'.'+str(img[16:-5])+'.sdss'
+        outcoords =  odi.sdsspath+'offline_'+ota+'.'+img.base()+'.sdss'
         ras,decs,psfMag_u,psfMagErr_u,psfMag_g,psfMagErr_g,psfMag_r,psfMagErr_r,psfMag_i,psfMagErr_i,psfMag_z,psfMagErr_z = np.loadtxt(outcoords,usecols=(0,1,2,3,4,5,6,7,8,9,10,11), unpack=True, delimiter=',', skiprows=1)
-        outputxy =  odi.coordspath+'reproj_'+ota+'.'+str(img[16:-5])+'.sdssxy'
+        outputxy =  odi.coordspath+'reproj_'+ota+'.'+img.base()+'.sdssxy'
     if source == 'twomass':
-        outcoords =  odi.twomasspath+'offline_'+ota+'.'+str(img[16:-5])+'.mass'
-        outputxy =  odi.coordspath+'reproj_'+ota+'.'+str(img[16:-5])+'.massxy'
+        outcoords =  odi.twomasspath+'offline_'+ota+'.'+img.base()+'.mass'
+        outputxy =  odi.coordspath+'reproj_'+ota+'.'+img.base()+'.massxy'
         ras,decs = np.loadtxt(outcoords,usecols=(2,3), unpack=True, delimiter=',', skiprows=1)
         # Just creating dummy variables so that the file formats remain the same for other functions
         psfMag_u       = np.ones(len(ras))
@@ -283,8 +283,8 @@ def repoxy_offline(img, ota, gapmask, inst,gmaglim=19.,source='sdss'):
         psfMag_z       = np.ones(len(ras))
         psfMagErr_z    = np.ones(len(ras))
     if source == 'gaia':
-        outcoords = odi.gaiapath+'offline_'+ota+'.'+str(img[16:-5])+'.gaia'
-        outputxy =  odi.coordspath+'reproj_'+ota+'.'+str(img[16:-5])+'.gaiaxy'
+        outcoords = odi.gaiapath+'offline_'+ota+'.'+img.base()+'.gaia'
+        outputxy =  odi.coordspath+'reproj_'+ota+'.'+img.base()+'.gaiaxy'
         ras,decs = np.loadtxt(outcoords,usecols=(0,1), unpack=True, delimiter=',', skiprows=1)
         # Just creating dummy variables so that the file formats remain the same
         # for other functions
@@ -326,7 +326,7 @@ def sdss_coords_full(img, inst,gmaglim=19.):
     default_fmt='csv'
 
     image = img
-    outcoords = img[:-5]+'.sdss'
+    outcoords = img.nofits()+'.sdss'
 
     hdulist = odi.fits.open(image)
     hdu = odi.tan_header_fix(hdulist[0])
@@ -416,8 +416,8 @@ def sdss_coords_full(img, inst,gmaglim=19.):
     # print ras, decs
 
     w = odi.WCS(hdu.header)
-    with open(img[:-5]+'.wcs.coo','w+') as f:
-        with open(img[:-5]+'.sdssxy', 'w+') as fxy:
+    with open(img.nofits()+'.wcs.coo','w+') as f:
+        with open(img.nofits()+'.sdssxy', 'w+') as fxy:
             for i,c in enumerate(ras):
                 coords2 = [[ras[i],decs[i]]]
                 pixcrd2 = w.wcs_world2pix(coords2, 1)
@@ -457,8 +457,8 @@ def get_sdss_coords_offline(img, ota, inst,output='test.sdss'):
     return xdim, ydim
 
 def refetch_sdss_coords_offline(img, ota, gapmask, inst,gmaglim=19.):
-    image = odi.reprojpath+'reproj_'+ota+'.'+str(img[16:])
-    outcoords = odi.coordspath+'reproj_'+ota+'.'+str(img[16:-5])+'.sdss'
+    image = odi.reprojpath+'reproj_'+ota+'.'+img.stem()
+    outcoords = odi.coordspath+'reproj_'+ota+'.'+img.base()+'.sdss'
 
     hdulist = odi.fits.open(image)
     hdu = odi.tan_header_fix(hdulist[0])
@@ -519,7 +519,7 @@ def refetch_sdss_coords_offline(img, ota, gapmask, inst,gmaglim=19.):
 
     w = odi.WCS(hdu.header)
 
-    with open(odi.coordspath+'reproj_'+ota+'.'+str(img[16:-5])+'.sdssxy', 'w+') as fxy:
+    with open(odi.coordspath+'reproj_'+ota+'.'+img.base()+'.sdssxy', 'w+') as fxy:
         j=0
         # k=0
         for i,c in enumerate(ras):

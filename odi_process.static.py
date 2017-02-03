@@ -35,10 +35,10 @@ for img in images:
     print 'Retrieving QR SDSS and 2MASS catalogs for:', img
     for key in odi.OTA_dictionary:
         ota = odi.OTA_dictionary[key]
-        outputsd = odi.sdsspath+'offline_'+ota+'.'+str(img[16:-5])+'.sdss'
+        outputsd = odi.sdsspath+'offline_'+ota+'.'+img.base()+'.sdss'
         if not os.path.isfile(outputsd):
             x,y = odi.get_sdss_coords_offline(img,ota,inst,output=outputsd)
-            output2m = odi.twomasspath+'offline_'+ota+'.'+str(img[16:-5])+'.mass'
+            output2m = odi.twomasspath+'offline_'+ota+'.'+img.base()+'.mass'
             x,y = odi.get_2mass_coords_offline(img,ota,inst,output=output2m)
 
 listfiles = glob.glob('*.lis')
@@ -73,20 +73,20 @@ if not os.path.isfile('derived_props.txt'):
             filt = hdr['filter']
             image_to_correct = img+'['+ota+']'
             correction_image = ota+'.'+filt+'.med.fits'
-            corrected_image = 'illcor_'+ota+'.'+str(img[16:])
+            corrected_image = 'illcor_'+ota+'.'+img.stem()
             if not os.path.isfile(odi.illcorpath+corrected_image):
                 odi.illumination_corrections(image_to_correct, correction_image, corrected_image)
             gaps = odi.get_gaps(img, ota)
-            reprojed_image = 'reproj_'+ota+'.'+str(img[16:])
+            reprojed_image = 'reproj_'+ota+'.'+img.stem()
             if not os.path.isfile(odi.reprojpath+reprojed_image):
-                pixcrd3 = odi.list_wcs_coords(img, ota, gaps, inst,output=img[:-5]+'.'+ota+'.radec.coo', gmaglim=23., stars_only=True, offline = True, source = source)
+                pixcrd3 = odi.list_wcs_coords(img, ota, gaps, inst,output=img.nofits()+'.'+ota+'.radec.coo', gmaglim=23., stars_only=True, offline = True, source = source)
                 try:
-                    odi.fix_wcs(img, ota, coords=img[:-5]+'.'+ota+'.radec.coo', iters=3)
+                    odi.fix_wcs(img, ota, coords=img.nofits()+'.'+ota+'.radec.coo', iters=3)
                 except:
                     try:
                         print 'msccmatch failed, wait a second and try again'
                         time.sleep(1.0)
-                        odi.fix_wcs(img, ota, coords=img[:-5]+'.'+ota+'.radec.coo', iters=3)
+                        odi.fix_wcs(img, ota, coords=img.nofits()+'.'+ota+'.radec.coo', iters=3)
                     except:
                         print 'there might be too few stars for msccmatch, just skip it.'
                 wcsref = odi.illcorpath+'illcor_OTA33.SCI.'+str((images[0])[16:])        
@@ -102,7 +102,7 @@ if not os.path.isfile('derived_props.txt'):
                 zp_med, zp_std, phot_tbl = odi.zeropoint_ota(img, ota, fwhm)
             elif source == 'twomass':
                 zp_med, zp_std = 99.99,99.99
-            if not os.path.isfile(odi.bgsubpath+'bgsub_'+ota+'.'+str(img[16:])):
+            if not os.path.isfile(odi.bgsubpath+'bgsub_'+ota+'.'+img.stem()):
                 bg_mean, bg_median, bg_std = odi.bgsub_ota(img, ota, apply=True)
             else:
                 bg_mean, bg_median, bg_std = odi.bgsub_ota(img, ota, apply=False)
@@ -125,21 +125,21 @@ else:
             else:
                 image_to_correct = img+'['+ota+']'
                 correction_image = ota+'.'+filt+'.med.fits'
-                corrected_image = 'illcor_'+ota+'.'+str(img[16:])
+                corrected_image = 'illcor_'+ota+'.'+img.stem()
                 if not os.path.isfile(odi.illcorpath+corrected_image):
                     odi.illumination_corrections(image_to_correct, correction_image, corrected_image)
                 gaps = odi.get_gaps(img, ota)
-                reprojed_image = 'reproj_'+ota+'.'+str(img[16:])
+                reprojed_image = 'reproj_'+ota+'.'+img.stem()
                 if not os.path.isfile(odi.reprojpath+reprojed_image):
-                    pixcrd3 = odi.list_wcs_coords(img, ota, gaps, inst,output=img[:-5]+'.'+ota+'.radec.coo', gmaglim=23., stars_only=True, offline = True, source = source)
+                    pixcrd3 = odi.list_wcs_coords(img, ota, gaps, inst,output=img.nofits()+'.'+ota+'.radec.coo', gmaglim=23., stars_only=True, offline = True, source = source)
                     try:
-                        odi.fix_wcs(img, ota, coords=img[:-5]+'.'+ota+'.radec.coo', iters=1)
+                        odi.fix_wcs(img, ota, coords=img.nofits()+'.'+ota+'.radec.coo', iters=1)
                     except IndexError:     
                         print 'not enough stars to fix wcs, skipping for this ota:', img, ota
                     except:
                         print 'msccmatch failed, wait a second and try again'
                         time.sleep(1.0)
-                        odi.fix_wcs(img, ota, coords=img[:-5]+'.'+ota+'.radec.coo', iters=1)
+                        odi.fix_wcs(img, ota, coords=img.nofits()+'.'+ota+'.radec.coo', iters=1)
                     
                     odi.reproject_ota(img, ota, rad, decd)
                 gaps = odi.get_gaps_rep(img, ota)
@@ -151,7 +151,7 @@ else:
                     zp_med, zp_std, phot_tbl = odi.zeropoint_ota(img, ota, fwhm)
                 if source == 'twomass':
                     zp_med, zp_std = 99.99,99.99
-                if not os.path.isfile(odi.bgsubpath+'bgsub_'+ota+'.'+str(img[16:])):
+                if not os.path.isfile(odi.bgsubpath+'bgsub_'+ota+'.'+img.stem()):
                     bg_mean, bg_median, bg_std = odi.bgsub_ota(img, ota, apply=True)
                 else:
                     bg_mean, bg_median, bg_std = odi.bgsub_ota(img, ota, apply=False)

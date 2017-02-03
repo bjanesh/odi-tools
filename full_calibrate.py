@@ -37,16 +37,16 @@ def tpv_remove(img):
     >>> 'GCPair-F1_odi_g-nopv.fits'
 
     """
-    if not os.path.isfile(img[:-5]+'-nopv.fits'):
+    if not os.path.isfile(img.nofits()+'-nopv.fits'):
         print 'Removing PV keywords from: ',img
         hdulist = odi.fits.open(img)
         header = hdulist[0].header
         pvlist = header['PV*']
         for pv in pvlist:
             header.remove(pv)
-        hdulist.writeto(img[:-5]+'-nopv.fits')
+        hdulist.writeto(img.nofits()+'-nopv.fits')
 
-    return img[:-5]+'-nopv.fits'
+    return img.nofits()+'-nopv.fits'
 
 def trim_img(img,x1,x2,y1,y2):
     """
@@ -75,8 +75,8 @@ def trim_img(img,x1,x2,y1,y2):
     """
     x1,x2 = x1,x2
     y1,y2 = y1,y2
-    input = img[:-5]+'['+repr(x1)+':'+repr(x2)+','+repr(y1)+':'+repr(y2)+']'
-    output =  img[:-5]+'.trim.fits'
+    input = img.nofits()+'['+repr(x1)+':'+repr(x2)+','+repr(y1)+':'+repr(y2)+']'
+    output =  img.nofits()+'.trim.fits'
     if not os.path.isfile(output):
         print 'Trimming image: ' ,img
         iraf.unlearn(iraf.imcopy)
@@ -209,7 +209,7 @@ def sdss_source_props_full(img):
     hdulist = odi.fits.open(img)
     data = hdulist[0].data
 
-    sdss_source_file = img[:-5]+'.match.sdssxy'
+    sdss_source_file = img.nofits()+'.match.sdssxy'
 
     x,y,ra,dec,g,g_err,r,r_err = np.loadtxt(sdss_source_file,usecols=(0,1,2,3,
                                                                       6,7,8,9),unpack=True)
@@ -385,16 +385,16 @@ def sdss_phot_full(img,fwhm,airmass):
     iraf.fitskypars.setParam('salgorithm',"median")
     iraf.fitskypars.setParam('dannulus',10.)
 
-    if not os.path.isfile(img[0:-5]+'.sdssphot'): # only do this once
+    if not os.path.isfile(img.nofits()+'.sdssphot'): # only do this once
         print 'phot-ing the sdss sources in ', filter
         iraf.datapars.setParam('xairmass',float(airmass))
         iraf.datapars.setParam('fwhmpsf',float(fwhm))
         iraf.photpars.setParam('apertures',5.*float(fwhm)) # use a big aperture for this
         iraf.fitskypars.setParam('annulus',6.*float(fwhm))
-        iraf.apphot.phot(image=img, coords=img[:-5]+'.match.sdssxy', output=img[0:-5]+'.phot.1')
-        phot_tbl = img[0:-5]+'.sdssphot'
+        iraf.apphot.phot(image=img, coords=img.nofits()+'.match.sdssxy', output=img.nofits()+'.phot.1')
+        phot_tbl = img.nofits()+'.sdssphot'
         with open(phot_tbl,'w+') as txdump_out :
-            iraf.ptools.txdump(textfiles=img[0:-5]+'.phot.1', fields="id,mag,merr,msky,stdev,rapert,xcen,ycen,ifilter,xairmass,image",expr='yes', headers='no', Stdout=txdump_out)
+            iraf.ptools.txdump(textfiles=img.nofits()+'.phot.1', fields="id,mag,merr,msky,stdev,rapert,xcen,ycen,ifilter,xairmass,image",expr='yes', headers='no', Stdout=txdump_out)
 
         outputfile_clean = open(phot_tbl.replace('.sdssphot','_clean.sdssphot'),"w")
         for line in open(phot_tbl,"r"):
@@ -431,8 +431,8 @@ def getfwhm_full_sdss(img, radius=4.0, buff=7.0, width=5.0):
     other functions in the ``full_calibrate.py`` module.
 
     '''
-    coords = img[:-5]+'.match.sdssxy'
-    outputfile = img[0:-5]+'.sdssmatch.fwhm.log'
+    coords = img.nofits()+'.match.sdssxy'
+    outputfile = img.nofits()+'.sdssmatch.fwhm.log'
 
     iraf.tv.rimexam.setParam('radius',radius)
     iraf.tv.rimexam.setParam('buffer',buff)
@@ -506,11 +506,11 @@ def apcor_sdss(img,fwhm,inspect=False):
     from astropy.visualization import *
     from astropy.visualization.mpl_normalize import ImageNormalize
     iraf.ptools(_doprint=0)
-    sdss_source_file = img[:-5]+'.match.sdssxy'
+    sdss_source_file = img.nofits()+'.match.sdssxy'
 
-    sdss_phot_file = img[0:-5]+'.sdssphot'
+    sdss_phot_file = img.nofits()+'.sdssphot'
 
-    sdss_MAG, sdss_MERR, sdss_SKY, sdss_SERR, sdss_RAPERT, sdss_XPOS, sdss_YPOS = np.loadtxt(img[0:-5]+'.sdssphot',
+    sdss_MAG, sdss_MERR, sdss_SKY, sdss_SERR, sdss_RAPERT, sdss_XPOS, sdss_YPOS = np.loadtxt(img.nofits()+'.sdssphot',
                                                                                              usecols=(1,2,3,4,5,6,7),
                                                                                              dtype=float, unpack=True)
 
@@ -564,15 +564,15 @@ def apcor_sdss(img,fwhm,inspect=False):
     iraf.fitskypars.setParam('salgorithm',"median")
     iraf.fitskypars.setParam('dannulus',10.)
 
-    phot_tbl = img[0:-5]+'.apcor'
+    phot_tbl = img.nofits()+'.apcor'
     if not os.path.isfile(phot_tbl):
         print 'running phot over', aps_str
         iraf.datapars.setParam('fwhmpsf',fwhm)
         iraf.photpars.setParam('apertures',aps_str)
         iraf.fitskypars.setParam('annulus',6.*float(fwhm))
-        iraf.apphot.phot(image=img, coords=sdss_source_file, output=img[0:-5]+'.apcor.1')
+        iraf.apphot.phot(image=img, coords=sdss_source_file, output=img.nofits()+'.apcor.1')
         with open(phot_tbl,'w+') as txdump_out :
-            iraf.ptools.txdump(textfiles=img[0:-5]+'.apcor.1', fields="ID,RAPERT,XCEN,YCEN,FLUX,MAG,MERR", expr="yes", headers='no', Stdout=txdump_out)
+            iraf.ptools.txdump(textfiles=img.nofits()+'.apcor.1', fields="ID,RAPERT,XCEN,YCEN,FLUX,MAG,MERR", expr="yes", headers='no', Stdout=txdump_out)
         txdump_out.close()
         outputfile_clean = open(phot_tbl.replace('.apcor','_clean.apcor'),"w")
         for line in open(phot_tbl,"r"):
@@ -589,7 +589,7 @@ def apcor_sdss(img,fwhm,inspect=False):
     star_mag_diff1x = {}
     star_mag = {}
     star_positions = {}
-    for i,line in enumerate(open(img[0:-5]+'.apcor',"r")):
+    for i,line in enumerate(open(img.nofits()+'.apcor',"r")):
         flux = [float(x) for x in line.split()[16:29]]
         mag = [float(x) for x in line.split()[29:42]]
         err = [float(x) for x in line.split()[42:55]]

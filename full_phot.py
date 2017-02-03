@@ -39,9 +39,9 @@ def find_sources_full(img,fwhm,bg_std,threshold=4.0):
     Note
     ----
     Produces a coordinate file based on the name of the image.
-    The file name will be ``img[:-5]+_sources.coo``
+    The file name will be ``img.nofits()+_sources.coo``
     """
-    output = img[:-5]+'_sources.coo'
+    output = img.nofits()+'_sources.coo'
     if not os.path.isfile(output):
         print 'Locating sources on ',img
         print 'Will output to ',output
@@ -75,13 +75,13 @@ def phot_sources_full(img,fwhm,airmass,apfactor):
 
     Note
     ----
-    Will retrun a ``.phot`` table with the name ``img[:-5]+.srcphot``
+    Will retrun a ``.phot`` table with the name ``img.nofits()+.srcphot``
 
     """
     iraf.ptools(_doprint=0)
-    coords = img[:-5]+'_sources.coo'
-    output = img[:-5]+'.phot.1'
-    phot_tbl = img[:-5]+'.srcphot'
+    coords = img.nofits()+'_sources.coo'
+    output = img.nofits()+'.phot.1'
+    phot_tbl = img.nofits()+'.srcphot'
     if not os.path.isfile(phot_tbl) :
         print 'phot-ing ', img, ' from daofind'
         iraf.unlearn(iraf.apphot.phot,iraf.datapars,iraf.photpars,iraf.centerpars,iraf.fitskypars)
@@ -135,11 +135,11 @@ def phot_sources_xy2sky(img,inst):
 
     Note
     ----
-    Returns a table with the name ``img[0:-5]+.srcphotrd``
+    Returns a table with the name ``img.nofits()+.srcphotrd``
 
     """
-    phot_tbl = img[0:-5]+'.srcphot'
-    outputradec = img[0:-5]+'.srcphotrd'
+    phot_tbl = img.nofits()+'.srcphot'
+    outputradec = img.nofits()+'.srcphotrd'
     hdulist= odi.fits.open(img)
 
     #if inst == 'podi':
