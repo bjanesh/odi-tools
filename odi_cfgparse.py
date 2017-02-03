@@ -1,4 +1,4 @@
-def cfgparse(cfg_file):
+def cfgparse(cfg_file, verbose=True):
     """
     This function reads the ``yaml`` configuration file that is needed
     to make the ``odi_process.py`` and ``odi_scalestack_process.py`` functions
