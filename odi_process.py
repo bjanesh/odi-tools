@@ -24,17 +24,17 @@ except IOError:
 images_ = [img for sublist in images.values() for img in sublist]
 print images_
 
-rad, decd = odi.get_targ_ra_dec(images_[0], 'OTA33.SCI')
+rad, decd = odi.get_targ_ra_dec(images_[0].f, 'OTA33.SCI')
 if gaia_flag:
     source = 'gaia'
 else:
     source = 'sdss'
-inst = odi.instrument(images_[0])
+inst = odi.instrument(images_[0].f)
 #source = 'twomass'
 
 #Create offline catalogs
 for img in images_:
-    print 'Retrieving QR SDSS and Gaia catalogs for:', img
+    print 'Retrieving QR SDSS and Gaia catalogs for:', img.stem()
     for key in odi.OTA_dictionary:
         ota = odi.OTA_dictionary[key]
         outputsd = odi.sdsspath+'offline_'+ota+'.'+img.base()+'.sdss'
@@ -87,10 +87,10 @@ if not os.path.isfile('derived_props.txt'):
     for img in images_:
         for key in tqdm(odi.OTA_dictionary):
             ota = odi.OTA_dictionary[key]
-            hdulist = odi.fits.open(img)
+            hdulist = odi.fits.open(img.f)
             hdr = hdulist[0].header
             filt = hdr['filter']
-            image_to_correct = img+'['+ota+']'
+            image_to_correct = img.f+'['+ota+']'
             correction_image = ota+'.'+filt+'.med.fits'
             corrected_image = 'illcor_'+ota+'.'+img.stem()
             if not os.path.isfile(odi.illcorpath+corrected_image):
@@ -110,7 +110,7 @@ if not os.path.isfile('derived_props.txt'):
                         except:
                             print 'there might be too few stars for msccmatch, just skip it.'
                 if reproject_flag:
-                    wcsref = odi.illcorpath+'illcor_OTA33.SCI.'+str((images_[0])[16:])
+                    wcsref = odi.illcorpath+'illcor_OTA33.SCI.'+images_[0].stem()
                     odi.reproject_ota(img, ota, rad, decd, wcsref)
             gaps = odi.get_gaps_rep(img, ota)
             odi.refetch_sdss_coords(img, ota, gaps, inst,gmaglim=21.5,offline = True,source=source)
@@ -145,14 +145,14 @@ else:
     for img in images_:
         for key in tqdm(odi.OTA_dictionary):
             ota = odi.OTA_dictionary[key]
-            hdulist = odi.fits.open(img)
+            hdulist = odi.fits.open(img.f)
             hdr = hdulist[0].header
             filt = hdr['filter']
-            finishcheck = (int(str(img[16])),ota,filt)
+            finishcheck = (int(img.dither()),ota,filt)
             if finishcheck in finished:
                 already = 0
             else:
-                image_to_correct = img+'['+ota+']'
+                image_to_correct = img.f+'['+ota+']'
                 correction_image = ota+'.'+filt+'.med.fits'
                 corrected_image = 'illcor_'+ota+'.'+img.stem()
                 if not os.path.isfile(odi.illcorpath+corrected_image):
@@ -171,7 +171,7 @@ else:
                             time.sleep(1.0)
                             odi.fix_wcs(img, ota, coords=img.nofits()+'.'+ota+'.radec.coo', iters=1)
                     if reproject_flag:
-                        wcsref = odi.illcorpath+'illcor_OTA33.SCI.'+str((images_[0])[16:])
+                        wcsref = odi.illcorpath+'illcor_OTA33.SCI.'+images_[0].stem()
                         odi.reproject_ota(img, ota, rad, decd, wcsref)
                 gaps = odi.get_gaps_rep(img, ota)
                 odi.refetch_sdss_coords(img, ota, gaps, inst,gmaglim=21.5,offline = True,source=source)
