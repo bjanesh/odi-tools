@@ -36,7 +36,7 @@ def find_ref_image(images):
         hdulist.close()
         print im.dither(), '%10.3f'%bg_lvl, '%10.3f'%airmass,'%10.3f'%zp_lvl,'%10.3f'%zp_lvl_std,'%10d'%int(len(zp_filter[0]))
         ref_img = np.argmin(np.array(ams))
-    print 'reference image:',images[ref_img]
+    print 'reference image:',images[ref_img].stem()
     print np.argmin(np.array(zps))
     return ref_img
 

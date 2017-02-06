@@ -57,8 +57,8 @@ for filter in filters:
     scales_ = {}
     stds_ = {}
     n_ = {}
-    for dith in images_:
-        img = images_[dith]
+    for img in images_:
+        # img = images_[dith]
         scale,std,n = odi.source_scale(img,ref_img,filter)
         scales_[img] = scale
         stds_[img] = std
