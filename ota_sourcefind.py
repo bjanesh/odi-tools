@@ -48,7 +48,7 @@ def source_find(img,ota,inst,nbg_std=10.0):
     hdu_ota = odi.tan_header_fix(QR_raw[0])
     
     w = odi.WCS(hdu_ota.header)
-    print w
+    w.wcs.radesys = 'ICRS'
     # if inst == '5odi':
     #     w.wcs.ctype = ["RA---TPV", "DEC--TPV"]
     bg_mean,bg_median,bg_std = odi.mask_ota(img,ota,reproj=True)
