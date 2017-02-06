@@ -80,10 +80,10 @@ for filter in filters:
             n_[img] = n
                 
     with open(filter+'_scales.txt','w+') as sclfile:
-        print >> sclfile, 'image'+' '*(len(images_[1])-4)+'scale   std     n'
+        print >> sclfile, 'image'+' '*(len(images_[1].stem())-4)+'scale   std     n'
         for img in images_:
             # img = images_[dith]
-            print >> sclfile, img.f, '{0:7.5f} {1:7.5f} {2:5d}'.format(scales_[img], stds_[img], n_[img])
+            print >> sclfile, img.stem(), '{0:7.5f} {1:7.5f} {2:5d}'.format(scales_[img], stds_[img], n_[img])
     
     # actually apply the scaling factors to the images
     if scale_flag:    
