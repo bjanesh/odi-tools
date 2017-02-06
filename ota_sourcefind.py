@@ -43,9 +43,9 @@ def source_find(img,ota,inst,nbg_std=10.0):
     """
     image = odi.reprojpath+'reproj_'+ota+'.'+img.stem()
     QR_raw = odi.fits.open(image)
-    # hdu_ota = QR_raw[0]
+    hdu_ota = QR_raw[0]
 
-    hdu_ota = odi.tan_header_fix(QR_raw[0])
+    # hdu_ota = odi.tan_header_fix(QR_raw[0])
     
     w = odi.WCS(hdu_ota.header)
     # if inst == '5odi':
