@@ -48,8 +48,8 @@ def source_find(img,ota,inst,nbg_std=10.0):
     hdu_ota = odi.tan_header_fix(QR_raw[0])
     
     w = odi.WCS(hdu_ota.header)
-    if inst == '5odi':
-        w.wcs.ctype = ["RA---TPV", "DEC--TPV"]
+    # if inst == '5odi':
+    #     w.wcs.ctype = ["RA---TPV", "DEC--TPV"]
     bg_mean,bg_median,bg_std = odi.mask_ota(img,ota,reproj=True)
     threshold = bg_median + (bg_std * nbg_std)
     print bg_mean,bg_median,bg_std
