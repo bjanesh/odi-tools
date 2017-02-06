@@ -354,7 +354,7 @@ def stack_images(stackname, refimg):
     from astropy.io import fits
     from pyraf import iraf
     print refimg
-    fitsref = fits.open(refimg)
+    fitsref = fits.open(refimg.f)
     hduref = fitsref[0]
     objname = hduref.header['object'].replace(' ','_')
     filter_name = hduref.header['filter']
