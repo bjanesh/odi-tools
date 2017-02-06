@@ -49,8 +49,8 @@ for filter in filters:
             os.system(cat_command)
     
     # choose the initial reference image (lowest airmass to start)
-    print images_.values()
-    refimg_ = odi.find_ref_image(images_.values())
+    # print images_.values()
+    refimg_ = odi.find_ref_image(images_)
     ref_img = images_[refimg_+1]
     
     # calculate scaling factors

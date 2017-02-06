@@ -48,6 +48,8 @@ def source_find(img,ota,inst,nbg_std=10.0):
     hdu_ota = odi.tan_header_fix(QR_raw[0])
     
     w = odi.WCS(hdu_ota.header)
+    # needed to remind astropy that the header says RADESYS=ICRS
+    # your mileage may vary (logic probably needed here to handle cases)
     w.wcs.radesys = 'ICRS'
     # if inst == '5odi':
     #     w.wcs.ctype = ["RA---TPV", "DEC--TPV"]

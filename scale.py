@@ -17,7 +17,7 @@ def find_ref_image(images):
     #print images
     print '#       bg        airmass       zp       zp_std        n_zps'
     for j,im in enumerate(images):
-        hdulist = fits.open(im)
+        hdulist = fits.open(im.f)
         airmass = hdulist[0].header['AIRMASS']
         filter  = hdulist[0].header['FILTER']
         these = np.where((imgs.astype(int)==int(im[16])) & (filter_string == filter))
