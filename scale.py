@@ -20,8 +20,8 @@ def find_ref_image(images):
         hdulist = fits.open(im.f)
         airmass = hdulist[0].header['AIRMASS']
         filter  = hdulist[0].header['FILTER']
-        these = np.where((imgs.astype(int)==int(im[16])) & (filter_string == filter))
-        zp_filter = np.where((imgs.astype(int)==int(im[16])) & (filter_string == filter) & (zp_med < 900.0))
+        these = np.where((imgs.astype(int)==int(im.dither())) & (filter_string == filter))
+        zp_filter = np.where((imgs.astype(int)==int(im.dither())) & (filter_string == filter) & (zp_med < 900.0))
         bg_lvl = np.mean(bg_median[these])
         warnings.simplefilter("error")
         try:
@@ -47,8 +47,8 @@ def getscale(images, refimg, verbose=True):
 	std = {}
 	sigThreshold = 0.006
 	for img in images:
-		print 'Calculating scaling factor for', img
-		fitsref = fits.open(refimg)
+		print 'Calculating scaling factor for', img.stem()
+		fitsref = fits.open(refimg.f)
 		hduref = fitsref[0]
 		fitsimg = fits.open(img.f)
 		hduimg = fitsimg[0]
@@ -72,7 +72,7 @@ def getscale(images, refimg, verbose=True):
 			# print 'getting data from'
 			# print img_phot
 			# print ref_phot
-			print ota, img
+			print ota, img.stem()
 			if key==1:
 				# read in the instrumental magnitudes from the appropriate phot output files
 				magTempA, magErrTempA, skyTempA = np.loadtxt(img_phot, usecols=(1,2,3), unpack=True)
@@ -165,7 +165,7 @@ def getscale(images, refimg, verbose=True):
 		rat = np.power(10.0,-0.4*(magA-magRef))/expRatio
 		if verbose:
 			for i,r in enumerate(rat):
-				print img, i, r
+				print img.stem(), i, r
 
 		sigTest = np.std(rat)
 		print len(rat), np.mean(rat), np.median(rat), np.std(rat), n
