@@ -29,9 +29,9 @@ for filter in filters:
     # Scaling with all sources
     images_ = images[filter]
     print 'Scaling images for filter ',filter
-    for dith in images_:
-        img = images_[dith]
-        dither  = repr(dith)+'_'
+    for img in images_:
+        # img = images_[dith]
+        dither  = img.dither()+'_'
         for key in tqdm(odi.OTA_dictionary):
             ota = odi.OTA_dictionary[key]
             if not os.path.isfile(odi.sourcepath+'source_'+ota+'.'+img.base()+'.csv'):
