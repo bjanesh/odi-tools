@@ -283,7 +283,7 @@ def find_new_bg(refimg, filter):
 
     """
     img, ota, filt, fwhm, zp_med, zp_std, bg_mean, bg_med, bg_std = np.loadtxt('derived_props.txt', usecols=(0,1,2,3,4,5,6,7,8), dtype=str, unpack=True)
-    keep = np.where((img == refimg[16]) & (filt==filter))
+    keep = np.where((img == refimg.dither()) & (filt==filter))
 
     sky_med = np.median(bg_med[keep].astype(float))
     print 'calculated sky median to re-add:', sky_med
