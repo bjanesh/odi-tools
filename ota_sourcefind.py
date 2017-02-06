@@ -338,8 +338,8 @@ def source_scale(img,ref,filter):
     # img_dither = img.split('.')[1][0]+'_'
     # ref_dither = ref.split('.')[1][0]+'_'
 
-    img_sources = odi.sourcepath+img.dither()+filter+'.allsource'
-    ref_sources = odi.sourcepath+ref.dither()+filter+'.allsource'
+    img_sources = odi.sourcepath+img.dither()+'_'+filter+'.allsource'
+    ref_sources = odi.sourcepath+ref.dither()+'_'+filter+'.allsource'
 
     x_img, y_img, id_img,ra_icrs_centroid_img,dec_icrs_centroid_img,source_sum_img,max_value_img,elongation_img, MAG_img, MERR_img, SKY_img, SERR_img, RAPERT_img, XPOS_img, YPOS_img, fwhm_img,peak_img = np.loadtxt(
         img_sources,usecols=(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16),unpack=True)
