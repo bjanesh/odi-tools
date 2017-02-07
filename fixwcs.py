@@ -292,12 +292,16 @@ def repair_wcs_keywords(img):
     existing_radesys = hdulist[0].header['RADESYS']
     print img.f
     print '--> Existing RADESYS value:', existing_radesys
-    print img.otas
-    for k in img.otas:
-        existing_ctype1 = hdulist[k].header['CTYPE1']
-        existing_ctype2 = hdulist[k].header['CTYPE2']
-        print '--> Existing CTYPE1 value:', existing_ctype1
-        print '--> Existing CTYPE2 value:', existing_ctype2
+    correct_radesys = existing_radesys.strip("'").strip()
+    print '--> Correct RADESYS value:', correct_radesys
+    print 
+    # for k in tqdm(img.otas):
+        # hdulist[0].header["RADESYS"] = 'ICRS'
+        # hdulist.writeto('fix_header.fits')
+        # existing_ctype1 = hdulist[k].header['CTYPE1']
+        # existing_ctype2 = hdulist[k].header['CTYPE2']
+        # print '--> Existing CTYPE1 value:', existing_ctype1
+        # print '--> Existing CTYPE2 value:', existing_ctype2
 
 def main():
     object_str, filters, instrument, images, illcor_flag, skyflat_src, wcs_flag, reproject_flag, scale_flag, stack_flag, gaia_flag, cluster_flag, ra_center, dec_center, min_radius = odi.cfgparse('config.yaml', verbose=False)
