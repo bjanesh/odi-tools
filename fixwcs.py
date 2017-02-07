@@ -288,7 +288,7 @@ def repair_bad_wcs(img, ota, refimg, refota):
     print w.wcs.cd, w.wcs.crpix, w.wcs.crval
 
 def repair_wcs_keywords(img):
-    hdulist = odi.fits.open(img.f)
+    hdulist = odi.fits.open(img.f, mode='update')
     existing_radesys = hdulist[0].header['RADESYS']
     print img.f
     print '--> Existing RADESYS value:', existing_radesys
@@ -299,7 +299,8 @@ def repair_wcs_keywords(img):
     # for k in tqdm(img.otas):
         # existing_ctype1 = hdulist[k].header['CTYPE1']
         # existing_ctype2 = hdulist[k].header['CTYPE2']
-    hdulist.writeto(img.f)
+    hdulist.flush()
+    hdulist.close()
 
 def main():
     object_str, filters, instrument, images, illcor_flag, skyflat_src, wcs_flag, reproject_flag, scale_flag, stack_flag, gaia_flag, cluster_flag, ra_center, dec_center, min_radius = odi.cfgparse('config.yaml', verbose=False)
