@@ -88,6 +88,7 @@ class ODIImage:
         self.f = filename
         self.d = dither
         self.inst = inst
+        self.otas = {}
     
     def get_otas(self):
         if self.inst == '5odi':
