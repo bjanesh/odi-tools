@@ -296,9 +296,14 @@ def repair_wcs_keywords(img):
     print '--> Correct RADESYS value:', correct_radesys
     hdulist[0].header["RADESYS"] = correct_radesys
     # print 'fixing CTYPES in OTA headers'
-    # for k in tqdm(img.otas):
-        # existing_ctype1 = hdulist[k].header['CTYPE1']
-        # existing_ctype2 = hdulist[k].header['CTYPE2']
+    for k in tqdm(img.otas):
+        existing_ctype1 = hdulist[k].header['CTYPE1']
+        existing_ctype2 = hdulist[k].header['CTYPE2']
+        correct_ctype1 = existing_ctype1.replace('TAN','TPV')
+        correct_ctype2 = existing_ctype2.replace('TAN','TPV')
+        hdulist[k].header['CTYPE1'] = correct_ctype1
+        hdulist[k].header['CTYPE2'] = correct_ctype2
+        
     hdulist.flush()
     hdulist.close()
 
