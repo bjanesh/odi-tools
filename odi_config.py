@@ -89,15 +89,14 @@ class ODIImage:
         self.d = dither
         self.inst = inst
     
-    def otas(self):
-        if inst == '5odi':
-            return odi5_dictionary
-        elif inst == 'podi':
-            return podi_dictionary
-        elif inst == 'mosaic':
-            return odi5mosaic_dictionary
-        else:
-            raise ValueError('Instrument not recognized!')
+    if inst == '5odi':
+        self.otas = odi5_dictionary
+    elif inst == 'podi':
+        self.otas = podi_dictionary
+    elif inst == 'mosaic':
+        self.otas = odi5mosaic_dictionary
+    else:
+        raise ValueError('Instrument not recognized!')
         
     def nofits(self):
         return str(self.f[:-5])
