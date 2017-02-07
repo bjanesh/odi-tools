@@ -292,7 +292,7 @@ def repair_wcs_keywords(img):
     existing_radesys = hdulist[0].header['RADESYS']
     print img.f
     print '--> Existing RADESYS value:', existing_radesys
-    for k in img.otas.keys():
+    for k in img.otas:
         existing_ctype1 = hdulist[k].header['CTYPE1']
         existing_ctype2 = hdulist[k].header['CTYPE2']
         print '--> Existing CTYPE1 value:', existing_ctype1
