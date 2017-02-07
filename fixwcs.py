@@ -286,13 +286,18 @@ def repair_bad_wcs(img, ota, refimg, refota):
     w = odi.WCS(hdu[ota].header)
     print w.wcs.cd, w.wcs.crpix, w.wcs.crval
 
+def repair_wcs_keywords(img):
+    hdulist = odi.fits.open(img.f)
+    existing_radesys = hdulist[0].header['RADESYS']
+    print img.f
+    print '--> Existing RADESYS value:', existing_radesys
 
 def main():
-    pass
+    object_str, filters, instrument, images, illcor_flag, skyflat_src, wcs_flag, reproject_flag, scale_flag, stack_flag, gaia_flag, cluster_flag, ra_center, dec_center, min_radius = odi.cfgparse('config.yaml', verbose=False)
+    
+    images_ = [img for sublist in images.values() for img in sublist]
+    for img  in images_:
+        repair_wcs_keywords(img)
 
 if __name__ == '__main__':
-    img = "20130509T031741.1_m13-se_odi_g.5869.fits"
-    ota = "OTA33.SCI"
-    refimg = "20130509T031515.2_m13-se_odi_g.5869.fits"
-    refota = "OTA33.SCI"
-    repair_bad_wcs(img, ota, refimg, refota)
+    main()
