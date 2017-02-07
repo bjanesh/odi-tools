@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import sys, os, glob, string
 import numpy as np
 import astropy as ast
@@ -289,8 +290,8 @@ def repair_bad_wcs(img, ota, refimg, refota):
 def repair_wcs_keywords(img):
     hdulist = odi.fits.open(img.f)
     existing_radesys = hdulist[0].header['RADESYS']
-    existing_ctype1 = hdulist[0].header['CTYPE1']
-    existing_ctype2 = hdulist[0].header['CTYPE2']
+    existing_ctype1 = hdulist[1].header['CTYPE1']
+    existing_ctype2 = hdulist[1].header['CTYPE2']
     print img.f
     print '--> Existing RADESYS value:', existing_radesys
     print '--> Existing CTYPE1 value:', existing_ctype1
