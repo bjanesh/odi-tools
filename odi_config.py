@@ -89,11 +89,11 @@ class ODIImage:
         self.d = dither
         self.inst = inst
     
-    if inst == '5odi':
+    if self.inst == '5odi':
         self.otas = odi5_dictionary
-    elif inst == 'podi':
+    elif self.inst == 'podi':
         self.otas = podi_dictionary
-    elif inst == 'mosaic':
+    elif self.inst == 'mosaic':
         self.otas = odi5mosaic_dictionary
     else:
         raise ValueError('Instrument not recognized!')
