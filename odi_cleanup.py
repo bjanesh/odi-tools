@@ -72,7 +72,7 @@ def main():
     print '- derived_props.txt'
     # move the fits files
     for f in fits_files:
-        print '- '+f
+        print '- '+f+'.fz'
 
     # move the pl files    
     for p in pl_files:
