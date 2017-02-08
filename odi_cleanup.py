@@ -7,14 +7,17 @@ import glob
 import datetime
 import tarfile
 import odi_config as odi
+from subprocess import call
 
 def main():
     try:
-        object_str, filters, instrument, images, illcor_flag, skyflat_src, wcs_flag, reproject_flag, scale_flag, stack_flag, gaia_flag, cluster_flag, ra_center, dec_center, min_radius = odi.cfgparse('config.yaml')
+        object_str, filters, instrument, images, illcor_flag, skyflat_src, wcs_flag, reproject_flag, scale_flag, stack_flag, gaia_flag, cluster_flag, ra_center, dec_center, min_radius = odi.cfgparse('config.yaml', verbose=False)
     except IOError:
         print 'config.yaml does not exist, quitting...'
         exit()
-        
+    
+    funpack_path = '/usr/bin/fpack'
+    
     # replace any spaces in the object name with -nothing-
     object_str = object_str.replace(' ','')
     
@@ -34,10 +37,16 @@ def main():
     pl_files = glob.glob(object_str+'*_bpm.pl')
     scale_files = glob.glob('*scales.txt')
     
+    # use fpack to compress the fits files in a sane way
+    for file_ in fits_files:
+        if not os.path.isfile(file_+'.fz'):
+            funpack_cmd = funpack_path+' '+file_+'.fz'
+            call(funpack_cmd, shell=True)
+    
     # if there's not already an archive here...
-    if not os.path.isfile('/ssd1/'+file_stem+".tar.gz"):
+    if not os.path.isfile('/ssd1/'+file_stem+".tar"):
         # make a tar object to move the kept files into
-        tar = tarfile.open('/ssd1/'+file_stem+".tar.gz","w:gz")
+        tar = tarfile.open('/ssd1/'+file_stem+".tar","w")
     
         # move the derived props and config files
         tar.add('derived_props.txt')
@@ -45,7 +54,7 @@ def main():
     
         # move the fits files
         for f in fits_files:
-            tar.add(f)
+            tar.add(f+'.fz')
     
         # move the pl files    
         for p in pl_files:
@@ -57,7 +66,7 @@ def main():
         
         tar.close()
         
-    print 'Files compressed into /ssd1/'+file_stem+".tar.gz:"
+    print 'Files contained in /ssd1/'+file_stem+".tar:"
     print '- config.yaml'
     print '- derived_props.txt'
     # move the fits files
@@ -72,9 +81,10 @@ def main():
     for s in scale_files:
         print '- '+s
     print 'To copy this to your computer, run:'
-    print '--> scp /ssd1/'+file_stem+".tar.gz USER@HOST.astro.indiana.edu:~"
+    print '--> scp /ssd1/'+file_stem+".tar USER@HOST.astro.indiana.edu:~"
     print '  where USER and HOST are your local user name and computer name.'
     print '  This will place the file in your local home directory.'
+    print '  You can change this directory if you like (e.g. ~/images).'
     print 'Then notify Bob Lezotte (hlezotte [at] indiana.edu)'
     print '  that you are finished processing with wopr.'
     
