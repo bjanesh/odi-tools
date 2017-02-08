@@ -40,7 +40,8 @@ def main():
     # use fpack to compress the fits files in a sane way
     for file_ in fits_files:
         if not os.path.isfile(file_+'.fz'):
-            funpack_cmd = funpack_path+' '+file_+'.fz'
+            print 'compressing', file_, 'to', file_+'.fz'
+            funpack_cmd = funpack_path+' '+file_
             call(funpack_cmd, shell=True)
     
     # if there's not already an archive here...
