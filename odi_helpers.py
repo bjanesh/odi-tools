@@ -286,8 +286,10 @@ def find_new_bg(refimg, filter):
     keep = np.where((img == refimg.dither()) & (filt==filter))
 
     sky_med = np.median(bg_med[keep].astype(float))
-    print 'calculated sky median to re-add:', sky_med
-    return sky_med
+    sky_mean = np.median(bg_mean[keep].astype(float))
+    sky_std = np.median(bg_std[keep].astype(float))
+    print 'calculated sky median, mean, std to re-add:', sky_med, sky_mean, sky_std
+    return sky_med, sky_mean, sky_std
 
 def make_stack_list(object, filter):
     """
@@ -358,7 +360,8 @@ def stack_images(stackname, refimg):
     hduref = fitsref[0]
     objname = hduref.header['object'].replace(' ','_')
     filter_name = hduref.header['filter']
-    sky_med = odi.find_new_bg(refimg, filter_name)
+    ref_airmass = hduref.header['airmass']
+    sky_med, sky_mean, sky_std = odi.find_new_bg(refimg, filter_name)
     odi.make_stack_list(objname, filter_name)
     # sky_med = hduref.header['skybg']
     output = stackname+'_'+filter_name+'.fits'
@@ -372,13 +375,72 @@ def stack_images(stackname, refimg):
         # iraf.imutil.imarith.setParam('result',output)
         # iraf.imutil.imarith.setParam('verbose','yes')
         # iraf.imutil.imarith(mode='h')
-        iraf.imutil.imexpr('(a != -999) ? a + b : -999',output,'temp.fits',sky_med)
+        
+        # flip the image so it's N-up E-left
+        # first get the image dimensions from the header
+        fitsstack = fits.open('temp.fits')
+        xdim = fitsstack[0].header['NAXIS1']
+        ydim = fitsstack[0].header['NAXIS2']
+        iraf.imcopy('temp.fits['+repr(xdim)+':1,1:'+repr(ydim)+']', 'temp_flip.fits')
+        
+        iraf.imutil.imexpr('(a != -999) ? a + b : -999',output,'temp_flip.fits',sky_med)
         iraf.imutil.imexpr('a < 0',output_bpm, output)
-        iraf.imutil.imdelete('temp', verify='no')
+        iraf.imutil.imdelete('temp, temp_flip', verify='no')
         iraf.unlearn(iraf.imutil.hedit)
         iraf.imutil.hedit.setParam('images',output)
         iraf.imutil.hedit.setParam('fields','BPM')
         iraf.imutil.hedit.setParam('value',output_bpm)
+        iraf.imutil.hedit.setParam('add','yes')
+        iraf.imutil.hedit.setParam('addonly','no')
+        iraf.imutil.hedit.setParam('verify','no')
+        iraf.imutil.hedit.setParam('update','yes')
+        iraf.imutil.hedit(show='no', mode='h')
+        
+        # delete the inherited PV keywords
+        # leaving them in will give you trouble with the stacked img wcs
+        iraf.unlearn(iraf.imutil.hedit)
+        iraf.imutil.hedit.setParam('images',output)
+        iraf.imutil.hedit.setParam('fields','PV*')
+        iraf.imutil.hedit.setParam('delete','yes')
+        iraf.imutil.hedit.setParam('verify','no')
+        iraf.imutil.hedit.setParam('update','yes')
+        iraf.imutil.hedit(show='no', mode='h')
+        
+        # update the sky value and airmass keywords to match what they should be from the reference image
+        iraf.unlearn(iraf.imutil.hedit)
+        iraf.imutil.hedit.setParam('images',output)
+        iraf.imutil.hedit.setParam('fields','airmass')
+        iraf.imutil.hedit.setParam('value',ref_airmass)
+        iraf.imutil.hedit.setParam('add','yes')
+        iraf.imutil.hedit.setParam('addonly','no')
+        iraf.imutil.hedit.setParam('verify','no')
+        iraf.imutil.hedit.setParam('update','yes')
+        iraf.imutil.hedit(show='no', mode='h')
+        
+        iraf.unlearn(iraf.imutil.hedit)
+        iraf.imutil.hedit.setParam('images',output)
+        iraf.imutil.hedit.setParam('fields','sky_medi')
+        iraf.imutil.hedit.setParam('value',sky_med)
+        iraf.imutil.hedit.setParam('add','yes')
+        iraf.imutil.hedit.setParam('addonly','no')
+        iraf.imutil.hedit.setParam('verify','no')
+        iraf.imutil.hedit.setParam('update','yes')
+        iraf.imutil.hedit(show='no', mode='h')
+        
+        iraf.unlearn(iraf.imutil.hedit)
+        iraf.imutil.hedit.setParam('images',output)
+        iraf.imutil.hedit.setParam('fields','sky_mean')
+        iraf.imutil.hedit.setParam('value',sky_mean)
+        iraf.imutil.hedit.setParam('add','yes')
+        iraf.imutil.hedit.setParam('addonly','no')
+        iraf.imutil.hedit.setParam('verify','no')
+        iraf.imutil.hedit.setParam('update','yes')
+        iraf.imutil.hedit(show='no', mode='h')
+        
+        iraf.unlearn(iraf.imutil.hedit)
+        iraf.imutil.hedit.setParam('images',output)
+        iraf.imutil.hedit.setParam('fields','sky_std')
+        iraf.imutil.hedit.setParam('value',sky_std)
         iraf.imutil.hedit.setParam('add','yes')
         iraf.imutil.hedit.setParam('addonly','no')
         iraf.imutil.hedit.setParam('verify','no')
