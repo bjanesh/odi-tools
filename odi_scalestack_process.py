@@ -57,6 +57,7 @@ for filter in filters:
     scales_ = {}
     stds_ = {}
     n_ = {}
+    iters = 1
     for img in images_:
         # img = images_[dith]
         scale,std,n = odi.source_scale(img,ref_img,filter)
@@ -66,21 +67,25 @@ for filter in filters:
     
     # recalculate scaling factors IF the highest scaling factor is not the initial reference image
     # print the scaling factors out to a file for review
-
-    ims = scales_.keys()
-    scls = scales_.values()
-    new_ref = ims[np.argmax(scls)]
-    if new_ref != ref_img:  
-        ref_img = new_ref  
-        for img in images_:
-            # img = images_[dith]
-            scale,std,n = odi.source_scale(img,ref_img,filter)
-            scales_[img] = scale
-            stds_[img] = std
-            n_[img] = n
+    # iterate
+    
+    print np.array(scales_.values()) > 1.002
+    while (np.array(scales_.values()) > 1.002).any():
+        iters += 1
+        ims = scales_.keys()
+        scls = scales_.values()
+        new_ref = ims[np.argmax(scls)]
+        if new_ref != ref_img:  
+            ref_img = new_ref  
+            for img in images_:
+                # img = images_[dith]
+                scale,std,n = odi.source_scale(img,ref_img,filter)
+                scales_[img] = scale
+                stds_[img] = std
+                n_[img] = n
                 
     with open(filter+'_scales.txt','w+') as sclfile:
-        print >> sclfile, 'image'+' '*(len(images_[1].stem())-4)+'scale   std     n'
+        print >> sclfile, '# image'+' '*(len(images_[1].stem())-4)+'scale   std     n (iters = '+repr(iters)+')'
         for img in images_:
             # img = images_[dith]
             print >> sclfile, img.stem(), '{0:7.5f} {1:7.5f} {2:5d}'.format(scales_[img], stds_[img], n_[img])
