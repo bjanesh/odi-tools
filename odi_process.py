@@ -59,35 +59,36 @@ for img in images_:
                                         cluster=cluster_flag)
 
 
-if illcor_flag:
-    listfiles = glob.glob('*.lis')
-    if len(listfiles) == 0:
-        odi.imcombine_lists(images_, filters)
-    else:
-        print 'imcombine lists done'
-    
-    if not os.path.isfile('bpms.done'):
-        for img in images_:
-            print 'updating bpms for', img.stem()
-            for key in tqdm(odi.OTA_dictionary):
-                ota = odi.OTA_dictionary[key]
-                odi.make_bpms(img, ota)
-        with open('bpms.done', 'w+') as bpm:
-            print >> bpm, 'bpms are done!'
-    
-    listfiles = glob.glob(odi.skyflatpath+'*.med.fits')
-    if len(listfiles) == 0:
-        for filter in filters:
-            odi.dark_sky_flat(filter)
-    else:
-        print 'dark sky flats done'
+# if illcor_flag:
+listfiles = glob.glob('*.lis')
+if len(listfiles) == 0:
+    odi.imcombine_lists(images_, filters)
+else:
+    print 'imcombine lists done'
+
+if not os.path.isfile('bpms.done'):
+    for img in images_:
+        print 'updating bpms for', img.stem()
+        for key in tqdm(odi.OTA_dictionary):
+            ota = odi.OTA_dictionary[key]
+            odi.make_bpms(img, ota)
+    with open('bpms.done', 'w+') as bpm:
+        print >> bpm, 'bpms are done!'
+
+listfiles = glob.glob(odi.skyflatpath+'*.med.fits')
+if len(listfiles) == 0:
+    for filter in filters:
+        odi.dark_sky_flat(filter)
+else:
+    print 'dark sky flats done'
 
 
 if not os.path.isfile('derived_props.txt'):
     f1 = open('derived_props.txt','w+')
     print >> f1, '# img  ota  filter fwhm  zp_med  zp_std  bg_mean  bg_med  bg_std'
     for img in images_:
-        for key in tqdm(odi.OTA_dictionary):
+        otalist = sorted(odi.OTA_dictionary.keys())
+        for key in tqdm(otalist):
             ota = odi.OTA_dictionary[key]
             hdulist = odi.fits.open(img.f)
             hdr = hdulist[0].header
@@ -95,6 +96,7 @@ if not os.path.isfile('derived_props.txt'):
             image_to_correct = img.f+'['+ota+']'
             correction_image = ota+'.'+filt+'.med.fits'
             corrected_image = 'illcor_'+ota+'.'+img.stem()
+            print corrected_image
             if not os.path.isfile(odi.illcorpath+corrected_image):
                 odi.illumination_corrections(image_to_correct, correction_image, corrected_image, do_correction=illcor_flag)
             gaps = odi.get_gaps(img, ota)
