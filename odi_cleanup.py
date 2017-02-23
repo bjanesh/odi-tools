@@ -43,7 +43,7 @@ def main():
             print 'compressing', file_, 'to', file_+'.fz'
             funpack_cmd = funpack_path+' '+file_
             call(funpack_cmd, shell=True)
-    
+    print 'Files contained in /ssd1/'+file_stem+".tar:"
     # if there's not already an archive here...
     if not os.path.isfile('/ssd1/'+file_stem+".tar"):
         # make a tar object to move the kept files into
@@ -51,36 +51,29 @@ def main():
     
         # move the derived props and config files
         tar.add('derived_props.txt')
+        print '- derived_props.txt'
         tar.add('config.yaml')
+        print '- config.yaml'
+        
     
         # move the fits files
         for f in fits_files:
             tar.add(f+'.fz')
+            print '- '+f+'.fz'
     
         # move the pl files    
         for p in pl_files:
             tar.add(p)
+            print '- '+p
     
         # move the scale files
         for s in scale_files:
             tar.add(s)
+            print '- '+s
         
         tar.close()
         
-    print 'Files contained in /ssd1/'+file_stem+".tar:"
-    print '- config.yaml'
-    print '- derived_props.txt'
-    # move the fits files
-    for f in fits_files:
-        print '- '+f+'.fz'
-
-    # move the pl files    
-    for p in pl_files:
-        print '- '+p
-
-    # move the scale files
-    for s in scale_files:
-        print '- '+s
+    print '.tar file complete!'
     print 'To copy this to your computer, run:'
     print '--> scp /ssd1/'+file_stem+".tar USER@HOST.astro.indiana.edu:~"
     print '  where USER and HOST are your local user name and computer name.'
