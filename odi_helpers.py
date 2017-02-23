@@ -319,13 +319,13 @@ def make_stack_list(object, filter):
     scaled_imgs = glob.glob(odi.scaledpath+'*'+filter+'*.fits')
     head = scaled_imgs[0][:14]
     tail = scaled_imgs[0][25:]
-
-    with open(object+'_'+filter+'_stack.list','w+') as stack_file:
-        for j,im in enumerate(img[keep]):
-            factor = np.absolute(bg_std[keep][j] - bg_std_med)/bg_std_std
-            # print head+ota[j]+'.'+im+tail, factor
-            if factor < 2.:
-                print >> stack_file, head+ota[j]+'.'+im+tail
+    if not os.path.isfile(object+'_'+filter+'_stack.list'):
+        with open(object+'_'+filter+'_stack.list','w+') as stack_file:
+            for j,im in enumerate(img[keep]):
+                factor = np.absolute(bg_std[keep][j] - bg_std_med)/bg_std_std
+                # print head+ota[j]+'.'+im+tail, factor
+                if factor < 2.:
+                    print >> stack_file, head+ota[j]+'.'+im+tail
 
 
 def stack_images(stackname, refimg):
@@ -390,6 +390,25 @@ def stack_images(stackname, refimg):
         iraf.imutil.hedit.setParam('images',output)
         iraf.imutil.hedit.setParam('fields','BPM')
         iraf.imutil.hedit.setParam('value',output_bpm)
+        iraf.imutil.hedit.setParam('add','yes')
+        iraf.imutil.hedit.setParam('addonly','no')
+        iraf.imutil.hedit.setParam('verify','no')
+        iraf.imutil.hedit.setParam('update','yes')
+        iraf.imutil.hedit(show='no', mode='h')
+        
+        # change the final CTYPENs to be TANs if they aren't already
+        iraf.imutil.hedit.setParam('images',output)
+        iraf.imutil.hedit.setParam('fields','CTYPE1')
+        iraf.imutil.hedit.setParam('value','RA---TAN')
+        iraf.imutil.hedit.setParam('add','yes')
+        iraf.imutil.hedit.setParam('addonly','no')
+        iraf.imutil.hedit.setParam('verify','no')
+        iraf.imutil.hedit.setParam('update','yes')
+        iraf.imutil.hedit(show='no', mode='h')
+        
+        iraf.imutil.hedit.setParam('images',output)
+        iraf.imutil.hedit.setParam('fields','CTYPE2')
+        iraf.imutil.hedit.setParam('value','DEC--TAN')
         iraf.imutil.hedit.setParam('add','yes')
         iraf.imutil.hedit.setParam('addonly','no')
         iraf.imutil.hedit.setParam('verify','no')
@@ -498,9 +517,40 @@ def tan_header_fix(hdu):
     if 'TAN' in hdu.header['CTYPE1']:
         pvlist = hdu.header['PV*']
         for pv in pvlist:
-            tpv = 'T'+pv
-            hdu.header.rename_keyword(pv, tpv, force=False)
+            hdu.header.delete_keyword(pv)
     return hdu
+    
+def tpv2tan_hdr(img, ota):
+    image = odi.reprojpath+'reproj_'+ota+'.'+img.stem()
+    # change the CTYPENs to be TANs if they aren't already
+    print 'TPV -> TAN in ', image 
+    iraf.imutil.hedit.setParam('images',image)
+    iraf.imutil.hedit.setParam('fields','CTYPE1')
+    iraf.imutil.hedit.setParam('value','RA---TAN')
+    iraf.imutil.hedit.setParam('add','yes')
+    iraf.imutil.hedit.setParam('addonly','no')
+    iraf.imutil.hedit.setParam('verify','no')
+    iraf.imutil.hedit.setParam('update','yes')
+    iraf.imutil.hedit(show='no', mode='h')
+    
+    iraf.imutil.hedit.setParam('images',image)
+    iraf.imutil.hedit.setParam('fields','CTYPE2')
+    iraf.imutil.hedit.setParam('value','DEC--TAN')
+    iraf.imutil.hedit.setParam('add','yes')
+    iraf.imutil.hedit.setParam('addonly','no')
+    iraf.imutil.hedit.setParam('verify','no')
+    iraf.imutil.hedit.setParam('update','yes')
+    iraf.imutil.hedit(show='no', mode='h')
+    
+    # delete any PV keywords
+    # leaving them in will give you trouble with the img wcs
+    iraf.unlearn(iraf.imutil.hedit)
+    iraf.imutil.hedit.setParam('images',image)
+    iraf.imutil.hedit.setParam('fields','PV*')
+    iraf.imutil.hedit.setParam('delete','yes')
+    iraf.imutil.hedit.setParam('verify','no')
+    iraf.imutil.hedit.setParam('update','yes')
+    iraf.imutil.hedit(show='no', mode='h')
 
 def main():
     object_str, filters, instrument, images, illcor_flag, skyflat_src, wcs_flag, reproject_flag, scale_flag, stack_flag, gaia_flag, cluster_flag, ra_center, dec_center, min_radius = odi.cfgparse('example_config.yaml', verbose=False)
