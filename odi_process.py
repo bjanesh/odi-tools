@@ -60,11 +60,11 @@ for img in images_:
 
 
 # if illcor_flag:
-listfiles = glob.glob('*.lis')
-if len(listfiles) == 0:
-    odi.imcombine_lists(images_, filters)
-else:
-    print 'imcombine lists done'
+# listfiles = glob.glob('*.lis')
+# if len(listfiles) == 0:
+odi.imcombine_lists(images_, filters)
+# else:
+#     print 'imcombine lists done'
 
 if not os.path.isfile('bpms.done'):
     for img in images_:
@@ -75,12 +75,12 @@ if not os.path.isfile('bpms.done'):
     with open('bpms.done', 'w+') as bpm:
         print >> bpm, 'bpms are done!'
 
-listfiles = glob.glob(odi.skyflatpath+'*.med.fits')
-if len(listfiles) == 0:
-    for filter in filters:
-        odi.dark_sky_flat(filter)
-else:
-    print 'dark sky flats done'
+# listfiles = glob.glob(odi.skyflatpath+'*.med.fits')
+# if len(listfiles) == 0:
+for filter in filters:
+    odi.dark_sky_flat(filter)
+# else:
+#     print 'dark sky flats done'
 
 
 if not os.path.isfile('derived_props.txt'):
@@ -116,6 +116,8 @@ if not os.path.isfile('derived_props.txt'):
                 if reproject_flag:
                     wcsref = odi.illcorpath+'illcor_OTA33.SCI.'+images_[0].stem()
                     odi.reproject_ota(img, ota, rad, decd, wcsref)
+                    odi.tpv2tan_hdr(img, ota)
+                    
             gaps = odi.get_gaps_rep(img, ota)
             odi.refetch_sdss_coords(img, ota, gaps, inst,gmaglim=21.5,offline = True,source=source)
             #run an additional refetch to get the xy for 2mass so they can be used for scaling
