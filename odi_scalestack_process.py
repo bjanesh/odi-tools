@@ -16,7 +16,7 @@ try:
 except IOError:
     print 'config.yaml does not exist, quitting...'
     exit()
-    
+
 source = 'sdss'
 inst = odi.instrument(images[filters[0]][1])
 
@@ -44,15 +44,15 @@ for filter in filters:
                 odi.phot_sources(img, ota, fwhm)
                 odi.phot_combine(img, ota)
         if not os.path.isfile(odi.sourcepath+dither+filter+'.allsource'):
-            dither_total = odi.sourcepath+dither+filter+'.allsource' 
-            cat_command = 'cat' + ' ' + 'sources/'+'*'+dither+'*_'+filter+'*.totphot' + '>'+dither_total
+            dither_total = odi.sourcepath+dither+filter+'.allsource'
+            cat_command = 'cat sources/*SCI.'+dither+'*'+filter+'*.totphot' + '>' + dither_total
             os.system(cat_command)
-    
+
     # choose the initial reference image (lowest airmass to start)
     # print images_.values()
     refimg_ = odi.find_ref_image(images_)
     ref_img = images_[refimg_+1]
-    
+
     # calculate scaling factors
     scales_ = {}
     stds_ = {}
@@ -64,34 +64,34 @@ for filter in filters:
         scales_[img] = scale
         stds_[img] = std
         n_[img] = n
-    
+
     # recalculate scaling factors IF the highest scaling factor is not the initial reference image
     # print the scaling factors out to a file for review
     # iterate
-    
+
     print np.array(scales_.values()) > 1.002
     while (np.array(scales_.values()) > 1.002).any():
         iters += 1
         ims = scales_.keys()
         scls = scales_.values()
         new_ref = ims[np.argmax(scls)]
-        if new_ref != ref_img:  
-            ref_img = new_ref  
+        if new_ref != ref_img:
+            ref_img = new_ref
             for img in images_:
                 # img = images_[dith]
                 scale,std,n = odi.source_scale(img,ref_img,filter)
                 scales_[img] = scale
                 stds_[img] = std
                 n_[img] = n
-                
+
     with open(filter+'_scales.txt','w+') as sclfile:
         print >> sclfile, '# image'+' '*(len(images_[1].stem())-4)+'scale   std     n (iters = '+repr(iters)+')'
         for img in images_:
             # img = images_[dith]
             print >> sclfile, img.stem(), '{0:7.5f} {1:7.5f} {2:5d}'.format(scales_[img], stds_[img], n_[img])
-    
+
     # actually apply the scaling factors to the images
-    if scale_flag:    
+    if scale_flag:
         for img in images_:
             # img = images_[dith]
             for key in odi.OTA_dictionary:
@@ -102,7 +102,7 @@ for filter in filters:
                     odi.force_update_bpm(img, ota)
     else:
         print 'scaling not performed, set flag in config.yaml'
-    
+
     # finally stack the images
     if stack_flag:
         stacked_img = odi.stack_images(object_str, ref_img)

@@ -46,7 +46,7 @@ def source_find(img,ota,inst,nbg_std=10.0):
     # hdu_ota = QR_raw[0]
 
     hdu_ota = odi.tan_header_fix(QR_raw[0])
-    
+
     w = odi.WCS(hdu_ota.header)
     # needed to remind astropy that the header says RADESYS=ICRS
     # your mileage may vary (logic probably needed here to handle cases)
@@ -292,7 +292,7 @@ def phot_combine(img, ota):
 
     peak,fwhm = np.loadtxt(fwhmfile, usecols=(9,10), unpack=True)
 
-    output = odi.sourcepath+img.nofits()+'.'+ota+'.totphot'
+    output = odi.sourcepath+'source_'+ota+'.'+img.base()+'.totphot'
 
     with open(output, 'w+') as xy:
 	for i in range(len(x)):
