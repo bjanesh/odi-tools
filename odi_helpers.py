@@ -291,7 +291,7 @@ def find_new_bg(refimg, filter):
     print 'calculated sky median, mean, std to re-add:', sky_med, sky_mean, sky_std
     return sky_med, sky_mean, sky_std
 
-def make_stack_list(object, filter):
+def make_stack_list(object, filter, inst):
     """
     Makes a list of images to be stacked using ``stack_images()``. This list
     does not include the guiding OTAs as determined by ``derived_props.txt``.
@@ -321,11 +321,16 @@ def make_stack_list(object, filter):
     tail = scaled_imgs[0][25:]
     if not os.path.isfile(object+'_'+filter+'_stack.list'):
         with open(object+'_'+filter+'_stack.list','w+') as stack_file:
-            for j,im in enumerate(img[keep]):
-                factor = np.absolute(bg_std[keep][j] - bg_std_med)/bg_std_std
-                # print head+ota[j]+'.'+im+tail, factor
-                if factor < 2.:
+            if inst == 'podi':
+                # don't exclude any otas from podi data, the guide otas are probably not here anyway
+                for j,im in enumerate(img[keep]):
                     print >> stack_file, head+ota[j]+'.'+im+tail
+            else:
+                for j,im in enumerate(img[keep]):
+                    factor = np.absolute(bg_std[keep][j] - bg_std_med)/bg_std_std
+                    # print head+ota[j]+'.'+im+tail, factor
+                    if factor < 2.:
+                        print >> stack_file, head+ota[j]+'.'+im+tail
 
 
 def stack_images(stackname, refimg):
@@ -362,7 +367,7 @@ def stack_images(stackname, refimg):
     filter_name = hduref.header['filter']
     ref_airmass = hduref.header['airmass']
     sky_med, sky_mean, sky_std = odi.find_new_bg(refimg, filter_name)
-    odi.make_stack_list(objname, filter_name)
+    odi.make_stack_list(objname, filter_name, refimg.inst)
     # sky_med = hduref.header['skybg']
     output = stackname+'_'+filter_name+'.fits'
     output_bpm = stackname+'_'+filter_name+'_bpm.pl'
