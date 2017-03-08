@@ -47,7 +47,7 @@ for filter in filters:
                     print fwhm
                 else:
                     fwhm_file = odi.coordspath+img.nofits()+'.'+ota+'.fwhm.log'
-                    gfwhm = np.loadtxt(outputfile, usecols=(10,), unpack=True)
+                    gfwhm = np.loadtxt(fwhm_file, usecols=(10,), unpack=True)
                     fwhm = np.median(gfwhm[np.where(gfwhm < 900.0)])
                     print fwhm
                 odi.phot_sources(img, ota, fwhm, run_detect = run_detect)
