@@ -318,19 +318,24 @@ def make_stack_list(object, filter, inst):
     # print bg_std_med, bg_std_std
     scaled_imgs = glob.glob(odi.scaledpath+'*'+filter+'*.fits')
     head = scaled_imgs[0][:14]
-    tail = scaled_imgs[0][25:]
+    # Need to make a list of tails. The Job IDs will not always be the same
+    # if different QR jobs were run (e.g. mix of user and operator images).
+    # old definition tail = scaled_imgs[0][25:]
+    tail = []
+    for name in scaled_imgs:
+        tail.append(name[25:])
     if not os.path.isfile(object+'_'+filter+'_stack.list'):
         with open(object+'_'+filter+'_stack.list','w+') as stack_file:
             if inst == 'podi':
                 # don't exclude any otas from podi data, the guide otas are probably not here anyway
                 for j,im in enumerate(img[keep]):
-                    print >> stack_file, head+ota[j]+'.'+im+tail
+                    print >> stack_file, head+ota[j]+'.'+im+tail[j]
             else:
                 for j,im in enumerate(img[keep]):
                     factor = np.absolute(bg_std[keep][j] - bg_std_med)/bg_std_std
                     # print head+ota[j]+'.'+im+tail, factor
                     if factor < 2.:
-                        print >> stack_file, head+ota[j]+'.'+im+tail
+                        print >> stack_file, head+ota[j]+'.'+im+tail[j]
 
 
 def stack_images(stackname, refimg):
@@ -380,14 +385,14 @@ def stack_images(stackname, refimg):
         # iraf.imutil.imarith.setParam('result',output)
         # iraf.imutil.imarith.setParam('verbose','yes')
         # iraf.imutil.imarith(mode='h')
-        
+
         # flip the image so it's N-up E-left
         # first get the image dimensions from the header
         fitsstack = fits.open('temp.fits')
         xdim = fitsstack[0].header['NAXIS1']
         ydim = fitsstack[0].header['NAXIS2']
         iraf.imcopy('temp.fits['+repr(xdim)+':1,1:'+repr(ydim)+']', 'temp_flip.fits')
-        
+
         iraf.imutil.imexpr('(a != -999) ? a + b : -999',output,'temp_flip.fits',sky_med)
         iraf.imutil.imexpr('a < 0',output_bpm, output)
         iraf.imutil.imdelete('temp, temp_flip', verify='no')
@@ -400,7 +405,7 @@ def stack_images(stackname, refimg):
         iraf.imutil.hedit.setParam('verify','no')
         iraf.imutil.hedit.setParam('update','yes')
         iraf.imutil.hedit(show='no', mode='h')
-        
+
         # change the final CTYPENs to be TANs if they aren't already
         iraf.imutil.hedit.setParam('images',output)
         iraf.imutil.hedit.setParam('fields','CTYPE1')
@@ -410,7 +415,7 @@ def stack_images(stackname, refimg):
         iraf.imutil.hedit.setParam('verify','no')
         iraf.imutil.hedit.setParam('update','yes')
         iraf.imutil.hedit(show='no', mode='h')
-        
+
         iraf.imutil.hedit.setParam('images',output)
         iraf.imutil.hedit.setParam('fields','CTYPE2')
         iraf.imutil.hedit.setParam('value','DEC--TAN')
@@ -419,7 +424,7 @@ def stack_images(stackname, refimg):
         iraf.imutil.hedit.setParam('verify','no')
         iraf.imutil.hedit.setParam('update','yes')
         iraf.imutil.hedit(show='no', mode='h')
-        
+
         # delete the inherited PV keywords
         # leaving them in will give you trouble with the stacked img wcs
         iraf.unlearn(iraf.imutil.hedit)
@@ -429,7 +434,7 @@ def stack_images(stackname, refimg):
         iraf.imutil.hedit.setParam('verify','no')
         iraf.imutil.hedit.setParam('update','yes')
         iraf.imutil.hedit(show='no', mode='h')
-        
+
         # update the sky value and airmass keywords to match what they should be from the reference image
         iraf.unlearn(iraf.imutil.hedit)
         iraf.imutil.hedit.setParam('images',output)
@@ -440,7 +445,7 @@ def stack_images(stackname, refimg):
         iraf.imutil.hedit.setParam('verify','no')
         iraf.imutil.hedit.setParam('update','yes')
         iraf.imutil.hedit(show='no', mode='h')
-        
+
         iraf.unlearn(iraf.imutil.hedit)
         iraf.imutil.hedit.setParam('images',output)
         iraf.imutil.hedit.setParam('fields','sky_medi')
@@ -450,7 +455,7 @@ def stack_images(stackname, refimg):
         iraf.imutil.hedit.setParam('verify','no')
         iraf.imutil.hedit.setParam('update','yes')
         iraf.imutil.hedit(show='no', mode='h')
-        
+
         iraf.unlearn(iraf.imutil.hedit)
         iraf.imutil.hedit.setParam('images',output)
         iraf.imutil.hedit.setParam('fields','sky_mean')
@@ -460,7 +465,7 @@ def stack_images(stackname, refimg):
         iraf.imutil.hedit.setParam('verify','no')
         iraf.imutil.hedit.setParam('update','yes')
         iraf.imutil.hedit(show='no', mode='h')
-        
+
         iraf.unlearn(iraf.imutil.hedit)
         iraf.imutil.hedit.setParam('images',output)
         iraf.imutil.hedit.setParam('fields','sky_std')
@@ -524,11 +529,11 @@ def tan_header_fix(hdu):
         for pv in pvlist:
             hdu.header.delete_keyword(pv)
     return hdu
-    
+
 def tpv2tan_hdr(img, ota):
     image = odi.reprojpath+'reproj_'+ota+'.'+img.stem()
     # change the CTYPENs to be TANs if they aren't already
-    print 'TPV -> TAN in ', image 
+    print 'TPV -> TAN in ', image
     iraf.imutil.hedit.setParam('images',image)
     iraf.imutil.hedit.setParam('fields','CTYPE1')
     iraf.imutil.hedit.setParam('value','RA---TAN')
@@ -537,7 +542,7 @@ def tpv2tan_hdr(img, ota):
     iraf.imutil.hedit.setParam('verify','no')
     iraf.imutil.hedit.setParam('update','yes')
     iraf.imutil.hedit(show='no', mode='h')
-    
+
     iraf.imutil.hedit.setParam('images',image)
     iraf.imutil.hedit.setParam('fields','CTYPE2')
     iraf.imutil.hedit.setParam('value','DEC--TAN')
@@ -546,7 +551,7 @@ def tpv2tan_hdr(img, ota):
     iraf.imutil.hedit.setParam('verify','no')
     iraf.imutil.hedit.setParam('update','yes')
     iraf.imutil.hedit(show='no', mode='h')
-    
+
     # delete any PV keywords
     # leaving them in will give you trouble with the img wcs
     iraf.unlearn(iraf.imutil.hedit)
