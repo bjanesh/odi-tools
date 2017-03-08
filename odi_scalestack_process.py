@@ -25,6 +25,8 @@ ota_d, filt_d = np.loadtxt('derived_props.txt',usecols=(1,2),unpack=True,dtype=s
 id_d = zip(imgnum,ota_d,filt_d)
 fwhm_dict = dict(zip(id_d,fwhm_d))
 
+run_detect = False
+
 for filter in filters:
     # Scaling with all sources
     images_ = images[filter]
@@ -34,15 +36,22 @@ for filter in filters:
         dither  = img.dither()+'_'
         for key in tqdm(odi.OTA_dictionary):
             ota = odi.OTA_dictionary[key]
-            if not os.path.isfile(odi.sourcepath+'source_'+ota+'.'+img.base()+'.csv'):
-                odi.source_find(img,ota,inst)
-                gaps = odi.get_gaps_rep(img, ota)
-                odi.source_xy(img,ota,gaps,filter,inst)
-                fwhm = odi.getfwhm_source(img,ota)
-                #fwhm = fwhm_dict[img_id]
-                print fwhm
-                odi.phot_sources(img, ota, fwhm)
-                odi.phot_combine(img, ota)
+            # if not os.path.isfile(odi.sourcepath+'source_'+ota+'.'+img.base()+'.csv'):
+            if not os.path.isfile(odi.sourcepath+'source_'+ota+'.'+img.base()+'.totphot'):
+                if run_detect == True:
+                    odi.source_find(img,ota,inst)
+                    gaps = odi.get_gaps_rep(img, ota)
+                    odi.source_xy(img,ota,gaps,filter,inst)
+                    fwhm = odi.getfwhm_source(img,ota)
+                    #fwhm = fwhm_dict[img_id]
+                    print fwhm
+                else:
+                    fwhm_file = odi.coordspath+img.nofits()+'.'+ota+'.fwhm.log'
+                    gfwhm = np.loadtxt(outputfile, usecols=(10,), unpack=True)
+                    fwhm = np.median(gfwhm[np.where(gfwhm < 900.0)])
+                    print fwhm
+                odi.phot_sources(img, ota, fwhm, run_detect = run_detect)
+                odi.phot_combine(img, ota, run_detect = run_detect)
         if not os.path.isfile(odi.sourcepath+dither+filter+'.allsource'):
             dither_total = odi.sourcepath+dither+filter+'.allsource'
             cat_command = 'cat sources/*SCI.'+dither+'*'+filter+'*.totphot' + '>' + dither_total
