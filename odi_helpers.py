@@ -317,6 +317,8 @@ def make_stack_list(object, filter, inst):
     bg_std_med, bg_std_std = np.median(bg_std[keep]), np.std(bg_std[keep])
     # print bg_std_med, bg_std_std
     scaled_imgs = glob.glob(odi.scaledpath+'*'+filter+'*.fits')
+    #sort glob list to match order in 'derived_props.txt'
+    scaled_imgs.sort()
     head = scaled_imgs[0][:14]
     # Need to make a list of tails. The Job IDs will not always be the same
     # if different QR jobs were run (e.g. mix of user and operator images).
