@@ -170,7 +170,7 @@ def getfwhm_source(img, ota, radius=4.0, buff=7.0, width=5.0):
     print 'median gwfhm in ota',ota+': ',sfwhm,'pixels'# (determined via QR)'
     return sfwhm
 
-def phot_sources(img, ota, fwhm):
+def phot_sources(img, ota, fwhm, run_detect = True):
     """
     Run IRAF phot on the sources filtered by :py:func:`source_xy`. The ``fwhm``
     values used by phot is calculated by :py:func:`getfwhm_source`.
@@ -219,7 +219,10 @@ def phot_sources(img, ota, fwhm):
     ki = 0.058
 
     image = odi.reprojpath+'reproj_'+ota+'.'+img.stem()
-    coords = odi.sourcepath+'source_'+ota+'.'+img.base()+'.xy'
+    if run_detect == True:
+        coords = odi.sourcepath+'source_'+ota+'.'+img.base()+'.xy'
+    else:
+        coords = odi.coordspath+'reproj_'+ota+'.'+img.base()+'.gaiaxy'
     output = odi.sourcepath+img.nofits()+'.'+ota+'.phot.1'
     phot_tbl = odi.sourcepath+img.nofits()+'.'+ota+'.sourcephot'
 
@@ -261,7 +264,7 @@ def phot_sources(img, ota, fwhm):
     os.rename(phot_tbl.replace('.sourcephot','_clean.sourcephot'),phot_tbl)
     return phot_tbl
 
-def phot_combine(img, ota):
+def phot_combine(img, ota, run_detect = True):
     """
     Combine all of the information gathered on the found sources.
     These will be all of the values returned by :py:func:`source_find`,
@@ -280,15 +283,24 @@ def phot_combine(img, ota):
     ``odi.sourcepath+img.nofits()+'.'+ota+'.totphot'``.
 
     """
-    coords = odi.sourcepath+'source_'+ota+'.'+img.base()+'.xy'
-
-    x, y, id,ra_icrs_centroid,dec_icrs_centroid,source_sum,max_value,elongation = np.loadtxt(coords,usecols=(0,1,2,3,4,5,6,7),unpack=True)
+    if run_detect == True:
+        coords = odi.sourcepath+'source_'+ota+'.'+img.base()+'.xy'
+        x, y, id,ra_icrs_centroid,dec_icrs_centroid,source_sum,max_value,elongation = np.loadtxt(coords,usecols=(0,1,2,3,4,5,6,7),unpack=True)
+        fwhmfile = odi.sourcepath+img.nofits()+'.'+ota+'.fwhm.log'
+    else:
+        coords = odi.coordspath+'reproj_'+ota+'.'+img.base()+'.gaiaxy'
+        x, y, ra_icrs_centroid, dec_icrs_centroid = np.loadtxt(coords,usecols=(0,1,2,3),unpack=True)
+        id = np.ones(len(x))
+        source_sum = np.ones(len(x))
+        max_value = np.ones(len(x))
+        elongation = np.ones(len(x))
+        fwhmfile = odi.coordspath+img.nofits()+'.'+ota+'.fwhm.log'
 
     phot_tbl = odi.sourcepath+img.nofits()+'.'+ota+'.sourcephot'
 
     MAG, MERR, SKY, SERR, RAPERT, XPOS, YPOS = np.loadtxt(phot_tbl, usecols=(1,2,3,4,5,6,7), dtype=float, unpack=True)
 
-    fwhmfile = odi.sourcepath+img.nofits()+'.'+ota+'.fwhm.log'
+    # fwhmfile = odi.sourcepath+img.nofits()+'.'+ota+'.fwhm.log'
 
     peak,fwhm = np.loadtxt(fwhmfile, usecols=(9,10), unpack=True)
 

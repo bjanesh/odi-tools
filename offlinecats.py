@@ -221,6 +221,12 @@ def get_gaia_coords(img,ota,inst,output='test.gaia',cluster=False,**kwargs):
     """
     from astropy import units as u
     from astropy.coordinates import SkyCoord
+    try:
+        from astroquery.vizier import Vizier
+        from astropy import __version__ as astropyversion
+    except ImportError:
+        print "astroquery not installed"
+        print "try  pip --user --no-deps install astroquery or contact admin"
     hdulist = fits.open(img.f)
     hdu_ota = odi.tan_header_fix(hdulist[ota])
     w = WCS(hdu_ota.header)
@@ -236,11 +242,28 @@ def get_gaia_coords(img,ota,inst,output='test.gaia',cluster=False,**kwargs):
                                coord2[0][1]*u.deg,frame='icrs')
     cone_radius = center_skycoord.separation(corner_skycoord).value
 
+    #Set up vizier query for Gaia DR1
+    #Taken from example at: github.com/mommermi/photometrypipeline
+    vquery = Vizier(columns=['RA_ICRS', 'DE_ICRS',
+                             'e_RA_ICRS', 'e_DE_ICRS',
+                             'phot_g_mean_mag'],
+                    column_filters={"phot_g_mean_mag":
+                                    ("<%f" % 21.0)},
+                    row_limit = -1)
+    gaia_table = vquery.query_region(SkyCoord(ra=ota_center_radec[0][0],
+                                              dec=ota_center_radec[0][1],
+                                              unit=(u.deg, u.deg),
+                                              frame='icrs'),
+                                     radius=cone_radius*u.deg,
+                                     catalog=['I/337/gaia'])[0]
+
+    #Gaia on tap no longer working. vizier might be more stable
     # print 'Retrieving Gaia sources for: ', ota
-    ota_gaia_sources = cone_search(ota_center_radec[0][0],
-                                   ota_center_radec[0][1],
-                                   cone_radius)
-    ota_gaia_df = ota_gaia_sources.to_pandas()
+    #ota_gaia_sources = cone_search(ota_center_radec[0][0],
+    #                               ota_center_radec[0][1],
+    #                               cone_radius)
+
+    # ota_gaia_df = ota_gaia_sources.to_pandas()
     hdulist.close()
     if cluster == True:
         try:
@@ -253,24 +276,34 @@ def get_gaia_coords(img,ota,inst,output='test.gaia',cluster=False,**kwargs):
         cluster_center = SkyCoord(racenter*u.degree
                                   ,deccenter*u.degree,
                                   frame='icrs')
-        gaia_coords = SkyCoord(ota_gaia_df.ra.values*u.deg,
-                               ota_gaia_df.dec.values*u.deg,frame='icrs')
+        gaia_coords = SkyCoord(gaia_table['RA_ICRS'],
+                               gaia_table['DE_ICRS'],frame='icrs')
         dist_from_center = cluster_center.separation(gaia_coords).arcmin
-        ota_gaia_df['dis'] = dist_from_center
-        ota_gaia_df = ota_gaia_df[(ota_gaia_df.dis >= min_radius) &
-                                  (ota_gaia_df.phot_g_mean_mag <= G_lim)]
+        gaia_table['dis'] = dist_from_center
+        # ota_gaia_df = ota_gaia_df[(ota_gaia_df.dis >= min_radius) &
+                                #   (ota_gaia_df.phot_g_mean_mag <= G_lim)]
+        gaia_table = gaia_table[gaia_table['dis'] > min_radius]
 
     ra_min, ra_max = coord1[0][0],coord2[0][0]
     dec_min, dec_max = coord1[0][1],coord3[0][1]
 
-    ota_gaia_df = ota_gaia_df[(ota_gaia_df.ra > ra_min) &
-                              (ota_gaia_df.ra < ra_max) &
-                              (ota_gaia_df.dec > dec_min) &
-                              (ota_gaia_df.dec < dec_max)]
+    gaia_table_cut = gaia_table[(gaia_table['RA_ICRS'] > ra_min) &
+                                (gaia_table['RA_ICRS'] < ra_max) &
+                                (gaia_table['DE_ICRS'] > dec_min) &
+                                (gaia_table['DE_ICRS'] < dec_max)]
+    gaia_table_cut['e_RA_ICRS'].convert_unit_to(u.deg)
+    gaia_table_cut['e_DE_ICRS'].convert_unit_to(u.deg)
+
+    ota_gaia_df = gaia_table_cut.to_pandas()
+
+    cols_needed = ['RA_ICRS','DE_ICRS','__Gmag_','e_RA_ICRS','e_DE_ICRS']
+
+    ota_gaia_df = ota_gaia_df[cols_needed]
+    ota_gaia_df.columns = ['ra', 'dec','phot_g_mean_mag','e_ra','e_dec']
 
     gaia_catalog_out = output
     ota_gaia_df.to_csv(gaia_catalog_out,
-                       columns=['ra', 'dec','phot_g_mean_mag'],
+                       columns=['ra', 'dec','phot_g_mean_mag','e_ra','e_dec'],
                        index=False)
 
 
