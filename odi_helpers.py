@@ -604,7 +604,7 @@ def find_ref_image(images):
     ams = []
     zps = []
     #print images
-    print '#       bg        airmass       zp       zp_std        n_zps'
+    print '#'+ ' '*len(images[0].f)+'     bg         airmass'
     for j,im in enumerate(images):
         hdulist = odi.fits.open(im.f)
         airmass = hdulist[0].header['AIRMASS']
