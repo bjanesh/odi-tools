@@ -617,7 +617,6 @@ def find_ref_image(images):
         print im.dither(), im.f, '%10.3f'%bg_lvl, '%10.3f'%airmass
         ref_img = np.argmin(np.array(ams))
     print 'reference image:',images[ref_img].stem()
-    print np.argmin(np.array(zps))
     return ref_img
 
 def main():
