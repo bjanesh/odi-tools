@@ -478,6 +478,37 @@ def stack_images(stackname, refimg):
         iraf.imutil.hedit.setParam('verify','no')
         iraf.imutil.hedit.setParam('update','yes')
         iraf.imutil.hedit(show='no', mode='h')
+        
+        # finally reset the LTV, LTM keywords so that the physical coordinate mapping is correct
+        iraf.unlearn(iraf.imutil.hedit)
+        iraf.imutil.hedit.setParam('images',output)
+        iraf.imutil.hedit.setParam('fields','LTV1')
+        iraf.imutil.hedit.setParam('value',0.)
+        iraf.imutil.hedit.setParam('add','yes')
+        iraf.imutil.hedit.setParam('addonly','no')
+        iraf.imutil.hedit.setParam('verify','no')
+        iraf.imutil.hedit.setParam('update','yes')
+        iraf.imutil.hedit(show='no', mode='h')
+        
+        iraf.unlearn(iraf.imutil.hedit)
+        iraf.imutil.hedit.setParam('images',output)
+        iraf.imutil.hedit.setParam('fields','LTM1_1')
+        iraf.imutil.hedit.setParam('value',1.)
+        iraf.imutil.hedit.setParam('add','yes')
+        iraf.imutil.hedit.setParam('addonly','no')
+        iraf.imutil.hedit.setParam('verify','no')
+        iraf.imutil.hedit.setParam('update','yes')
+        iraf.imutil.hedit(show='no', mode='h')
+        
+        iraf.unlearn(iraf.imutil.hedit)
+        iraf.imutil.hedit.setParam('images',output)
+        iraf.imutil.hedit.setParam('fields','LTM2_2')
+        iraf.imutil.hedit.setParam('value',1.)
+        iraf.imutil.hedit.setParam('add','yes')
+        iraf.imutil.hedit.setParam('addonly','no')
+        iraf.imutil.hedit.setParam('verify','no')
+        iraf.imutil.hedit.setParam('update','yes')
+        iraf.imutil.hedit(show='no', mode='h')
 
     return output
 
