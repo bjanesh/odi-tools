@@ -478,7 +478,7 @@ def stack_images(stackname, refimg):
         iraf.imutil.hedit.setParam('verify','no')
         iraf.imutil.hedit.setParam('update','yes')
         iraf.imutil.hedit(show='no', mode='h')
-        
+
         # finally reset the LTV, LTM keywords so that the physical coordinate mapping is correct
         iraf.unlearn(iraf.imutil.hedit)
         iraf.imutil.hedit.setParam('images',output)
@@ -489,7 +489,7 @@ def stack_images(stackname, refimg):
         iraf.imutil.hedit.setParam('verify','no')
         iraf.imutil.hedit.setParam('update','yes')
         iraf.imutil.hedit(show='no', mode='h')
-        
+
         iraf.unlearn(iraf.imutil.hedit)
         iraf.imutil.hedit.setParam('images',output)
         iraf.imutil.hedit.setParam('fields','LTM1_1')
@@ -499,7 +499,7 @@ def stack_images(stackname, refimg):
         iraf.imutil.hedit.setParam('verify','no')
         iraf.imutil.hedit.setParam('update','yes')
         iraf.imutil.hedit(show='no', mode='h')
-        
+
         iraf.unlearn(iraf.imutil.hedit)
         iraf.imutil.hedit.setParam('images',output)
         iraf.imutil.hedit.setParam('fields','LTM2_2')
@@ -614,7 +614,7 @@ def find_ref_image(images):
         lvls.append(bg_lvl)
         ams.append(airmass)
         hdulist.close()
-        print im.dither(), im.f(), '%10.3f'%bg_lvl, '%10.3f'%airmass
+        print im.dither(), im.f, '%10.3f'%bg_lvl, '%10.3f'%airmass
         ref_img = np.argmin(np.array(ams))
     print 'reference image:',images[ref_img].stem()
     print np.argmin(np.array(zps))
