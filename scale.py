@@ -6,11 +6,11 @@ from pyraf import iraf
 import warnings
 import odi_config as odi
 
-def find_ref_image(images):
+def find_ref_image_old(images):
     # use photometry over the WHOLE image to calculate the scaling factors
     imgs, fwhm, zp_med, zp_std, bg_mean, bg_median, bg_std = np.loadtxt('derived_props.txt', usecols=(0,3,4,5,6,7,8), unpack=True)
     filter_string = np.loadtxt('derived_props.txt', usecols=(2,), unpack=True,dtype=str)
-    
+
     lvls = []
     ams = []
     zps = []
@@ -62,7 +62,7 @@ def getscale(images, refimg, verbose=True):
 		# use photometry over the whole image, so read in all the phot output files and append
 
 		for key in odi.OTA_dictionary.keys():
-			ota = odi.OTA_dictionary[key] 
+			ota = odi.OTA_dictionary[key]
 			img_phot = odi.coordspath+img.nofits()+'.'+ota+'.sdssphot'
 			ref_phot = odi.coordspath+refimg.nofits()+'.'+ota+'.sdssphot'
 			img_peak = odi.coordspath+img.nofits()+'.'+ota+'.fwhm.log'
@@ -156,7 +156,7 @@ def getscale(images, refimg, verbose=True):
 				#     print peakB[k], peakRefB[k], magB[k], magRefB[k]
 				# and then get rid of poorly measuerd objects probably in cell gaps
 				keep = np.where((skyB>0.0) & (skyRefB > 0.0) & (10000.0<peakB) & (10000.0<peakRefB) & (45000.0>peakB) & (45000.0>peakRefB))
-				# (magErrB<0.01) & (magErrRefB<0.01) & 
+				# (magErrB<0.01) & (magErrRefB<0.01) &
 				magB = magB[keep]
 				magRefB = magRefB[keep]
 				magA = np.hstack((magA, magB))
@@ -204,7 +204,7 @@ def scale_ota(img, ota, scale):
 	iraf.imutil.imarith.setParam('result',imout)
 	iraf.imutil.imarith.setParam('verbose','yes')
 	iraf.imutil.imarith(mode='h')
-	return 
+	return
 
 
 def main():
@@ -212,4 +212,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

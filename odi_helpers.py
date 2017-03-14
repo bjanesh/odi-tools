@@ -565,6 +565,30 @@ def tpv2tan_hdr(img, ota):
     iraf.imutil.hedit.setParam('update','yes')
     iraf.imutil.hedit(show='no', mode='h')
 
+def find_ref_image(images):
+    imgs, fwhm, zp_med, zp_std, bg_mean, bg_median, bg_std = np.loadtxt('derived_props.txt', usecols=(0,3,4,5,6,7,8), unpack=True)
+    filter_string = np.loadtxt('derived_props.txt', usecols=(2,), unpack=True,dtype=str)
+
+    lvls = []
+    ams = []
+    zps = []
+    #print images
+    print '#       bg        airmass       zp       zp_std        n_zps'
+    for j,im in enumerate(images):
+        hdulist = odi.fits.open(im.f)
+        airmass = hdulist[0].header['AIRMASS']
+        filter  = hdulist[0].header['FILTER']
+        these = np.where((imgs.astype(int)==int(im.dither())) & (filter_string == filter))
+        bg_lvl = np.mean(bg_median[these])
+        lvls.append(bg_lvl)
+        ams.append(airmass)
+        hdulist.close()
+        print im.dither(), im.f(), '%10.3f'%bg_lvl, '%10.3f'%airmass
+        ref_img = np.argmin(np.array(ams))
+    print 'reference image:',images[ref_img].stem()
+    print np.argmin(np.array(zps))
+    return ref_img
+
 def main():
     object_str, filters, instrument, images, illcor_flag, skyflat_src, wcs_flag, reproject_flag, scale_flag, stack_flag, gaia_flag, cluster_flag, ra_center, dec_center, min_radius = odi.cfgparse('example_config.yaml', verbose=False)
     for k in images.keys():

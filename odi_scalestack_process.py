@@ -60,7 +60,7 @@ for filter in filters:
     # choose the initial reference image (lowest airmass to start)
     # print images_.values()
     refimg_ = odi.find_ref_image(images_)
-    ref_img = images_[refimg_+1]
+    ref_img = images_[refimg_]
 
     # calculate scaling factors
     scales_ = {}
