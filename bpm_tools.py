@@ -16,6 +16,8 @@ def force_update_bpm(img, ota):
     iraf.imutil.hedit.setParam('verify','no')
     iraf.imutil.hedit.setParam('update','yes')
     iraf.imutil.hedit(show='no', mode='h')
+    if os.path.isfile(mask_name):
+        os.remove(mask_name)
     return
 
 def make_bpms(img, ota):

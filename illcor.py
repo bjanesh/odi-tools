@@ -39,8 +39,8 @@ def dark_sky_flat(filter):
         iraf.imutil.imarith(verbose='no', mode='h')
         iraf.imfilter.median.setParam('input',odi.skyflatpath+med_otalist[i])
         iraf.imfilter.median.setParam('output',odi.skyflatpath+med_otalist[i])
-        iraf.imfilter.median.setParam('xwindow',3)
-        iraf.imfilter.median.setParam('ywindow',3)
+        iraf.imfilter.median.setParam('xwindow',50)
+        iraf.imfilter.median.setParam('ywindow',50)
         iraf.imfilter.median(verbose='no', mode='h')
     iraf.set(clobber = 'no')
 
