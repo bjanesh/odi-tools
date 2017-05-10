@@ -3,6 +3,7 @@ import numpy as np
 import astropy as ast
 import matplotlib.pyplot as plt
 from pyraf import iraf
+from tqdm import tqdm
 
 import odi_config as odi
 
@@ -198,6 +199,7 @@ def bgsub_ota(img, ota, apply=False):
     image = odi.reprojpath+'reproj_'+ota+'.'+img.stem()
     imout = odi.bgsubpath+'bgsub_'+ota+'.'+img.stem()
     bg_mean, bg_median, bg_std = odi.mask_ota(img, ota, reproj=True)
+    tqdm.write('subtracting {:7.2f} from {:s}'.format(bg_median, image))
     if apply:
         # print bg_mean, bg_median, bg_std
         iraf.unlearn(iraf.imutil.imarith)
@@ -205,7 +207,7 @@ def bgsub_ota(img, ota, apply=False):
         iraf.imutil.imarith.setParam('op','-')
         iraf.imutil.imarith.setParam('operand2',bg_median)
         iraf.imutil.imarith.setParam('result',imout)
-        iraf.imutil.imarith.setParam('verbose','yes')
+        iraf.imutil.imarith.setParam('verbose','no')
         iraf.imutil.imarith(mode='h')
     return bg_mean, bg_median, bg_std
 
@@ -290,6 +292,9 @@ def find_new_bg(refimg, filter):
     sky_std = np.median(bg_std[keep].astype(float))
     print 'calculated sky median, mean, std to re-add:', sky_med, sky_mean, sky_std
     return sky_med, sky_mean, sky_std
+    
+def is_guide_ota(img, ota):
+    return False
 
 def make_stack_list(object, filter, inst):
     """
@@ -567,7 +572,7 @@ def tan_header_fix(hdu):
 def tpv2tan_hdr(img, ota):
     image = odi.reprojpath+'reproj_'+ota+'.'+img.stem()
     # change the CTYPENs to be TANs if they aren't already
-    print 'TPV -> TAN in ', image
+    tqdm.write('TPV -> TAN in ', image)
     iraf.imutil.hedit.setParam('images',image)
     iraf.imutil.hedit.setParam('fields','CTYPE1')
     iraf.imutil.hedit.setParam('value','RA---TAN')
