@@ -60,11 +60,11 @@ for img in images_:
 
 
 # if illcor_flag:
-# listfiles = glob.glob('*.lis')
-# if len(listfiles) == 0:
-odi.imcombine_lists(images_, filters)
-# else:
-#     print 'imcombine lists done'
+listfiles = glob.glob('*.lis')
+if len(listfiles) == 0:
+    odi.imcombine_lists(images_, filters)
+else:
+    print 'imcombine lists done'
 
 if not os.path.isfile('bpms.done'):
     for img in images_:
@@ -75,12 +75,12 @@ if not os.path.isfile('bpms.done'):
     with open('bpms.done', 'w+') as bpm:
         print >> bpm, 'bpms are done!'
 
-# listfiles = glob.glob(odi.skyflatpath+'*.med.fits')
-# if len(listfiles) == 0:
-for filter in filters:
-    odi.dark_sky_flat(filter)
-# else:
-#     print 'dark sky flats done'
+listfiles = glob.glob(odi.skyflatpath+'*.med.fits')
+if len(listfiles) == 0:
+    for filter in filters:
+        odi.dark_sky_flat(filter)
+else:
+    print 'dark sky flats done'
 
 
 if not os.path.isfile('derived_props.txt'):
@@ -94,9 +94,9 @@ if not os.path.isfile('derived_props.txt'):
             hdr = hdulist[0].header
             filt = hdr['filter']
             image_to_correct = img.f+'['+ota+']'
-            correction_image = ota+'.'+filt+'.med.fits'
+            correction_image = ota+'.'+filt+'.med.smooth.fits'
             corrected_image = 'illcor_'+ota+'.'+img.stem()
-            print corrected_image
+            tqdm.write(corrected_image)
             if not os.path.isfile(odi.illcorpath+corrected_image):
                 odi.illumination_corrections(image_to_correct, correction_image, corrected_image, do_correction=illcor_flag)
             gaps = odi.get_gaps(img, ota)
@@ -159,7 +159,7 @@ else:
                 already = 0
             else:
                 image_to_correct = img.f+'['+ota+']'
-                correction_image = ota+'.'+filt+'.med.fits'
+                correction_image = ota+'.'+filt+'.med.smooth.fits'
                 corrected_image = 'illcor_'+ota+'.'+img.stem()
                 if not os.path.isfile(odi.illcorpath+corrected_image):
                     odi.illumination_corrections(image_to_correct, correction_image, corrected_image, do_correction=illcor_flag)
@@ -171,9 +171,9 @@ else:
                         try:
                             odi.fix_wcs(img, ota, coords=img.nofits()+'.'+ota+'.radec.coo', iters=1)
                         except IndexError:
-                            print 'not enough stars to fix wcs, skipping for this ota:', img, ota
+                            tqdm.write('not enough stars to fix wcs, skipping for this ota:', img, ota)
                         except:
-                            print 'msccmatch failed, wait a second and try again'
+                            tqdm.write('msccmatch failed, wait a second and try again')
                             time.sleep(1.0)
                             odi.fix_wcs(img, ota, coords=img.nofits()+'.'+ota+'.radec.coo', iters=1)
                     if reproject_flag:
