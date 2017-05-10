@@ -2,6 +2,7 @@ import os
 import sys
 import odi_config as odi
 from pyraf import iraf
+from tqdm import tqdm
 
 def force_update_bpm(img, ota):
     image = odi.scaledpath+'scaled_'+ota+'.'+img.stem()
@@ -75,15 +76,15 @@ def check_mask_dim(img,ota):
     dim_status = ((mask_dim1 == reproj_dim1 == bgsub_dim1) &
                   (mask_dim2 == reproj_dim2 == bgsub_dim2))
     if dim_status == False:
-        print 'mask and image dimensions to not match for: ', img, ota
-        print 'mask:', mask_dim1,mask_dim2
-        print 'reproj:', reproj_dim1,reproj_dim2
-        print 'bgsub:', bgsub_dim1,bgsub_dim2
+        tqdm.write('mask and image dimensions to not match for: ', img, ota)
+        tqdm.write('mask: {:5d} {:5d}'.format(mask_dim1,mask_dim2))
+        tqdm.write('reproj: {:5d} {:5d}'.format(reproj_dim1,reproj_dim2))
+        tqdm.write('bgsub: {:5d} {:5d}'.format(bgsub_dim1,bgsub_dim2))
     else:
-        print 'dimension test passed'
-        print 'mask:', mask_dim1,mask_dim2
-        print 'reproj:', reproj_dim1,reproj_dim2
-        print 'bgsub:', bgsub_dim1,bgsub_dim2
+        tqdm.write('dimension test passed')
+        tqdm.write('mask: {:5d} {:5d}'.format(mask_dim1,mask_dim2))
+        tqdm.write('reproj: {:5d} {:5d}'.format(reproj_dim1,reproj_dim2))
+        tqdm.write('bgsub: {:5d} {:5d}'.format(bgsub_dim1,bgsub_dim2))
     return dim_status
 
 def main():
