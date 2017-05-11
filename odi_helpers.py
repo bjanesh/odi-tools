@@ -294,7 +294,41 @@ def find_new_bg(refimg, filter):
     return sky_med, sky_mean, sky_std
     
 def is_guide_ota(img, ota):
-    return False
+    """
+    Determines whether the specified image OTA was used for guiding.
+    
+    Parameters
+    ----------
+    img : str
+        Name of image being processed
+    ota : str
+        Name of current ``ota`` being processed in ``img``
+
+    Returns
+    -------
+    guide : boolean
+        True if guide OTA, False if not
+    """
+    from astropy.io import fits
+    from photutils.segmentation import detect_sources, source_properties, properties_table
+    
+    check_ota = 'illcor_'+ota+'.'+img.stem()
+    hdu = fits.open(check_ota)
+    data = hdu[0].data
+    segm = detect_sources(data, 1.0, 50000)
+    props = source_properties(data, segm)
+    corners = []
+    for p in props:
+        cutout = p.data_cutout
+        yc, xc = int(p.cutout_centroid[0].value), int(p.cutout_centroid[1].value)
+        bgcent = cutout[yc,xc]
+        bgcorn = np.array([cutout[0,0], cutout[0,-1], cutout[-1,0], cutout[-1,-1]])
+        bgrat = bgcorn/bgcent
+        corners.append(np.median(bgrat))
+    med_ratio = np.median(corners)
+    print med_ratio
+    guide = True
+    return guide
 
 def make_stack_list(object, filter, inst):
     """
@@ -625,10 +659,12 @@ def find_ref_image(images):
     return ref_img
 
 def main():
-    object_str, filters, instrument, images, illcor_flag, skyflat_src, wcs_flag, reproject_flag, scale_flag, stack_flag, gaia_flag, cluster_flag, ra_center, dec_center, min_radius = odi.cfgparse('example_config.yaml', verbose=False)
-    for k in images.keys():
-        for img in images[k]:
-            print img.f, img.d, img.stem(), img.base()
+    f = '20161029T045610.1_HI0932+24_odi_g.6928.fits'
+    d = 1
+    instrument = '5odi'
+    img = odi.ODIImage(f, d, instrument)
+    for ota in odi.odi5_dictionary.values():
+        x = is_guide_ota(img, ota)
 
 if __name__ == '__main__':
     main()
