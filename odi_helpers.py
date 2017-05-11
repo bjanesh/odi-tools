@@ -606,7 +606,7 @@ def tan_header_fix(hdu):
 def tpv2tan_hdr(img, ota):
     image = odi.reprojpath+'reproj_'+ota+'.'+img.stem()
     # change the CTYPENs to be TANs if they aren't already
-    tqdm.write('TPV -> TAN in ', image)
+    print 'TPV -> TAN in ', image
     iraf.imutil.hedit.setParam('images',image)
     iraf.imutil.hedit.setParam('fields','CTYPE1')
     iraf.imutil.hedit.setParam('value','RA---TAN')
