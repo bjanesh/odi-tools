@@ -8,7 +8,7 @@ from tqdm import tqdm
 import odi_config as odi
 
 def dark_sky_flat(filter):
-    from cv2 import medianBlur
+    # from cv2 import medianBlur
     med_otalist = []
     print 'making dark sky flats for',filter
     for key in tqdm(odi.OTA_dictionary):
