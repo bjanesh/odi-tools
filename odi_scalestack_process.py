@@ -79,7 +79,7 @@ for filter in filters:
     # iterate
 
     print np.array(scales_.values()) > 1.002
-    while (np.array(scales_.values()) > 1.002).any():
+    while (np.array(scales_.values()) > 1.002).any() and iters < 6:
         iters += 1
         ims = scales_.keys()
         scls = scales_.values()
