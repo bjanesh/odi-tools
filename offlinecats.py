@@ -13,7 +13,7 @@ import glob
 from collections import OrderedDict
 from astropy.io import fits
 import odi_config as odi
-from gaia.tap import cone_search
+# from gaia.tap import cone_search
 from astropy.table import Table
 
 def get_sdss_coords_offline(img, ota, inst,output='test.sdss'):
@@ -211,7 +211,7 @@ def get_gaia_coords(img,ota,inst,output='test.gaia',cluster=False,**kwargs):
 
     Parameters
     ----------
-    img : str
+    img : ODIImage or StackedImage object
         Name of image
     ota : str
         Name of OTA
@@ -228,20 +228,35 @@ def get_gaia_coords(img,ota,inst,output='test.gaia',cluster=False,**kwargs):
         print "astroquery not installed"
         print "try  pip --user --no-deps install astroquery or contact admin"
     hdulist = fits.open(img.f)
-    hdu_ota = odi.tan_header_fix(hdulist[ota])
-    w = WCS(hdu_ota.header)
-    ota_center_radec = w.wcs_pix2world([[2018.0,2007.5]],1)
+    if ota=='None':
+        hdu_ota = hdulist[0]
 
-    coord1 = w.wcs_pix2world([[1,1]],1)
-    coord2 = w.wcs_pix2world([[4036,1]],1)
-    coord3 = w.wcs_pix2world([[4036,4015]],1)
-    coord4 = w.wcs_pix2world([[1,4015]],1)
+    else:
+        hdu_ota = odi.tan_header_fix(hdulist[ota])
+        
+    w = WCS(hdu_ota.header)
+    
+    naxis1 = hdu_ota.header['NAXIS1']
+    naxis2 = hdu_ota.header['NAXIS2']
+    ota_center_radec = w.wcs_pix2world([[naxis1/2.,naxis2/2.]],1)
+    
+    corners = w.calc_footprint()
+    coord1 = corners[0]
+    coord2 = corners[1]
+    coord3 = corners[2]
+    coord4 = corners[3]
+    
+    # coord1 = w.wcs_pix2world([[1,1]],1)
+    # coord2 = w.wcs_pix2world([[4036,1]],1)
+    # coord3 = w.wcs_pix2world([[4036,4015]],1)
+    # coord4 = w.wcs_pix2world([[1,4015]],1)
     center_skycoord = SkyCoord(ota_center_radec[0][0]*u.deg,
                                ota_center_radec[0][1]*u.deg,frame='icrs')
-    corner_skycoord = SkyCoord(coord2[0][0]*u.deg,
-                               coord2[0][1]*u.deg,frame='icrs')
+    corner_skycoord = SkyCoord(coord2[0]*u.deg,
+                               coord2[1]*u.deg,frame='icrs')
     cone_radius = center_skycoord.separation(corner_skycoord).value
-
+    print naxis1/2., naxis2/2., cone_radius
+    
     #Set up vizier query for Gaia DR1
     #Taken from example at: github.com/mommermi/photometrypipeline
     vquery = Vizier(columns=['RA_ICRS', 'DE_ICRS',
@@ -256,7 +271,8 @@ def get_gaia_coords(img,ota,inst,output='test.gaia',cluster=False,**kwargs):
                                               frame='icrs'),
                                      radius=cone_radius*u.deg,
                                      catalog=['I/337/gaia'])[0]
-
+    
+    print gaia_table
     #Gaia on tap no longer working. vizier might be more stable
     # print 'Retrieving Gaia sources for: ', ota
     #ota_gaia_sources = cone_search(ota_center_radec[0][0],
@@ -284,8 +300,9 @@ def get_gaia_coords(img,ota,inst,output='test.gaia',cluster=False,**kwargs):
                                 #   (ota_gaia_df.phot_g_mean_mag <= G_lim)]
         gaia_table = gaia_table[gaia_table['dis'] > min_radius]
 
-    ra_min, ra_max = coord1[0][0],coord2[0][0]
-    dec_min, dec_max = coord1[0][1],coord3[0][1]
+    ra_min, ra_max = coord3[0],coord1[0]
+    dec_min, dec_max = coord1[1],coord3[1]
+    print ra_min, ra_max, dec_min, dec_max
 
     gaia_table_cut = gaia_table[(gaia_table['RA_ICRS'] > ra_min) &
                                 (gaia_table['RA_ICRS'] < ra_max) &
@@ -305,7 +322,7 @@ def get_gaia_coords(img,ota,inst,output='test.gaia',cluster=False,**kwargs):
     ota_gaia_df.to_csv(gaia_catalog_out,
                        columns=['ra', 'dec','phot_g_mean_mag','e_ra','e_dec'],
                        index=False)
-
+    return ota_gaia_df
 
 def main():
     pass

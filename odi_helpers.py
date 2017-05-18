@@ -657,14 +657,56 @@ def find_ref_image(images):
         ref_img = np.argmin(np.array(ams))
     print 'reference image:',images[ref_img].stem()
     return ref_img
-
+    
+def imalign(images, square=False):
+    from astropy.wcs import WCS
+    from astropy.io import fits
+    # fetch a gaia catalog for the full image footprint
+    outputg = images[0].f+'.gaia'
+    gaia_cat = odi.get_gaia_coords(images[0], ota='None', inst='5odi', output=outputg)
+    # print gaia_cat
+    # convert the ra, dec to image coordinates in each image
+    # first get the wcs for each image
+    # (pick the first image as a "reference")
+    hdu_ref = fits.open(images[0].f)
+    w_ref = WCS(hdu_ref[0].header)
+    x_ref, y_ref = w_ref.all_world2pix(gaia_cat.ra, gaia_cat.dec, 1)
+    # compute the pair-wise integer pixel shifts for each image
+    x_shift = {}
+    y_shift = {}
+    naxis1 = {}
+    naxis2 = {}
+    for img in images:
+        hdu_img = fits.open(img.f)
+        naxis1[img.f] = hdu_img[0].header['NAXIS1']
+        naxis2[img.f] = hdu_img[0].header['NAXIS2']
+        w_img = WCS(hdu_img[0].header)
+        x_img, y_img = w_img.all_world2pix(gaia_cat.ra, gaia_cat.dec, 1)
+        x_shift[img.f], y_shift[img.f] = np.rint(np.median(x_ref-x_img)), np.rint(np.median(y_ref-y_img))
+    
+    
+    print x_shift, y_shift, naxis1, naxis2
+    # shift the images so that they are aligned to the "reference"
+    max_xshift = max(np.abs(x_shift.values()))
+    max_yshift = max(np.abs(y_shift.values()))
+    new_x_hdim = int(naxis1[images[0].f] - 2*max_xshift - 2)/2
+    new_y_hdim = int(naxis2[images[0].f] - 2*max_yshift - 2)/2
+    
+    for img in images:
+        xcent, ycent = int((naxis1[img.f]/2)-x_shift[img.f]), int((naxis2[img.f]/2)-y_shift[img.f])
+        if square: 
+            ledge, redge = xcent-min(new_x_hdim, new_y_hdim), xcent+min(new_x_hdim, new_y_hdim)
+            bedge, tedge = ycent-min(new_x_hdim, new_y_hdim), ycent+min(new_x_hdim, new_y_hdim)
+        else:
+            ledge, redge = xcent-new_x_hdim, xcent+new_x_hdim
+            bedge, tedge = ycent-new_y_hdim, ycent+new_y_hdim
+        trim_img = '{:s}[{:d}:{:d},{:d}:{:d}]'.format(img.f, ledge, redge, bedge, tedge)
+        new_img = img.f[:-5]+'_match.fits'
+        iraf.imcopy(trim_img, new_img)
+    
 def main():
-    f = '20161029T045610.1_HI0932+24_odi_g.6928.fits'
-    d = 1
-    instrument = '5odi'
-    img = odi.ODIImage(f, d, instrument)
-    for ota in odi.odi5_dictionary.values():
-        x = is_guide_ota(img, ota)
+    images = [odi.StackedImage('AGC198511_odi_g.fits'),odi.StackedImage('AGC198511_odi_i.fits')]
+    imalign(images)
 
 if __name__ == '__main__':
     main()

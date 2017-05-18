@@ -108,6 +108,10 @@ class ODIImage:
         
     def base(self):
         return repr(self.d)+str(self.f[17:-5])
+        
+class StackedImage:
+    def __init__(self, filename):
+        self.f = filename
 
 bpmdirectory = 'bpmasks'
 if not os.path.exists(bpmdirectory):

@@ -115,5 +115,6 @@ for filter in filters:
     # finally stack the images
     if stack_flag:
         stacked_img = odi.stack_images(object_str, ref_img)
+        # stack = odi.StackedImage(stacked_image)
     else:
         print 'stacking not performed, set flag in config.yaml'
