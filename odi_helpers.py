@@ -404,7 +404,7 @@ def stack_images(stackname, refimg):
     print refimg
     fitsref = fits.open(refimg.f)
     hduref = fitsref[0]
-    objname = hduref.header['object'].replace(' ','_')
+    objname = stackname #hduref.header['object'].replace(' ','_')
     filter_name = hduref.header['filter']
     ref_airmass = hduref.header['airmass']
     sky_med, sky_mean, sky_std = odi.find_new_bg(refimg, filter_name)
@@ -412,6 +412,7 @@ def stack_images(stackname, refimg):
     # sky_med = hduref.header['skybg']
     output = stackname+'_'+filter_name+'.fits'
     output_bpm = stackname+'_'+filter_name+'_bpm.pl'
+    print '@'+objname+'_'+filter_name+'_stack.list'
     if not os.path.isfile(output):
         iraf.unlearn(iraf.immatch.imcombine, iraf.imutil.imarith)
         iraf.immatch.imcombine('@'+objname+'_'+filter_name+'_stack.list', 'temp', combine='average', reject='none', offsets='wcs', masktype='goodvalue', maskval=0, blank=-999, scale='none', zero='none', lthresh=-900, hthresh=60000)
