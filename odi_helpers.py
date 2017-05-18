@@ -357,7 +357,7 @@ def make_stack_list(object, filter, inst):
     scaled_imgs = glob.glob(odi.scaledpath+'*'+filter+'*.fits')
     #sort glob list to match order in 'derived_props.txt'
     #this will sort on the dither number in the config file.
-    scaled_imgs = sorted(scaled_imgs, key=lambda x: x[17:18].strip(['_']))
+    scaled_imgs = sorted(scaled_imgs, key=lambda x: x[17:18].strip('_'))
     # head = scaled_imgs[0][:14]
     # Need to make a list of tails. The Job IDs will not always be the same
     # if different QR jobs were run (e.g. mix of user and operator images).
