@@ -311,7 +311,7 @@ def is_guide_ota(img, ota):
     """
     from astropy.io import fits
     from photutils.segmentation import detect_sources, source_properties, properties_table
-    
+    guide = False
     check_ota = 'illcor_'+ota+'.'+img.stem()
     hdu = fits.open(check_ota)
     data = hdu[0].data
@@ -327,7 +327,8 @@ def is_guide_ota(img, ota):
         corners.append(np.median(bgrat))
     med_ratio = np.median(corners)
     print med_ratio
-    guide = True
+    if med_ratio > 3.:
+        guide = True
     return guide
 
 def make_stack_list(object, filter, inst):
@@ -349,35 +350,28 @@ def make_stack_list(object, filter, inst):
 
     """
 
-    img, ota, filt = np.loadtxt('derived_props.txt', usecols=(0,1,2), dtype=str, unpack=True)
-    fwhm, zp_med, zp_std, bg_mean, bg_med, bg_std = np.loadtxt('derived_props.txt', usecols=(3,4,5,6,7,8), dtype=float, unpack=True)
-
-    keep = np.where(filt==filter)
-    bg_std_med, bg_std_std = np.median(bg_std[keep]), np.std(bg_std[keep])
-    # print bg_std_med, bg_std_std
+    # img, ota, filt = np.loadtxt('derived_props.txt', usecols=(0,1,2), dtype=str, unpack=True)
+    # fwhm, zp_med, zp_std, bg_mean, bg_med, bg_std = np.loadtxt('derived_props.txt', usecols=(3,4,5,6,7,8), dtype=float, unpack=True)
+    # 
+    # keep = np.where(filt==filter)
     scaled_imgs = glob.glob(odi.scaledpath+'*'+filter+'*.fits')
     #sort glob list to match order in 'derived_props.txt'
     #this will sort on the dither number in the config file.
-    scaled_imgs = sorted(scaled_imgs, key=lambda x: int(x[24]))
-    head = scaled_imgs[0][:14]
+    scaled_imgs = sorted(scaled_imgs, key=lambda x: x[17:18].strip(['_']))
+    # head = scaled_imgs[0][:14]
     # Need to make a list of tails. The Job IDs will not always be the same
     # if different QR jobs were run (e.g. mix of user and operator images).
     # old definition tail = scaled_imgs[0][25:]
-    tail = []
-    for name in scaled_imgs:
-        tail.append(name[25:])
-    if not os.path.isfile(object+'_'+filter+'_stack.list'):
-        with open(object+'_'+filter+'_stack.list','w+') as stack_file:
-            if inst == 'podi':
-                # don't exclude any otas from podi data, the guide otas are probably not here anyway
-                for j,im in enumerate(img[keep]):
-                    print >> stack_file, head+ota[j]+'.'+im+tail[j]
-            else:
-                for j,im in enumerate(img[keep]):
-                    factor = np.absolute(bg_std[keep][j] - bg_std_med)/bg_std_std
-                    # print head+ota[j]+'.'+im+tail, factor
-                    if factor < 2.:
-                        print >> stack_file, head+ota[j]+'.'+im+tail[j]
+    # tail = []
+    # for name in scaled_imgs:
+    #     tail.append(name[25:])
+    if not os.path.isfile(object.replace(' ','_')+'_'+filter+'_stack.list'):
+        with open(object.replace(' ','_')+'_'+filter+'_stack.list','w+') as stack_file:
+            for j,im in enumerate(scaled_imgs):
+                # guide = odi.is_guide_ota(im, ota[j])
+                # # print head+ota[j]+'.'+im+tail, factor
+                # if not guide:
+                print >> stack_file, im
 
 
 def stack_images(stackname, refimg):
