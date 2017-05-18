@@ -19,7 +19,7 @@ def main():
     funpack_path = '/usr/bin/fpack'
     
     # replace any spaces in the object name with -nothing-
-    object_str = object_str.replace(' ','')
+    object_str = object_str.replace(' ','_')
     
     # get today's date
     today = datetime.date.today()
