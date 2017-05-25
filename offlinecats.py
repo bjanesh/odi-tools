@@ -205,7 +205,7 @@ def get_2mass_coords_offline(img, ota, inst,output='test.mass'):
 def get_gaia_coords(img,ota,inst,output='test.gaia',cluster=False,**kwargs):
     """
     Query the online Gaia DR1 based on the central coordinates of the current
-    OTA. If the ``cluster`` flag is set to ``True``, the querey will avoid
+    OTA. If the ``cluster`` flag is set to ``True``, the query will avoid
     a crowded region based on coordinates and a radius set by the user in
     the configuration files.
 
@@ -226,37 +226,34 @@ def get_gaia_coords(img,ota,inst,output='test.gaia',cluster=False,**kwargs):
         from astropy import __version__ as astropyversion
     except ImportError:
         print "astroquery not installed"
-        print "try  pip --user --no-deps install astroquery or contact admin"
+        print "try  pip install astroquery --user --no-deps  or contact admin"
     hdulist = fits.open(img.f)
     if ota=='None':
         hdu_ota = hdulist[0]
 
     else:
         hdu_ota = odi.tan_header_fix(hdulist[ota])
-        
+
     w = WCS(hdu_ota.header)
-    
+
     naxis1 = hdu_ota.header['NAXIS1']
     naxis2 = hdu_ota.header['NAXIS2']
     ota_center_radec = w.wcs_pix2world([[naxis1/2.,naxis2/2.]],1)
-    
+
     corners = w.calc_footprint()
     coord1 = corners[0]
     coord2 = corners[1]
     coord3 = corners[2]
     coord4 = corners[3]
-    
-    # coord1 = w.wcs_pix2world([[1,1]],1)
-    # coord2 = w.wcs_pix2world([[4036,1]],1)
-    # coord3 = w.wcs_pix2world([[4036,4015]],1)
-    # coord4 = w.wcs_pix2world([[1,4015]],1)
+
+
     center_skycoord = SkyCoord(ota_center_radec[0][0]*u.deg,
                                ota_center_radec[0][1]*u.deg,frame='icrs')
     corner_skycoord = SkyCoord(coord2[0]*u.deg,
                                coord2[1]*u.deg,frame='icrs')
     cone_radius = center_skycoord.separation(corner_skycoord).value
-    print naxis1/2., naxis2/2., cone_radius
-    
+    # print naxis1/2., naxis2/2., cone_radius
+
     #Set up vizier query for Gaia DR1
     #Taken from example at: github.com/mommermi/photometrypipeline
     vquery = Vizier(columns=['RA_ICRS', 'DE_ICRS',
@@ -271,8 +268,8 @@ def get_gaia_coords(img,ota,inst,output='test.gaia',cluster=False,**kwargs):
                                               frame='icrs'),
                                      radius=cone_radius*u.deg,
                                      catalog=['I/337/gaia'])[0]
-    
-    print gaia_table
+
+    # print gaia_table
     #Gaia on tap no longer working. vizier might be more stable
     # print 'Retrieving Gaia sources for: ', ota
     #ota_gaia_sources = cone_search(ota_center_radec[0][0],
@@ -302,7 +299,7 @@ def get_gaia_coords(img,ota,inst,output='test.gaia',cluster=False,**kwargs):
 
     ra_min, ra_max = coord3[0],coord1[0]
     dec_min, dec_max = coord1[1],coord3[1]
-    print ra_min, ra_max, dec_min, dec_max
+    # print ra_min, ra_max, dec_min, dec_max
 
     gaia_table_cut = gaia_table[(gaia_table['RA_ICRS'] > ra_min) &
                                 (gaia_table['RA_ICRS'] < ra_max) &

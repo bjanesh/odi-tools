@@ -30,7 +30,7 @@ autodoc_mock_imports = ['astropy.photutils','numpy','astropy','pyraf','numpy.ma'
                         'astropy.wcs.utils','astropy.nddata','numpy.lib.index_tricks',
                         'photutils.detection','scipy.ndimage','photutils.utils',
                         'astropy.visualization.mpl_normalize','astropy.modeling',
-                        'tqdm','gaia.tap']
+                        'tqdm','gaia.tap','astroquery.vizier']
 
 # -- General configuration ------------------------------------------------
 
