@@ -697,7 +697,7 @@ def imalign(images, square=False):
             bedge, tedge = ycent-new_y_hdim, ycent+new_y_hdim
         trim_img = '{:s}[{:d}:{:d},{:d}:{:d}]'.format(img.f, ledge, redge, bedge, tedge)
         new_img = img.f[:-5]+'_match.fits'
-        iraf.imcopy(trim_img, new_img)
+        # iraf.imcopy(trim_img, new_img)
     
 def main():
     images = [odi.StackedImage('AGC198511_odi_g.fits'),odi.StackedImage('AGC198511_odi_i.fits')]
