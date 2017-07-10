@@ -297,7 +297,7 @@ def get_gaia_coords(img,ota,inst,output='test.gaia',cluster=False,**kwargs):
                                 #   (ota_gaia_df.phot_g_mean_mag <= G_lim)]
         gaia_table = gaia_table[gaia_table['dis'] > min_radius]
 
-    ra_min, ra_max = coord3[0],coord1[0]
+    ra_max, ra_min = coord3[0],coord1[0]
     dec_min, dec_max = coord1[1],coord3[1]
     # print ra_min, ra_max, dec_min, dec_max
 
@@ -307,17 +307,17 @@ def get_gaia_coords(img,ota,inst,output='test.gaia',cluster=False,**kwargs):
                                 (gaia_table['DE_ICRS'] < dec_max)]
     gaia_table_cut['e_RA_ICRS'].convert_unit_to(u.deg)
     gaia_table_cut['e_DE_ICRS'].convert_unit_to(u.deg)
-
+    # print gaia_table_cut
     ota_gaia_df = gaia_table_cut.to_pandas()
 
     cols_needed = ['RA_ICRS','DE_ICRS','__Gmag_','e_RA_ICRS','e_DE_ICRS']
 
     ota_gaia_df = ota_gaia_df[cols_needed]
-    ota_gaia_df.columns = ['ra', 'dec','phot_g_mean_mag','e_ra','e_dec']
-
+    ota_gaia_df.columns = ['ra', 'dec','__Gmag_','e_ra','e_dec']
+    # print ota_gaia_df
     gaia_catalog_out = output
     ota_gaia_df.to_csv(gaia_catalog_out,
-                       columns=['ra', 'dec','phot_g_mean_mag','e_ra','e_dec'],
+                       columns=['ra', 'dec','__Gmag_','e_ra','e_dec'],
                        index=False)
     return ota_gaia_df
 
