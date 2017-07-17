@@ -96,9 +96,9 @@ def mask_ota(img, ota, reproj=False, deep_obj=False):
     if deep_obj:
       mask_name = 'objmask_'+ota+'.fits'
       # BPM = mask_name.replace('fits','pl')
-      if not os.path.isfile(bppath+mask_name):
+      if not os.path.isfile(odi.bppath+mask_name):
           hdu = odi.fits.PrimaryHDU(source_mask2.astype(float))
-          hdu.writeto(bppath+mask_name,clobber=True)
+          hdu.writeto(odi.bppath+mask_name,clobber=True)
 
       ota_mask = 'objmask_'+ota+'.'+str(img.dither())+'.fits'
 
