@@ -232,6 +232,8 @@ def cfgparse(cfg_file, verbose=True):
 		If ``True`` the OTAs will be scaled to the same level before stacking
 	stack_flag : bool
 		If ``True`` the processed OTAs will be stacked into a final image
+	align_flag : bool
+		If ``True`` the stacked images will be aligned using pixel shifts computed from the gaia catalog
 	gaia_flag : bool
 		If ``True`` the gaia catalog will be used as the sources in the fix WCS
 		step
@@ -268,6 +270,7 @@ def cfgparse(cfg_file, verbose=True):
 		wcs_flag = (data['processing'])['wcs_correction']
 		reproject_flag = (data['processing'])['reproject']
 		stack_flag = (data['processing'])['stack_images']
+		align_flag = (data['processing'])['align_images']
 		gaia_flag = (data['processing'])['get_gaia']
 		cluster_flag = (data['processing'])['cluster_field']
 		ra_center = (data['processing'])['ra_center']
@@ -297,6 +300,7 @@ def cfgparse(cfg_file, verbose=True):
 			print 'reprojection:           ', reproject_flag
 			print 'scaling:                ', scale_flag
 			print 'stacking:               ', stack_flag
+			print 'aligning:               ', align_flag
 			print '----------------------------------'
 			print 'Images:'
 			print '----------------------------------'
@@ -324,7 +328,7 @@ def cfgparse(cfg_file, verbose=True):
 					except KeyError:
 						dither_string = dither_string + '--no data'+'-'*(len(data[filter][1])-9)+' '
 				print dither_string        
-		return object_str, filters, instrument, images, illcor_flag, skyflat_src, wcs_flag, reproject_flag, scale_flag, stack_flag, gaia_flag, cluster_flag, ra_center, dec_center, min_radius
+		return object_str, filters, instrument, images, illcor_flag, skyflat_src, wcs_flag, reproject_flag, scale_flag, stack_flag, align_flag, gaia_flag, cluster_flag, ra_center, dec_center, min_radius
 
 def photcfgparse(cfg_file):
 	"""
