@@ -753,14 +753,8 @@ def get_gaia_coords(img,ota,inst,output='test.gaia',cluster=False,**kwargs):
                                      radius=cone_radius*u.deg,
                                      catalog=['I/337/gaia'])[0]
 
-    print gaia_table
-    #Gaia on tap no longer working. vizier might be more stable
-    # print 'Retrieving Gaia sources for: ', ota
-    #ota_gaia_sources = cone_search(ota_center_radec[0][0],
-    #                               ota_center_radec[0][1],
-    #                               cone_radius)
-
-    # ota_gaia_df = ota_gaia_sources.to_pandas()
+    # print gaia_table
+    
     hdulist.close()
     if cluster == True:
         try:
