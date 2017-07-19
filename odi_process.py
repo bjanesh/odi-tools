@@ -6,11 +6,11 @@ import astropy as ast
 import matplotlib.pyplot as plt
 from pyraf import iraf
 from tqdm import tqdm
-import odi_config as odi
-import glob
 import shutil
 import pandas as pd
 import time
+
+import odi_config as odi
 
 try:
     object_str, filters, instrument, images, illcor_flag, skyflat_src, wcs_flag, reproject_flag, scale_flag, stack_flag, align_flag, gaia_flag, cluster_flag, ra_center, dec_center, min_radius = odi.cfgparse('config.yaml')
@@ -30,7 +30,6 @@ if gaia_flag:
 else:
     source = 'sdss'
 inst = odi.instrument(images_[0])
-#source = 'twomass'
 
 #Create offline catalogs
 for img in images_:

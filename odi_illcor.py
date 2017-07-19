@@ -1,7 +1,5 @@
 import sys, os, glob, string
 import numpy as np
-import astropy as ast
-import matplotlib.pyplot as plt
 from pyraf import iraf
 from tqdm import tqdm
 
