@@ -1277,7 +1277,7 @@ def imalign(images, square=False):
     iraf.imdelete('temp_ref.fits')
     
 def main():
-    images = [odi.StackedImage('AGC198511_odi_g.fits'),odi.StackedImage('AGC198511_odi_i.fits')]
+    images = [odi.StackedImage('AGC249320_odi_g.fits'),odi.StackedImage('AGC249320_odi_i.fits')]
     imalign(images)
 
 if __name__ == '__main__':
