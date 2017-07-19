@@ -12,7 +12,7 @@ import shutil
 import pandas as pd
 
 try:
-    object_str, filters, instrument, images, illcor_flag, skyflat_src, wcs_flag, reproject_flag, scale_flag, stack_flag, gaia_flag, cluster_flag, ra_center, dec_center, min_radius = odi.cfgparse('config.yaml')
+    object_str, filters, instrument, images, illcor_flag, skyflat_src, wcs_flag, reproject_flag, scale_flag, stack_flag, align_flag, gaia_flag, cluster_flag, ra_center, dec_center, min_radius = odi.cfgparse('config.yaml')
 except IOError:
     print 'config.yaml does not exist, quitting...'
     exit()
@@ -26,7 +26,7 @@ id_d = zip(imgnum,ota_d,filt_d)
 fwhm_dict = dict(zip(id_d,fwhm_d))
 
 run_detect = False
-
+align_these = []
 for filter in filters:
     # Scaling with all sources
     images_ = images[filter]
@@ -115,6 +115,10 @@ for filter in filters:
     # finally stack the images
     if stack_flag:
         stacked_img = odi.stack_images(object_str, ref_img)
-        # stack = odi.StackedImage(stacked_image)
+        align_these.append(odi.StackedImage(stacked_img))
     else:
         print 'stacking not performed, set flag in config.yaml'
+    
+# if the option is turned on, align the images with pixel shifts
+if align_flag:
+    odi.imalign(align_these)

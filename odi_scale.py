@@ -501,3 +501,15 @@ def sdss_source_props_ota(img,ota):
     elong_med,elong_std = np.median(source_tbl['elongation']),np.std(source_tbl['elongation'])
     hdulist.close()
     return elong_med,elong_std,np.mean(total_fwhm),np.std(total_fwhm)
+    
+def scale_ota(img, ota, scale):
+    image = odi.bgsubpath+'bgsub_'+ota+'.'+img.stem()
+    imout = odi.scaledpath+'scaled_'+ota+'.'+img.stem()
+    iraf.unlearn(iraf.imutil.imarith)
+    iraf.imutil.imarith.setParam('operand1',image)
+    iraf.imutil.imarith.setParam('op','/')
+    iraf.imutil.imarith.setParam('operand2',scale)
+    iraf.imutil.imarith.setParam('result',imout)
+    iraf.imutil.imarith.setParam('verbose','yes')
+    iraf.imutil.imarith(mode='h')
+    return

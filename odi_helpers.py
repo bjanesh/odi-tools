@@ -65,6 +65,446 @@ def get_targ_ra_dec(img, ota):
 
     return ra, dec
     hdulist.close()
+    
+def list_wcs_coords(img, ota, gapmask, inst,output='radec.coo', gmaglim=20., stars_only=True, offline = False, source = 'sdss'):
+    """
+    Create the files needed to fix the WCS solution on a given ota. This
+    function will create lists of SDSS, 2MASS, or Gaia sources depending on the
+    options selected by the user. If this function is run in the ``offline``
+    mode, the source catalogs will be taken from the files produced by
+    :py:func:`offlinecats`
+
+    Parameters
+    ----------
+    img : str
+        Name of image
+    ota : str
+        Name of OTA
+    gapmask : numpy array
+        A numpy array of the gap location on the ota. This can be produced by
+        the function :py:func:`get_gaps.get_gaps`. The gap mask is used to
+        filter out stars that fall in or near gaps on the ota.
+    int : str
+        Version of ODI used, ``podi`` or ``5odi``
+    output : str
+        Desired name of the output catalog
+    gmaglim : float
+        Magnitude limit in the g band for sources that will be included in the
+        catalogs. This might need to be adjusted according to your data. If it
+        is too bright, there might not be enough sources to produces a good
+        WCS solution.
+    stars_only : bool
+        When using SDSS sources this only includes sources flagged as stars
+    offline : bool
+        When ``True`` this function will use the catalogs produced by
+        :py:func:`offlinecats`. If ``False`` this function will query the
+        online ``SDSS`` catalog for sources.
+    source : str
+        Name of desired source catalog. Must be either ``sdss``,``twomass``, or
+        ``gaia``.
+
+    Note
+    ----
+    This functions produces three files for each ota in the ``coords``
+    directory with the following naming scheme:
+
+    1. ``img.nofits()+'.'+ota+'.radec.coo'``
+    2. ``img.nofits()+'.'+ota+'.radec.coo.px'``
+    3. ``img.nofits()+'.'+ota+'.sdssxy'``
+    """
+
+    if offline == False:
+        xdim, ydim = odi.get_sdss_coords(img, ota, inst,output=odi.coordspath+img.nofits()+'.'+ota+'.sdss')
+        ras,decs,psfMag_u,psfMagErr_u,psfMag_g,psfMagErr_g,psfMag_r,psfMagErr_r,psfMag_i,psfMagErr_i,psfMag_z,psfMagErr_z = np.loadtxt(odi.coordspath+img.nofits()+'.'+ota+'.sdss',usecols=(0,1,2,3,4,5,6,7,8,9,10,11), unpack=True, delimiter=',', skiprows=2)
+        probPSF = np.loadtxt(odi.coordspath+img.nofits()+'.'+ota+'.sdss', usecols=(12,), dtype=int, unpack=True, delimiter=',', skiprows=2)
+        coords2 = zip(ras[np.where((psfMag_g<gmaglim) & (probPSF==1))],decs[np.where((psfMag_g<gmaglim) & (probPSF==1))])
+    if offline == True and source == 'sdss':
+        sdss_cat = odi.sdsspath+'offline_'+ota+'.'+img.base()+'.sdss'
+        print 'Using Ra and Dec from:', sdss_cat,'for fixwcs'
+        ras,decs,psfMag_u,psfMagErr_u,psfMag_g,psfMagErr_g,psfMag_r,psfMagErr_r,psfMag_i,psfMagErr_i,psfMag_z,psfMagErr_z = np.loadtxt(sdss_cat,usecols=(0,1,2,3,4,5,6,7,8,9,10,11), unpack=True, delimiter=',', skiprows=1)
+        coords2 = zip(ras[np.where(psfMag_g<gmaglim)],decs[np.where(psfMag_g<gmaglim)])
+    if offline == True and source == 'twomass':
+        twomass_cat = odi.twomasspath+'offline_'+ota+'.'+img.base()+'.mass'
+        ras,decs = np.loadtxt(twomass_cat,usecols=(2,3), unpack=True, delimiter=',', skiprows=1)
+        # Just creating dummy variables so that the file formats remain the same for other functions
+        psfMag_u       = np.ones(len(ras))
+        psfMagErr_u    = np.ones(len(ras))
+        psfMag_g       = np.ones(len(ras))
+        psfMagErr_g    = np.ones(len(ras))
+        psfMag_r       = np.ones(len(ras))
+        psfMagErr_r    = np.ones(len(ras))
+        psfMag_i       = np.ones(len(ras))
+        psfMagErr_i    = np.ones(len(ras))
+        psfMag_z       = np.ones(len(ras))
+        psfMagErr_z    = np.ones(len(ras))
+        coords2 = zip(ras,decs)
+    if source == 'gaia':
+        gaia_cat = odi.gaiapath+'offline_'+ota+'.'+img.base()+'.gaia'
+        ras,decs = np.loadtxt(gaia_cat,usecols=(0,1), unpack=True, delimiter=',', skiprows=1)
+        # Just creating dummy variables so that the file formats remain the same
+        # for other functions
+        psfMag_u       = np.ones(len(ras))
+        psfMagErr_u    = np.ones(len(ras))
+        psfMag_g       = np.ones(len(ras))
+        psfMagErr_g    = np.ones(len(ras))
+        psfMag_r       = np.ones(len(ras))
+        psfMagErr_r    = np.ones(len(ras))
+        psfMag_i       = np.ones(len(ras))
+        psfMagErr_i    = np.ones(len(ras))
+        psfMag_z       = np.ones(len(ras))
+        psfMagErr_z    = np.ones(len(ras))
+        coords2 = zip(ras,decs)
+
+    hdulist = odi.fits.open(img.f)
+    hdu = odi.tan_header_fix(hdulist[ota])
+
+    if offline == True:
+        xdim = hdu.header['NAXIS1']
+        ydim = hdu.header['NAXIS2']
+
+    w = odi.WCS(hdu.header)
+    pixcrd2 = w.wcs_world2pix(coords2, 1)
+    pixid = []
+    with open(odi.coordspath+output,'w+') as f:
+        with open(odi.coordspath+output+'.pix', 'w+') as fp:
+            with open(odi.coordspath+img.nofits()+'.'+ota+'.sdssxy', 'w+') as fxy:
+                for i,c in enumerate(coords2):
+                    if  20.0 <= pixcrd2[i,0] < xdim-100.0 and 20.0 <= pixcrd2[i,1] < ydim-100.0:
+                        # make an image cutout of the gap mask
+                        x, y = int(round(pixcrd2[i,0])), int(round(pixcrd2[i,1]))
+                        cutout = gapmask[y-30:y+30,x-30:x+30]
+                        # print cutout
+                        if not (cutout.astype(bool)).any():
+                            pixid.append(i)
+                            r, d = odi.deg_to_sex(c[0], c[1])
+                            print >> f, r, d, psfMag_g[i]
+                            print >> fp, pixcrd2[i,0], pixcrd2[i,1], i, 'm'
+                            print >> fxy, pixcrd2[i,0], pixcrd2[i,1], ras[i],decs[i],psfMag_u[i],psfMagErr_u[i],psfMag_g[i],psfMagErr_g[i],psfMag_r[i],psfMagErr_r[i],psfMag_i[i],psfMagErr_i[i],psfMag_z[i],psfMagErr_z[i]
+
+    pixid = np.array(pixid)
+    pixcrd3 = pixcrd2[pixid]
+    hdulist.close()
+    return pixcrd3
+
+def fix_wcs(img, ota, coords='radec.coo', iters=3):
+    """
+    Try to improve the WCS solution of an OTA using the IRAF task ``msccmatch``.
+    This function will use the ``img.nofits()+'.'+ota+'.radec.coo'`` file produced
+    by :py:func:`list_wcs_coords`.
+
+    Parameters
+    ----------
+    img : str
+        Name of image
+    ota : str
+        Name of OTA
+    coords : str
+        Name of coordinate file
+    iter : int
+        Number of desired iterations of  ``msccmatch``. It is still being
+        tested, but one might be all that is necessary, especially if using the
+        Gaia catalog.
+
+    Note
+    ----
+    This function is set up to use the files in the ``illcor`` directory. The
+    following are the parameters used by ``msccmatch``.
+
+    - verbose='yes'
+    - usebpm='no'
+    - nsearch=250
+    - search=30
+    - rsearch=0.2
+    - cfrac=.5
+    - csig=0.1
+    - nfit=5
+    - rms=1.0
+    - maxshif=5.0
+    - fitgeom="general"
+    - update='yes'
+    - interac='yes'
+    - fit='no',
+    - accept='yes'
+    - Stdout=1
+    """
+    image = odi.illcorpath+'illcor_'+ota+'.'+img.stem()
+    iraf.mscred(_doprint=0)
+    iraf.unlearn(iraf.mscred.msccmatch)
+
+    for i in range(iters):
+        fix = iraf.msccmatch(input=image,
+                             coords=odi.coordspath+coords,
+                             usebpm='no',
+                             verbose='yes',
+                             nsearch=250,
+                             search=30,
+                             rsearch=0.2,
+                             cfrac=.5,
+                             csig=0.1,
+                             nfit=5,
+                             rms=1.0,
+                             maxshif=5.0,
+                             fitgeom="general",
+                             update='yes',
+                             interac='yes',
+                             fit='no',
+                             accept='yes',
+                             Stdout=1)
+        print 'fixing WCS for',img.f+'['+ota+'], iter ='+repr(i)
+        print fix[-6]
+        print fix[-5]
+        print fix[-4]
+        print fix[-3]
+        print fix[-2]
+
+def fix_wcs_full(img, coords='radec.coo', iters=1):
+    """
+    Try to improve the WCS solution of a final stacked image.
+
+    Parameters
+    ----------
+    img : str
+        Name of image
+    coords : str
+        Name of coordinate file
+    iter : int
+        Number of desired iterations of  ``msccmatch``. It is still being
+        tested, but one might be all that is necessary, especially if using the
+        Gaia catalog.
+
+    Note
+    ----
+    This function is set up to use the files in the ``illcor`` directory. The
+    following are the parameters used by ``msccmatch``.
+
+    - verbose='yes'
+    - usebpm='no'
+    - nsearch=250
+    - search=30
+    - rsearch=0.2
+    - cfrac=.5
+    - csig=0.1
+    - nfit=5
+    - rms=1.0
+    - maxshif=5.0
+    - fitgeom="general"
+    - update='yes'
+    - interac='yes'
+    - fit='no',
+    - accept='yes'
+    - Stdout=1
+    """
+    print coords
+    iraf.mscred(_doprint=0)
+    iraf.unlearn(iraf.mscred.msccmatch)
+    # otaext = {'33':'[1]','34':'[2]','44':'[3]','43':'[4]','42':'[5]','32':'[6]','22':'[7]','23':'[8]','24':'[9]'}
+    for i in range(iters):
+        fix = iraf.msccmatch(input=img,
+                             coords=coords,
+                             usebpm='no',
+                             verbose='yes',
+                             nsearch=250,
+                             search=30,
+                             rsearch=0.2,
+                             cfrac=.5,
+                             csig=0.1,
+                             nfit=5,
+                             rms=1.0,
+                             maxshif=5.0,
+                             fitgeom="general",
+                             update='yes',
+                             interac='yes',
+                             fit='no',
+                             accept='yes',
+                             Stdout=1)
+        print 'fixing WCS for',img.f+', iter ='+repr(i)
+        print fix[-6]
+        print fix[-5]
+        print fix[-4]
+        print fix[-3]
+        print fix[-2]
+
+def repair_bad_wcs(img, ota, refimg, refota):
+    print 'repairing bad wcs solution for',img.f+'['+ota+']...'
+    # get good CD matrix values from the reference image
+    # refimg = refimg.f+'['+refota+']'
+    refhdu = odi.fits.open(refimg)
+    pvlist = refhdu[refota].header['PV*']
+    for pv in pvlist:
+        tpv = 'T'+pv
+        refhdu[refota].header.rename_keyword(pv, tpv, force=False)
+    w_ref = odi.WCS(refhdu[refota].header)
+    print w_ref.wcs.cd, w_ref.wcs.crpix, w_ref.wcs.crval
+
+    # get the bad WCS info so we can do some checking
+    # image = img.f+'['+ota+']'
+    hdu = odi.fits.open(img.f)
+    pvlist = hdu[refota].header['PV*']
+    for pv in pvlist:
+        tpv = 'T'+pv
+        hdu[refota].header.rename_keyword(pv, tpv, force=False)
+    w = odi.WCS(hdu[ota].header)
+    print w.wcs.cd, w.wcs.crpix, w.wcs.crval
+
+def repair_wcs_keywords(img):
+    hdulist = odi.fits.open(img.f, mode='update')
+    existing_radesys = hdulist[0].header['RADESYS']
+    print img.f
+    print '--> Existing RADESYS value:', existing_radesys
+    correct_radesys = existing_radesys.strip("'").strip()
+    print '--> Correct RADESYS value:', correct_radesys
+    hdulist[0].header["RADESYS"] = correct_radesys
+    # print 'fixing CTYPES in OTA headers'
+    for k in tqdm(img.otas):
+        existing_ctype1 = hdulist[k].header['CTYPE1']
+        existing_ctype2 = hdulist[k].header['CTYPE2']
+        correct_ctype1 = existing_ctype1.replace('TAN','TPV')
+        correct_ctype2 = existing_ctype2.replace('TAN','TPV')
+        hdulist[k].header['CTYPE1'] = correct_ctype1
+        hdulist[k].header['CTYPE2'] = correct_ctype2
+
+    hdulist.flush()
+    hdulist.close()
+    
+def getfwhm_ota(img, ota, gaia=False, radius=4.0, buff=7.0, width=5.0):
+    """
+    Get a fwhm estimate for a single OTA using the SDSS catalog stars and
+    IRAF imexam (SLOW, but works). Adapted from Kathy Rohde's getfwhm script
+    (this implementation is simpler in practice). The radius, buff, and width
+    parameters are for the pyraf task rimexam. This fwhm measure comes from
+    a gaussian fittype.
+
+    The positions of the SDSS starts are pulled from a ``coords`` file. This
+    module automatically fetches the ``coords`` file for the ``img`` and ``ota``
+    being processed from the appropriate directory.
+
+    In addition to a median fwhm measurement this module will also
+    produce an ouputfile where the positions and fwhm of each source are stored.
+    This ``output`` file is used in other modules in the ``odi-tools`` software.
+    The name of this ``output`` file is generated based on the ``img`` and
+    ``ota``.
+
+    Parameters
+    -----------
+    img : str
+       String containing name of the image currently in use
+
+    ota : str
+       Name of ota extension to be used (e.g. OTA33.SCI)
+
+    Returns
+    --------
+    gfwhm : float
+          Median fwhm measure of sources found in the ota field.
+
+    Examples
+    --------
+    >>> img = 'img1.fits'
+    >>> ota = 'OTA33.SCI'
+    >>> gfwhm = getfwhm_ota(img,ota)
+
+    """
+    # coords= img.nofits()+'.'+ota+'.sdssxy'
+    image = odi.reprojpath+'reproj_'+ota+'.'+img.stem()
+    if gaia:
+        coords = odi.coordspath+'reproj_'+ota+'.'+img.base()+'.gaiaxy'
+    else:
+        coords = odi.coordspath+'reproj_'+ota+'.'+img.base()+'.sdssxy'
+    print image, coords
+    outputfile = odi.coordspath+img.nofits()+'.'+ota+'.fwhm.log'
+
+    iraf.tv.rimexam.setParam('radius',radius)
+    iraf.tv.rimexam.setParam('buffer',buff)
+    iraf.tv.rimexam.setParam('width',width)
+    iraf.tv.rimexam.setParam('rplot',20.)
+    iraf.tv.rimexam.setParam('center','yes')
+    # fit a gaussian, rather than a moffat profile (it's more robust for faint sources)
+    iraf.tv.rimexam.setParam('fittype','gaussian')
+    iraf.tv.rimexam.setParam('iterati',1)
+
+    if not os.path.isfile(outputfile):
+        iraf.tv.imexamine(image, frame=10, logfile = outputfile, keeplog = 'yes', defkey = "a", nframes=0, imagecur = coords,use_display='no',  StdoutG='/dev/null',mode='h')
+
+    outputfile_clean = open(outputfile.replace('.log','_clean.log'),"w")
+    for line in open(outputfile,"r"):
+        if not 'INDEF' in line:
+            outputfile_clean.write(line)
+        if 'INDEF' in line:
+            outputfile_clean.write(line.replace('INDEF','999'))
+    outputfile_clean.close()
+    os.rename(outputfile.replace('.log','_clean.log'),outputfile)
+    gfwhm = np.loadtxt(outputfile, usecols=(10,), unpack=True)
+    # hdulist = ast.io.fits.open(image)
+    # seeing = hdulist[0].header['FWHMSTAR']
+    # gfwhm = seeing/0.11
+    print 'median gwfhm in ota',ota+': ',np.median(gfwhm[np.where(gfwhm < 900.0)]),'pixels'# (determined via QR)'
+    return np.median(gfwhm[np.where(gfwhm < 900.0)])
+
+def getfwhm_full(img, radius=4.0, buff=7.0, width=5.0):
+    """
+    Get a fwhm estimate for a stacked image using the SDSS catalog stars and
+    IRAF imexam (SLOW, but works). Adapted from Kathy Rohde's getfwhm script
+    (this implementation is simpler in practice). The radius, buff, and width
+    parameters are for the pyraf task rimexam. This fwhm measure comes from
+    a gaussian fittype.
+
+    The positions of the SDSS starts are pulled from a ``coords`` file. This
+    module automatically fetches the ``coords`` file for the ``img`` and ``ota``
+    being processed from the appropriate directory.
+
+    In addition to a median fwhm measurement this module will also
+    produce an ouputfile where the positions and fwhm of each source are stored.
+    This ``output`` file is used in other modules in the ``odi-tools`` software.
+    The name of this ``output`` file is generated based on the ``img``.
+
+    Parameters
+    -----------
+    img : str
+       String containing name of the image currently in use
+
+
+    Returns
+    --------
+    gfwhm : float
+          Median fwhm measure of sources found in the ota field.
+
+    Examples
+    --------
+    >>> img = 'stack1.fits'
+    >>> gfwhm = getfwhm_full(img)
+
+    """
+    coords = img.nofits()+'.sdssxy'
+    outputfile = img.nofits()+'.fwhm.log'
+
+    iraf.tv.rimexam.setParam('radius',radius)
+    iraf.tv.rimexam.setParam('buffer',buff)
+    iraf.tv.rimexam.setParam('width',width)
+    iraf.tv.rimexam.setParam('rplot',20.)
+    iraf.tv.rimexam.setParam('center','yes')
+    # fit a gaussian, rather than a moffat profile (it's more robust for faint sources)
+    iraf.tv.rimexam.setParam('fittype','gaussian')
+    iraf.tv.rimexam.setParam('iterati',1)
+
+    if not os.path.isfile(outputfile):
+        iraf.tv.imexamine(img, frame=10, logfile = outputfile, keeplog = 'yes', defkey = "a", nframes=0, imagecur = coords, wcs = "logical", use_display='no',  StdoutG='/dev/null',mode='h')
+    outputfile_clean = open(outputfile.replace('.log','_clean.log'),"w")
+    for line in open(outputfile,"r"):
+        if not 'INDEF' in line:
+            outputfile_clean.write(line)
+        if 'INDEF' in line:
+            outputfile_clean.write(line.replace('INDEF','999'))
+    outputfile_clean.close()
+    os.rename(outputfile.replace('.log','_clean.log'),outputfile)
+    #
+    # # unfortunately we have to toss the first measured fwhm value from the median because of the file format
+    # # gfwhm = np.genfromtxt(outputfile, usecols=(3,), skip_header=4, skip_footer=3, unpack=True)
+    gfwhm = np.loadtxt(outputfile, usecols=(10,), unpack=True)
+    # hdulist = ast.io.fits.open(image)
+    # seeing = hdulist[0].header['FWHMSTAR']
+    # gfwhm = seeing/0.11
+    print 'median gwfhm in ',img.f+': ',np.median(gfwhm),'pixels'# (determined via QR)'
+    return np.median(gfwhm)
 
 def imcombine_lists(images, filters):
     """
@@ -167,6 +607,115 @@ def reproject_ota(img, ota, rad, decd, wcsref):
     iraf.mscred.mscimage(image,imout)
 
     return
+
+def bkg_boxes(hdu,nboxes,length,sources):
+    """
+    Function to calculate the sigma clipped statistics of a number of randomly
+    generated boxes over an ota.
+
+    Parameters
+    ----------
+    hdu : fits object
+        Hdulist that as been opened by astropy.fits.io
+
+    nboxes : int
+        Number of random boxes to generate over the ota
+
+    length : int
+        Length of side of box in pixels
+
+    sources : bool
+        If ``True`` any sources detected in a given box will be masked before
+        calculating the background statistics
+
+    Returns
+    -------
+    bg_stats : numpy array
+        Array containing the background stats of all of the boxes
+    bg_median : float
+        Median background level of the boxes
+    med_std : float
+        Median standard deviation of the background level in each box
+    std_std : float
+        Standard deviation of the standard deviations in each box
+    centers : list
+        Pixel centers of each box
+
+    """
+    image = hdu.data
+
+    #Get length of image in each axis
+    naxis1 = hdu.header['NAXIS1']
+    naxis2 = hdu.header['NAXIS2']
+
+    #generate the centers of n random boxes.
+
+    box_centers = np.random.randint(length,np.min([naxis1-length,naxis2-length]),size=(nboxes,2))
+
+    #divide length by 2
+    # another numpy error on wopr (can't convert to integer), so don't worry about integer arithmetic
+    side = length/2
+
+    bg_stats = []
+    centers = []
+    for center in range(len(box_centers)):
+        x1 = int(box_centers[center][0]-side)
+        x2 = int(box_centers[center][0]+side)
+        y1 = int(box_centers[center][1]-side)
+        y2 = int(box_centers[center][1]+side)
+
+        #Check to ensure that box is within image
+        if (x1 > side and x2 < naxis1-1.5*side) and (y1 > side and y2 < naxis2-1.5*side):
+            centers.append(box_centers[center])
+            """
+            The centers that are within the image bounds are returned
+            in case you need to examine the regions used.
+            """
+            box = image[x1:x2,y1:y2]
+
+            if np.isnan(box).any() == False and (box >= 0).all() == True:
+                """
+                Only boxes with non-negative values are kept.
+                This should help deal with cell gaps
+                The sigma and iter values might need some tuning.
+                """
+                mean, median, std = sigma_clipped_stats(box, sigma=3.0)
+                if std >= 2.0*np.sqrt(median):
+                    pass
+                else:
+                    if sources == False:
+                        bg_stats.append((mean, median, std))
+                    if sources == True:
+                        threshold = median + (std * 2.)
+                        segm_img = detect_sources(box, threshold, npixels=20)
+                        mask = segm_img.data.astype(np.bool)# turn segm_img into a mask
+                        selem = np.ones((10, 10))    # dilate using a 25x25 box
+                        mask2 = binary_dilation(mask, selem)
+                        #new_mask = mask_first_pass + mask2
+                        new_mask = mask2
+
+                        mean_mask, median_mask, std_mask = sigma_clipped_stats(box, sigma=3.0, mask=new_mask)
+                        bg_stats.append((mean_mask, median_mask, std_mask))
+
+    bg_stats = np.reshape(np.array(bg_stats),(len(bg_stats),3))
+    centers = np.reshape(np.array(centers),(len(centers),2))
+    #Calculate median std of Background
+    med_std = np.median(bg_stats[:,2])
+    #calculate standard deviation of the std values
+    std_std = np.std(bg_stats[:,2])
+    #median
+    bg_median = np.median(bg_stats[:,1])
+
+    #Locate the box that had the largest std
+    #Array will be returned for plotting if wanted
+    # max_std = np.argmax(bg_stats[:,2])
+    # max_center = centers[max_std]
+    # max_box = image[max_center[0]-side:max_center[0]+side,max_center[1]-side:max_center[1]+side]
+    # max_box is currently not needed.
+    max_box = 1.0
+
+    return bg_stats,bg_median,med_std,std_std,centers,max_box
+
 
 def bgsub_ota(img, ota, apply=False):
     """
@@ -656,48 +1205,76 @@ def find_ref_image(images):
 def imalign(images, square=False):
     from astropy.wcs import WCS
     from astropy.io import fits
+
+    img_ref = images[0]
+    img     = images[1]
+
     # fetch a gaia catalog for the full image footprint
-    outputg = images[0].f+'.gaia'
-    gaia_cat = odi.get_gaia_coords(images[0], ota='None', inst='5odi', output=outputg)
+    outputg = img_ref.f+'.gaia'
+    gaia_cat = odi.get_gaia_coords(images[0], ota='None', inst='podi', output=outputg)
     # print gaia_cat
     # convert the ra, dec to image coordinates in each image
     # first get the wcs for each image
     # (pick the first image as a "reference")
-    hdu_ref = fits.open(images[0].f)
+    hdu_ref = fits.open(img_ref.f)
+    naxis1_ref = hdu_ref[0].header['NAXIS1']
+    naxis2_ref = hdu_ref[0].header['NAXIS2']
     w_ref = WCS(hdu_ref[0].header)
     x_ref, y_ref = w_ref.all_world2pix(gaia_cat.ra, gaia_cat.dec, 1)
-    # compute the pair-wise integer pixel shifts for each image
-    x_shift = {}
-    y_shift = {}
-    naxis1 = {}
-    naxis2 = {}
-    for img in images:
-        hdu_img = fits.open(img.f)
-        naxis1[img.f] = hdu_img[0].header['NAXIS1']
-        naxis2[img.f] = hdu_img[0].header['NAXIS2']
-        w_img = WCS(hdu_img[0].header)
-        x_img, y_img = w_img.all_world2pix(gaia_cat.ra, gaia_cat.dec, 1)
-        x_shift[img.f], y_shift[img.f] = np.rint(np.median(x_ref-x_img)), np.rint(np.median(y_ref-y_img))
-    
-    
-    print x_shift, y_shift, naxis1, naxis2
+
+    hdu_img = fits.open(img.f)
+    naxis1 = hdu_img[0].header['NAXIS1']
+    naxis2 = hdu_img[0].header['NAXIS2']
+    w_img = WCS(hdu_img[0].header)
+    x_img, y_img = w_img.all_world2pix(gaia_cat.ra, gaia_cat.dec, 1)
+
+    # compute the pair-wise integer pixel shifts between the image and the reference
+    x_shift, y_shift = np.rint(np.median(x_ref-x_img)), np.rint(np.median(y_ref-y_img))
+
     # shift the images so that they are aligned to the "reference"
-    max_xshift = max(np.abs(x_shift.values()))
-    max_yshift = max(np.abs(y_shift.values()))
-    new_x_hdim = int(naxis1[images[0].f] - 2*max_xshift - 2)/2
-    new_y_hdim = int(naxis2[images[0].f] - 2*max_yshift - 2)/2
-    
-    for img in images:
-        xcent, ycent = int((naxis1[img.f]/2)-x_shift[img.f]), int((naxis2[img.f]/2)-y_shift[img.f])
-        if square: 
-            ledge, redge = xcent-min(new_x_hdim, new_y_hdim), xcent+min(new_x_hdim, new_y_hdim)
-            bedge, tedge = ycent-min(new_x_hdim, new_y_hdim), ycent+min(new_x_hdim, new_y_hdim)
-        else:
-            ledge, redge = xcent-new_x_hdim, xcent+new_x_hdim
-            bedge, tedge = ycent-new_y_hdim, ycent+new_y_hdim
-        trim_img = '{:s}[{:d}:{:d},{:d}:{:d}]'.format(img.f, ledge, redge, bedge, tedge)
-        new_img = img.f[:-5]+'_match.fits'
-        # iraf.imcopy(trim_img, new_img)
+    # use relative coordinates-- negative values are applied to the image, positives to the 'reference'
+    iraf.imcopy(img.f, 'temp.fits')
+    iraf.imcopy(img_ref.f, 'temp_ref.fits')
+
+    if x_shift < 0.0:
+        trim_img = 'temp.fits[{:d}:{:d},*]'.format(int(abs(x_shift))+1, naxis1)
+        iraf.imcopy(trim_img, 'temp.fits')
+    else:
+        trim_img = 'temp_ref.fits[{:d}:{:d},*]'.format(int(abs(x_shift))+1, naxis1_ref)
+        iraf.imcopy(trim_img, 'temp_ref.fits')
+
+    if y_shift < 0.0:
+        trim_img = 'temp.fits[*,{:d}:{:d}]'.format(int(abs(y_shift))+1, naxis2)
+        iraf.imcopy(trim_img, 'temp.fits')
+    else:
+        trim_img = 'temp_ref.fits[*,{:d}:{:d}]'.format(int(abs(y_shift))+1, naxis2_ref)
+        iraf.imcopy(trim_img, 'temp_ref.fits')
+
+    # then take any excess pixels off at the high end of the range in each dimension so that the images have identical dimensions
+    # select the smallest dimension in any image
+    new_img = img.f[:-5]+'_match.fits'
+    new_ref = img_ref.f[:-5]+'_match.fits'
+
+    hdu_tempref = fits.open('temp_ref.fits')
+    naxis1_tempref = hdu_tempref[0].header['NAXIS1']
+    naxis2_tempref = hdu_tempref[0].header['NAXIS2']
+
+    hdu_temp = fits.open('temp.fits')
+    naxis1_temp = hdu_temp[0].header['NAXIS1']
+    naxis2_temp = hdu_temp[0].header['NAXIS2']
+
+    min_xsize = min(naxis1_temp, naxis1_tempref)
+    min_ysize = min(naxis2_temp, naxis2_tempref)
+
+    trim_img = 'temp.fits[1:{:d},1:{:d}]'.format(int(min_xsize)-1, int(min_ysize)-1) 
+    trim_ref = 'temp_ref.fits[1:{:d},1:{:d}]'.format(int(min_xsize)-1, int(min_ysize)-1)
+
+    iraf.imcopy(trim_img, new_img)
+    iraf.imcopy(trim_ref, new_ref)    
+
+    # delete the temporary working images
+    iraf.imdelete('temp.fits')
+    iraf.imdelete('temp_ref.fits')
     
 def main():
     images = [odi.StackedImage('AGC198511_odi_g.fits'),odi.StackedImage('AGC198511_odi_i.fits')]
