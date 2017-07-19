@@ -679,7 +679,7 @@ def bkg_boxes(hdu,nboxes,length,sources):
                 This should help deal with cell gaps
                 The sigma and iter values might need some tuning.
                 """
-                mean, median, std = sigma_clipped_stats(box, sigma=3.0)
+                mean, median, std = odi.sigma_clipped_stats(box, sigma=3.0)
                 if std >= 2.0*np.sqrt(median):
                     pass
                 else:
@@ -687,14 +687,14 @@ def bkg_boxes(hdu,nboxes,length,sources):
                         bg_stats.append((mean, median, std))
                     if sources == True:
                         threshold = median + (std * 2.)
-                        segm_img = detect_sources(box, threshold, npixels=20)
+                        segm_img = odi.detect_sources(box, threshold, npixels=20)
                         mask = segm_img.data.astype(np.bool)# turn segm_img into a mask
                         selem = np.ones((10, 10))    # dilate using a 25x25 box
-                        mask2 = binary_dilation(mask, selem)
+                        mask2 = odi.binary_dilation(mask, selem)
                         #new_mask = mask_first_pass + mask2
                         new_mask = mask2
 
-                        mean_mask, median_mask, std_mask = sigma_clipped_stats(box, sigma=3.0, mask=new_mask)
+                        mean_mask, median_mask, std_mask = odi.sigma_clipped_stats(box, sigma=3.0, mask=new_mask)
                         bg_stats.append((mean_mask, median_mask, std_mask))
 
     bg_stats = np.reshape(np.array(bg_stats),(len(bg_stats),3))
