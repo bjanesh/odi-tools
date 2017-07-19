@@ -730,19 +730,11 @@ def get_gaia_coords(img,ota,inst,output='test.gaia',cluster=False,**kwargs):
     ota_center_radec = w.wcs_pix2world([[naxis1/2.,naxis2/2.]],1)
 
     corners = w.calc_footprint()
-    coord1 = corners[0]
-    coord2 = corners[1]
-    coord3 = corners[2]
-    coord4 = corners[3]
 
-    # coord1 = w.wcs_pix2world([[1,1]],1)
-    # coord2 = w.wcs_pix2world([[4036,1]],1)
-    # coord3 = w.wcs_pix2world([[4036,4015]],1)
-    # coord4 = w.wcs_pix2world([[1,4015]],1)
     center_skycoord = SkyCoord(ota_center_radec[0][0]*u.deg,
                                ota_center_radec[0][1]*u.deg,frame='icrs')
-    corner_skycoord = SkyCoord(coord2[0]*u.deg,
-                               coord2[1]*u.deg,frame='icrs')
+    corner_skycoord = SkyCoord(corners[0,0]*u.deg,
+                               corners[0,1]*u.deg,frame='icrs')
     cone_radius = center_skycoord.separation(corner_skycoord).value
     print naxis1/2., naxis2/2., cone_radius
 
@@ -789,9 +781,9 @@ def get_gaia_coords(img,ota,inst,output='test.gaia',cluster=False,**kwargs):
                                 #   (ota_gaia_df.phot_g_mean_mag <= G_lim)]
         gaia_table = gaia_table[gaia_table['dis'] > min_radius]
 
-    ra_min, ra_max = coord3[0],coord1[0]
-    dec_min, dec_max = coord1[1],coord3[1]
-    print ra_min, ra_max, dec_min, dec_max
+    ra_min, ra_max = min(corners[:,0]), max(corners[:,0])
+    dec_min, dec_max = min(corners[:,1]), max(corners[:,1])
+    # print ra_min, ra_max, dec_min, dec_max
 
     gaia_table_cut = gaia_table[(gaia_table['RA_ICRS'] > ra_min) &
                                 (gaia_table['RA_ICRS'] < ra_max) &
