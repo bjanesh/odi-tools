@@ -174,9 +174,9 @@
 <span class="sd">    Note</span>
 <span class="sd">    ----</span>
 <span class="sd">    Produces a coordinate file based on the name of the image.</span>
-<span class="sd">    The file name will be ``img[:-5]+_sources.coo``</span>
+<span class="sd">    The file name will be ``img.nofits()+_sources.coo``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">output</span> <span class="o">=</span> <span class="n">img</span><span class="p">[:</span><span class="o">-</span><span class="mi">5</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39;_sources.coo&#39;</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">nofits</span><span class="p">()</span><span class="o">+</span><span class="s1">&#39;_sources.coo&#39;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">output</span><span class="p">):</span>
         <span class="nb">print</span> <span class="s1">&#39;Locating sources on &#39;</span><span class="p">,</span><span class="n">img</span>
         <span class="nb">print</span> <span class="s1">&#39;Will output to &#39;</span><span class="p">,</span><span class="n">output</span>
@@ -210,13 +210,13 @@
 
 <span class="sd">    Note</span>
 <span class="sd">    ----</span>
-<span class="sd">    Will retrun a ``.phot`` table with the name ``img[:-5]+.srcphot``</span>
+<span class="sd">    Will retrun a ``.phot`` table with the name ``img.nofits()+.srcphot``</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">iraf</span><span class="o">.</span><span class="n">ptools</span><span class="p">(</span><span class="n">_doprint</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-    <span class="n">coords</span> <span class="o">=</span> <span class="n">img</span><span class="p">[:</span><span class="o">-</span><span class="mi">5</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39;_sources.coo&#39;</span>
-    <span class="n">output</span> <span class="o">=</span> <span class="n">img</span><span class="p">[:</span><span class="o">-</span><span class="mi">5</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39;.phot.1&#39;</span>
-    <span class="n">phot_tbl</span> <span class="o">=</span> <span class="n">img</span><span class="p">[:</span><span class="o">-</span><span class="mi">5</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39;.srcphot&#39;</span>
+    <span class="n">coords</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">nofits</span><span class="p">()</span><span class="o">+</span><span class="s1">&#39;_sources.coo&#39;</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">nofits</span><span class="p">()</span><span class="o">+</span><span class="s1">&#39;.phot.1&#39;</span>
+    <span class="n">phot_tbl</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">nofits</span><span class="p">()</span><span class="o">+</span><span class="s1">&#39;.srcphot&#39;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">phot_tbl</span><span class="p">)</span> <span class="p">:</span>
         <span class="nb">print</span> <span class="s1">&#39;phot-ing &#39;</span><span class="p">,</span> <span class="n">img</span><span class="p">,</span> <span class="s1">&#39; from daofind&#39;</span>
         <span class="n">iraf</span><span class="o">.</span><span class="n">unlearn</span><span class="p">(</span><span class="n">iraf</span><span class="o">.</span><span class="n">apphot</span><span class="o">.</span><span class="n">phot</span><span class="p">,</span><span class="n">iraf</span><span class="o">.</span><span class="n">datapars</span><span class="p">,</span><span class="n">iraf</span><span class="o">.</span><span class="n">photpars</span><span class="p">,</span><span class="n">iraf</span><span class="o">.</span><span class="n">centerpars</span><span class="p">,</span><span class="n">iraf</span><span class="o">.</span><span class="n">fitskypars</span><span class="p">)</span>
@@ -270,12 +270,12 @@
 
 <span class="sd">    Note</span>
 <span class="sd">    ----</span>
-<span class="sd">    Returns a table with the name ``img[0:-5]+.srcphotrd``</span>
+<span class="sd">    Returns a table with the name ``img.nofits()+.srcphotrd``</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">phot_tbl</span> <span class="o">=</span> <span class="n">img</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">5</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39;.srcphot&#39;</span>
-    <span class="n">outputradec</span> <span class="o">=</span> <span class="n">img</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">5</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39;.srcphotrd&#39;</span>
-    <span class="n">hdulist</span><span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+    <span class="n">phot_tbl</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">nofits</span><span class="p">()</span><span class="o">+</span><span class="s1">&#39;.srcphot&#39;</span>
+    <span class="n">outputradec</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">nofits</span><span class="p">()</span><span class="o">+</span><span class="s1">&#39;.srcphotrd&#39;</span>
+    <span class="n">hdulist</span><span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">f</span><span class="p">)</span>
 
     <span class="c1">#if inst == &#39;podi&#39;:</span>
     <span class="c1">#    header = hdulist[0].header</span>

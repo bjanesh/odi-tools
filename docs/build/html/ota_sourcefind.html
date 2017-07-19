@@ -182,7 +182,7 @@ value of <code class="docutils literal"><span class="pre">10</span></code> to on
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">This function produces a <code class="docutils literal"><span class="pre">csv</span></code> file in <code class="docutils literal"><span class="pre">odi.sourcepath</span></code> with the
-following naming convention <code class="docutils literal"><span class="pre">'source_'+ota+'.'+str(img[16:-5])+'.csv'</span></code>.</p>
+following naming convention <code class="docutils literal"><span class="pre">'source_'+ota+'.'+img.base()+'.csv'</span></code>.</p>
 </div>
 </dd></dl>
 
@@ -208,7 +208,7 @@ ota.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">This function produces a <code class="docutils literal"><span class="pre">csv</span></code> file in <code class="docutils literal"><span class="pre">odi.sourcepath</span></code> with the
-following naming convention <code class="docutils literal"><span class="pre">'source_'+ota+'.'+str(img[16:-5])+'.xy'</span></code>.</p>
+following naming convention <code class="docutils literal"><span class="pre">'source_'+ota+'.'+img.base()+'.xy'</span></code>.</p>
 </div>
 </dd></dl>
 
@@ -241,7 +241,7 @@ same IRAF tasks outlined in <a class="reference internal" href="getfwhm.html#get
 
 <dl class="function">
 <dt id="ota_sourcefind.phot_sources">
-<code class="descclassname">ota_sourcefind.</code><code class="descname">phot_sources</code><span class="sig-paren">(</span><em>img</em>, <em>ota</em>, <em>fwhm</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ota_sourcefind.html#phot_sources"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ota_sourcefind.phot_sources" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ota_sourcefind.</code><code class="descname">phot_sources</code><span class="sig-paren">(</span><em>img</em>, <em>ota</em>, <em>fwhm</em>, <em>run_detect=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ota_sourcefind.html#phot_sources"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ota_sourcefind.phot_sources" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run IRAF phot on the sources filtered by <a class="reference internal" href="#ota_sourcefind.source_xy" title="ota_sourcefind.source_xy"><code class="xref py py-func docutils literal"><span class="pre">source_xy()</span></code></a>. The <code class="docutils literal"><span class="pre">fwhm</span></code>
 values used by phot is calculated by <a class="reference internal" href="#ota_sourcefind.getfwhm_source" title="ota_sourcefind.getfwhm_source"><code class="xref py py-func docutils literal"><span class="pre">getfwhm_source()</span></code></a>.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -285,7 +285,7 @@ values used by phot is calculated by <a class="reference internal" href="#ota_so
 
 <dl class="function">
 <dt id="ota_sourcefind.phot_combine">
-<code class="descclassname">ota_sourcefind.</code><code class="descname">phot_combine</code><span class="sig-paren">(</span><em>img</em>, <em>ota</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ota_sourcefind.html#phot_combine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ota_sourcefind.phot_combine" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ota_sourcefind.</code><code class="descname">phot_combine</code><span class="sig-paren">(</span><em>img</em>, <em>ota</em>, <em>run_detect=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ota_sourcefind.html#phot_combine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ota_sourcefind.phot_combine" title="Permalink to this definition">¶</a></dt>
 <dd><p>Combine all of the information gathered on the found sources.
 These will be all of the values returned by <a class="reference internal" href="#ota_sourcefind.source_find" title="ota_sourcefind.source_find"><code class="xref py py-func docutils literal"><span class="pre">source_find()</span></code></a>,
 <a class="reference internal" href="#ota_sourcefind.source_xy" title="ota_sourcefind.source_xy"><code class="xref py py-func docutils literal"><span class="pre">source_xy()</span></code></a>, <a class="reference internal" href="#ota_sourcefind.getfwhm_source" title="ota_sourcefind.getfwhm_source"><code class="xref py py-func docutils literal"><span class="pre">getfwhm_source()</span></code></a>, <a class="reference internal" href="#ota_sourcefind.phot_sources" title="ota_sourcefind.phot_sources"><code class="xref py py-func docutils literal"><span class="pre">phot_sources()</span></code></a>.</p>
@@ -304,7 +304,7 @@ These will be all of the values returned by <a class="reference internal" href="
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">This will produce a file with the following naming scheme
-<code class="docutils literal"><span class="pre">odi.sourcepath+img[0:-5]+'.'+ota+'.totphot'</span></code>.</p>
+<code class="docutils literal"><span class="pre">odi.sourcepath+img.nofits()+'.'+ota+'.totphot'</span></code>.</p>
 </div>
 </dd></dl>
 

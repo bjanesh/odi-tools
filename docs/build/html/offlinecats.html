@@ -221,7 +221,7 @@ function will separate the 2MASS stars in <code class="docutils literal"><span c
 <dt id="offlinecats.get_gaia_coords">
 <code class="descclassname">offlinecats.</code><code class="descname">get_gaia_coords</code><span class="sig-paren">(</span><em>img</em>, <em>ota</em>, <em>inst</em>, <em>output='test.gaia'</em>, <em>cluster=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/offlinecats.html#get_gaia_coords"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#offlinecats.get_gaia_coords" title="Permalink to this definition">¶</a></dt>
 <dd><p>Query the online Gaia DR1 based on the central coordinates of the current
-OTA. If the <code class="docutils literal"><span class="pre">cluster</span></code> flag is set to <code class="docutils literal"><span class="pre">True</span></code>, the querey will avoid
+OTA. If the <code class="docutils literal"><span class="pre">cluster</span></code> flag is set to <code class="docutils literal"><span class="pre">True</span></code>, the query will avoid
 a crowded region based on coordinates and a radius set by the user in
 the configuration files.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -229,7 +229,7 @@ the configuration files.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>img</strong> (<em>str</em>) &#8211; Name of image</li>
+<li><strong>img</strong> (<em>ODIImage or StackedImage object</em>) &#8211; Name of image</li>
 <li><strong>ota</strong> (<em>str</em>) &#8211; Name of OTA</li>
 <li><strong>int</strong> (<em>str</em>) &#8211; Version of ODI used, <code class="docutils literal"><span class="pre">podi</span></code> or <code class="docutils literal"><span class="pre">5odi</span></code></li>
 </ul>

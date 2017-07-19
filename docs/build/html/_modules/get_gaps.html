@@ -156,7 +156,7 @@
 <span class="sd">    gaps_mask : numpy array</span>
 <span class="sd">        A numpy array of the gap location on the ota.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">hdulist</span> <span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+    <span class="n">hdulist</span> <span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">f</span><span class="p">)</span>
     <span class="n">hdu</span> <span class="o">=</span> <span class="n">hdulist</span><span class="p">[</span><span class="n">ota</span><span class="p">]</span>
     <span class="n">gaps_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">hdu</span><span class="o">.</span><span class="n">data</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
     <span class="n">hdulist</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
@@ -178,7 +178,7 @@
 <span class="sd">        A numpy array of the gap location on the ota.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">image</span> <span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">reprojpath</span><span class="o">+</span><span class="s1">&#39;reproj_&#39;</span><span class="o">+</span><span class="n">ota</span><span class="o">+</span><span class="s1">&#39;.&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">img</span><span class="p">[</span><span class="mi">16</span><span class="p">:])</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">reprojpath</span><span class="o">+</span><span class="s1">&#39;reproj_&#39;</span><span class="o">+</span><span class="n">ota</span><span class="o">+</span><span class="s1">&#39;.&#39;</span><span class="o">+</span><span class="n">img</span><span class="o">.</span><span class="n">stem</span><span class="p">()</span>
     <span class="n">hdulist</span> <span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
     <span class="n">hdu</span> <span class="o">=</span> <span class="n">hdulist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="c1"># plt.imshow(hdu.data, origin=&#39;lower&#39;, cmap=&#39;Greys_r&#39;, vmin=-10., vmax=500.)</span>
@@ -190,7 +190,7 @@
 
     <span class="c1"># also update the bad pixel mask for the image to make sure the cell gaps are masked</span>
     <span class="c1"># this is necessary for the final imcombine</span>
-    <span class="n">mask_name</span> <span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">bppath</span><span class="o">+</span><span class="s1">&#39;reproj_mask_&#39;</span><span class="o">+</span><span class="n">ota</span><span class="o">+</span><span class="s1">&#39;.&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">img</span><span class="p">[</span><span class="mi">16</span><span class="p">:])</span>
+    <span class="n">mask_name</span> <span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">bppath</span><span class="o">+</span><span class="s1">&#39;reproj_mask_&#39;</span><span class="o">+</span><span class="n">ota</span><span class="o">+</span><span class="s1">&#39;.&#39;</span><span class="o">+</span><span class="n">img</span><span class="o">.</span><span class="n">stem</span><span class="p">()</span>
     <span class="n">BPM</span> <span class="o">=</span> <span class="n">mask_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;fits&#39;</span><span class="p">,</span><span class="s1">&#39;pl&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">BPM</span><span class="p">):</span>
         <span class="c1"># mask,gaps = mask_ota(img,ota)</span>

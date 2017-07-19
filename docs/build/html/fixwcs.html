@@ -194,9 +194,9 @@ online <code class="docutils literal"><span class="pre">SDSS</span></code> catal
 <p>This functions produces three files for each ota in the <code class="docutils literal"><span class="pre">coords</span></code>
 directory with the following naming scheme:</p>
 <ol class="last arabic simple">
-<li><code class="docutils literal"><span class="pre">img[:-5]+'.'+ota+'.radec.coo'</span></code></li>
-<li><code class="docutils literal"><span class="pre">img[:-5]+'.'+ota+'.radec.coo.px'</span></code></li>
-<li><code class="docutils literal"><span class="pre">img[0:-5]+'.'+ota+'.sdssxy'</span></code></li>
+<li><code class="docutils literal"><span class="pre">img.nofits()+'.'+ota+'.radec.coo'</span></code></li>
+<li><code class="docutils literal"><span class="pre">img.nofits()+'.'+ota+'.radec.coo.px'</span></code></li>
+<li><code class="docutils literal"><span class="pre">img.nofits()+'.'+ota+'.sdssxy'</span></code></li>
 </ol>
 </div>
 </dd></dl>
@@ -205,7 +205,7 @@ directory with the following naming scheme:</p>
 <dt id="fixwcs.fix_wcs">
 <code class="descclassname">fixwcs.</code><code class="descname">fix_wcs</code><span class="sig-paren">(</span><em>img</em>, <em>ota</em>, <em>coords='radec.coo'</em>, <em>iters=3</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fixwcs.html#fix_wcs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fixwcs.fix_wcs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Try to improve the WCS solution of an OTA using the IRAF task <code class="docutils literal"><span class="pre">msccmatch</span></code>.
-This function will use the <code class="docutils literal"><span class="pre">img[:-5]+'.'+ota+'.radec.coo'</span></code> file produced
+This function will use the <code class="docutils literal"><span class="pre">img.nofits()+'.'+ota+'.radec.coo'</span></code> file produced
 by <a class="reference internal" href="#fixwcs.list_wcs_coords" title="fixwcs.list_wcs_coords"><code class="xref py py-func docutils literal"><span class="pre">list_wcs_coords()</span></code></a>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
