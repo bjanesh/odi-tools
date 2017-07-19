@@ -13,7 +13,6 @@ Also uses code from an SDSS provided SQL query script
 import os
 import sys
 import numpy as np
-import astropy as ast
 
 formats = ['csv','xml','html']
 
@@ -22,64 +21,6 @@ public_url='http://skyserver.sdss3.org/public/en/tools/search/x_sql.aspx'
 
 default_url=public_url
 default_fmt='csv'
-
-def getMonths(ra, dec):
-    '''
-    Script to determine observable months (months with at least 2.5 hours of time above 1.5 airmasses) from KPNO
-    given the ra and dec of a target
-    '''
-    from astropysics.coords import AngularCoordinate, FK5Coordinates
-    from astropysics.obstools import Site
-    import astropysics.obstools as astobs
-
-    # name, ra, dec = np.loadtxt('coords.dat', usecols=(0,1,2), dtype=str, unpack=True)
-
-    kpnolat = AngularCoordinate('+31d57m12s')
-    kpnolong = AngularCoordinate('-7h26m28.00s')
-    kpnoelev = 2096.0
-    kpnooffs = -7
-
-    kpno = Site(kpnolat, kpnolong, alt=kpnoelev, tz=kpnooffs, name='KPNO')
-    months = np.array([1,2,3,4,5,6,7,8,9,10,11,12])
-    days = np.array([7.0, 14.0, 21.0, 28.0])
-    monthDict = {1:'Jan', 2:'Feb', 3:'Mar', 4:'Apr', 5:'May', 6:'Jun', 7:'Jul', 8:'Aug', 9:'Sep', 10:'Oct', 11:'Nov', 12:'Dec'}
-
-    coords = FK5Coordinates(ra,dec)
-    monthBool = []
-    for m in months:
-        upMonth = [False, False, False, False]
-        for j,day in enumerate(days):
-            jd = astobs.calendar_to_jd((2016.0, float(m), day), tz=-7)
-            r,s,t = kpno.riseSetTransit(coords, date=jd, alt=42.0)
-            # print monthDict[m], day, r,s,t
-            if r > 20.0 and s <= 8.0:
-                nightHours = (24.0-r)+s
-            elif 8.0 <= r <= 20.0 and s <= 8.0:
-                nightHours = 4.0+s
-            elif r > 20.0 and s >= 8.0:
-                nightHours = (24.0-r)+8.0
-            elif r <= 20.0 and s >= 20.0:
-                nightHours = s-20.0
-            elif 20.0 < r < s:
-                nightHours = s-r
-            elif r < s < 8.0:
-                nightHours = s-r
-            elif r <= 8.0 :
-                nightHours = 8.0-r
-            else :
-                nightHours = 0.0
-            if nightHours >= 2.50:
-                upNight = True
-                upMonth[j] = True
-            else:
-                upNight = False
-        monthBool.append(all(upMonth))
-    # print monthBool
-    obsmonths = []
-    for m in months[np.where(monthBool)]:
-        obsmonths.append(monthDict[m])
-    return obsmonths
-
 
 def usage(status, msg=''):
     "Error message and usage"
@@ -250,26 +191,6 @@ def download_sdss(img1, img2, gmaglim = 21):
 # def linear(x, m, b):
 #     y = m*x + b
 #     return y
-
-def imalign(img1, img2):
-    from pyraf import iraf
-    import numpy as np
-    import os
-    img_root = img1[:-7]
-    xg, yg = np.loadtxt(img1[:-5]+'.sdssxy', usecols=(0,1), unpack=True)
-    xr, yr = np.loadtxt(img2[:-5]+'.sdssxy', usecols=(0,1), unpack=True)
-    
-    xd, yd = xg-xr, yg-yr
-    with open(img_root+'.shfts','w+') as f:
-        print >> f, 0.0, 0.0
-        print >> f, np.mean(xd), np.mean(yd)
-        
-    print np.mean(xd), '+/-', np.std(xd), np.mean(yd), '+/-', np.std(yd)
-    
-    # align and trim the images using the sloan catalog stars
-    # which have pixel coords extracted from the g image
-    iraf.images.imalign(img_root+'.g.fits,'+img_root+'.r.fits',img_root+'.g.fits', 'photcal_stars.pos', img_root+'.g.sh.fits,'+img_root+'.r.sh.fits', shifts=img_root+'.shfts')
-
 
 def getfwhm(image, radius=4.0, buff=7.0, width=5.0, rplot=15.0, center='yes'):
     '''
