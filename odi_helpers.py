@@ -410,7 +410,7 @@ def getfwhm_ota(img, ota, gaia=False, radius=4.0, buff=7.0, width=5.0):
         coords = odi.coordspath+'reproj_'+ota+'.'+img.base()+'.gaiaxy'
     else:
         coords = odi.coordspath+'reproj_'+ota+'.'+img.base()+'.sdssxy'
-    print image, coords
+    tqdm.write('Measuring GFWHM in {:s} \nusing coordinates from {:s}'.format(image, coords))
     outputfile = odi.coordspath+img.nofits()+'.'+ota+'.fwhm.log'
 
     iraf.tv.rimexam.setParam('radius',radius)
@@ -1150,7 +1150,7 @@ def tan_header_fix(hdu):
 def tpv2tan_hdr(img, ota):
     image = odi.reprojpath+'reproj_'+ota+'.'+img.stem()
     # change the CTYPENs to be TANs if they aren't already
-    print 'TPV -> TAN in ', image
+    tqdm.write('TPV -> TAN in {:s}'.format(image))
     iraf.imutil.hedit.setParam('images',image)
     iraf.imutil.hedit.setParam('fields','CTYPE1')
     iraf.imutil.hedit.setParam('value','RA---TAN')

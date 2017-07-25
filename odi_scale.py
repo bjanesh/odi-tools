@@ -13,6 +13,7 @@ from astropy.coordinates import SkyCoord
 from astropy import units as u
 import matplotlib.pyplot as plt
 from astropy.modeling import models, fitting
+from tqdm import tqdm
 
 def source_find(img,ota,inst,nbg_std=10.0):
     """

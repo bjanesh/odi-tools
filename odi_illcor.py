@@ -81,7 +81,7 @@ def illumination_corrections(image_to_correct, correction_image, corrected_image
     if do_correction == True:
         iraf.imutil.imarith.setParam('operand2',odi.skyflatpath+correction_image)
     else:
-        print 'not applying illcor'
+        tqdm.write('not applying illcor')
         iraf.imutil.imarith.setParam('operand2',1.0)
     iraf.imutil.imarith.setParam('result',odi.illcorpath+corrected_image)
     iraf.imutil.imarith(mode='h')

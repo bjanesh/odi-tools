@@ -34,6 +34,7 @@ for filter in filters:
     for img in images_:
         # img = images_[dith]
         dither  = img.dither()+'_'
+        print 'Gathering sources for {:s}'.format(img.f)
         for key in tqdm(odi.OTA_dictionary):
             ota = odi.OTA_dictionary[key]
             # if not os.path.isfile(odi.sourcepath+'source_'+ota+'.'+img.base()+'.csv'):
@@ -44,12 +45,12 @@ for filter in filters:
                     odi.source_xy(img,ota,gaps,filter,inst)
                     fwhm = odi.getfwhm_source(img,ota)
                     #fwhm = fwhm_dict[img_id]
-                    print fwhm
+                    tqdm.write('GWFM in {:s}: {:5.3f}'.format(ota, fwhm))
                 else:
                     fwhm_file = odi.coordspath+img.nofits()+'.'+ota+'.fwhm.log'
                     gfwhm = np.loadtxt(fwhm_file, usecols=(10,), unpack=True)
                     fwhm = np.median(gfwhm[np.where(gfwhm < 900.0)])
-                    print fwhm
+                    tqdm.write('GWFM in {:s}: {:5.3f}'.format(ota, fwhm))
                 odi.phot_sources(img, ota, fwhm, run_detect = run_detect)
                 odi.phot_combine(img, ota, run_detect = run_detect)
         if not os.path.isfile(odi.sourcepath+dither+filter+'.allsource'):
