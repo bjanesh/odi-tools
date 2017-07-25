@@ -680,8 +680,8 @@ def js_calibrate(img1 = None, img2 = None, verbose=True):
             fwhm2 = hdr2['FWHMPSF']
         except :
             # print 'no FWHM info in header!'
-            fwhm1 = float(raw_input('Enter a guess value for g in pixels: '))
-            fwhm2 = float(raw_input('Enter a guess value for r/i in pixels: '))
+            fwhm1 = float(raw_input('Enter a guess FWHM value for g in pixels: '))
+            fwhm2 = float(raw_input('Enter a guess FWHM value for r/i in pixels: '))
             # fwhm1 = hdr1['SEEING']/0.11 # ralf gives the value in arcsec so 
             # fwhm2 = hdr2['SEEING']/0.11 # divide by the ODI pixel scale
             # fwhm1 = getfwhm(img1)
@@ -807,10 +807,10 @@ def js_calibrate(img1 = None, img2 = None, verbose=True):
     dg = g - g0
     dge = np.sqrt(ge**2 + gMERR**2)
 
-    podicut, sdsscut = 0.05, 0.05
+    podicut, sdsscut = 0.03, 0.03
     # print np.median(gSERR), np.median(iSERR)
     # cuts for better fits go here
-    errcut = [j for j in range(len(gMERR)) if (gMERR[j] < podicut and iMERR[j] < podicut and ge[j] < sdsscut and ie[j] < sdsscut and gSKY[j] > np.median(gSERR) and iSKY[j] > np.median(iSERR) )]#and di[j] < 26.5 and di[j] > 26.0)]
+    errcut = [j for j in range(len(gMERR)) if (gMERR[j] < podicut and iMERR[j] < podicut and ge[j] < sdsscut and ie[j] < sdsscut and gSKY[j] > np.median(gSERR) and iSKY[j] > np.median(iSERR) and di[j] > 25.5)]
 
     if verbose:
         for j in range(len(gi[errcut])):
@@ -948,7 +948,7 @@ def js_calibrate(img1 = None, img2 = None, verbose=True):
     ota_median, ota_x, ota_y, ota_id = stats.binned_statistic_2d(gXPOS[errcut], gYPOS[errcut], star_zp_g[errcut], statistic='median', bins=[3,3])
     ota_count, ota_x, ota_y, ota_id = stats.binned_statistic_2d(gXPOS[errcut], gYPOS[errcut], star_zp_g[errcut], statistic='count', bins=[3,3])
     ota_std, ota_x, ota_y, ota_id = stats.binned_statistic_2d(gXPOS[errcut], gYPOS[errcut], star_zp_g[errcut], statistic=np.std, bins=[3,3])
-    print ota_mean, ota_median, ota_count, ota_std
+    # print ota_mean, ota_median, ota_count, ota_std
     
     for j in range(3):
         for k in range(3):
@@ -1026,7 +1026,8 @@ def js_calibrate(img1 = None, img2 = None, verbose=True):
         print >> f1, "  i fit RMS       rms      F_RMS_I   {0:.7f}".format(dy2.std())
         print >> f1, "----------------------------------------------------"
         print >> f1, "other details:"
-        print >> f1, "  FWHM PSF [px]   fwhm     FWHMPSF   [see header]"
+        print >> f1, "  FWHM PSF [px] g fwhm     FWHMPSF   {0:6.5f}".format(gRAPERT/5)
+        print >> f1, "  FWHM PSF [px] i fwhm     FWHMPSF   {0:6.5f}".format(iRAPERT/5)
         print >> f1, "  FWHM [arcsec] g fwhm     F_AVGSEE  {0:.5f}".format(0.11*gRAPERT/5)
         print >> f1, "  FWHM [arcsec] i fwhm     F_AVGSEE  {0:.5f}".format(0.11*iRAPERT/5)
         print >> f1, "  phot aperture (5xFWHM) g [arcsec]  {0:.5f}".format(0.11*gRAPERT)
@@ -1035,7 +1036,7 @@ def js_calibrate(img1 = None, img2 = None, verbose=True):
         print >> f1, "photometric error cuts:"
         print >> f1, "  maximum acceptable pODI PHOT error: {0:.4f}".format(podicut)
         print >> f1, "  maximum acceptable sdss phot error: {0:.4f}".format(sdsscut)
-        print >> f1, "  N_stars surviving error cuts: {0:4d}".format(len(gi[errcut]))
+        print >> f1, "  N_stars surviving error cuts:       {0:4d}".format(len(gi[errcut]))
         # print >> f1, "  N_stars surviving sigma clip (i-i0 vs g-i plot): {0:4d}".format(len(gi_3))
     print '--------------------------------------------------------------------------'
     print 'Done! I saved some important information in the following files for you:'
@@ -1043,6 +1044,7 @@ def js_calibrate(img1 = None, img2 = None, verbose=True):
     print 'SDSS catalog values w/ x,y positions:  ', img_root+'*.sdssxy'
     print 'Instrumental ODI magnitudes per image: ', img_root+'*.sdssphot'
     print 'Calibration fit diagnostic plots:      ', img_root+'_photcal_js.pdf'
+    print 'Zero Point map:                        ', img_root+'_photmap_js.pdf'
     print 'Final calibration values:              ', img_root+'_help_js.txt'
 
     
@@ -1058,10 +1060,10 @@ def main():
     # else:
     path = os.getcwd()
     steps = path.split('/')
-    folder = steps[-1].lower()
+    folder = steps[-1].upper()
     
-    g_img = folder+'_g.fits'
-    i_img = folder+'_i.fits'
+    g_img = folder+'_odi_g_match.fits'
+    i_img = folder+'_odi_i_match.fits'
     
     # print '--------------------------------------------------------------------------'
     # if not os.path.isfile(g_img.nofits()+'.sdssxy'):        
