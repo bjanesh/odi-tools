@@ -2,6 +2,7 @@ import sys, os, glob, string
 import numpy as np
 import matplotlib.pyplot as plt
 from pyraf import iraf
+from tqdm import tqdm
 import odi_config as odi
 import pandas as pd
 from astropy.wcs import WCS
@@ -244,7 +245,7 @@ def refetch_sdss_coords(img, ota, gapmask, inst,gmaglim=19.,offline = False,sour
             psfMagErr_i    = np.ones(len(ras))
             psfMag_z       = np.ones(len(ras))
             psfMagErr_z    = np.ones(len(ras))
-        print 'Using Ra and Dec from:',outcoords, 'for reproject'
+        tqdm.write('Using Ra and Dec from {:s} for reproject'.format(outcoords))
         w = odi.WCS(hdu.header)
         with open(odi.coordspath+'reproj_'+ota+'.'+img.base()+'.sdssxy', 'w+') as fxy:
             for i,c in enumerate(ras):
@@ -302,7 +303,7 @@ def repoxy_offline(img, ota, gapmask, inst,gmaglim=19.,source='sdss'):
         psfMagErr_i    = np.ones(len(ras))
         psfMag_z       = np.ones(len(ras))
         psfMagErr_z    = np.ones(len(ras))
-    print 'Using Ra and Dec from:',outcoords, 'for reproject'
+    tqdm.write('Using Ra and Dec from {:s} for reproject'.format(outcoords))
     w = odi.WCS(hdu.header)
     with open(outputxy, 'w+') as fxy:
         for i,c in enumerate(ras):
@@ -736,7 +737,7 @@ def get_gaia_coords(img,ota,inst,output='test.gaia',cluster=False,**kwargs):
     corner_skycoord = SkyCoord(corners[0,0]*u.deg,
                                corners[0,1]*u.deg,frame='icrs')
     cone_radius = center_skycoord.separation(corner_skycoord).value
-    print naxis1/2., naxis2/2., cone_radius
+    # tqdm.write('{:4.0f} {:4.0f} {:6.4f}'.format(naxis1/2., naxis2/2., cone_radius))
 
     #Set up vizier query for Gaia DR1
     #Taken from example at: github.com/mommermi/photometrypipeline
