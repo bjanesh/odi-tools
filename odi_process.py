@@ -2,12 +2,7 @@
 
 import sys, os, glob, string
 import numpy as np
-import astropy as ast
-import matplotlib.pyplot as plt
-from pyraf import iraf
 from tqdm import tqdm
-import shutil
-import pandas as pd
 import time
 
 import odi_config as odi
@@ -39,7 +34,7 @@ for img in images_:
         outputsd = odi.sdsspath+'offline_'+ota+'.'+img.base()+'.sdss'
         if not os.path.isfile(outputsd):
             x,y = odi.get_sdss_coords_offline(img,ota,inst,output=outputsd)
-            output2m = odi.twomasspath+'offline_'+ota+'.'+img.base()+'.mass'
+            # output2m = odi.twomasspath+'offline_'+ota+'.'+img.base()+'.mass'
             # x,y = odi.get_2mass_coords_offline(img,ota,inst,output=output2m)
         if gaia_flag == True:
             outputg = odi.gaiapath+'offline_'+ota+'.'+img.base()+'.gaia'
