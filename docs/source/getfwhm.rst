@@ -15,6 +15,6 @@ Here is how the parameters are set for ``rimexam``::
     iraf.tv.rimexam.setParam('fittype','gaussian')
     iraf.tv.rimexam.setParam('iterati',1)
 
-.. automodule:: getfwhm
+.. automodule:: odi_helpers
    :members: getfwhm_ota, getfwhm_full
    :show-inheritance:

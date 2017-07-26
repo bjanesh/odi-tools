@@ -1,6 +1,6 @@
 Calculating background statistics
 =================================
 
-.. automodule:: rand_bkg
+.. automodule:: odi_helpers
    :members: bkg_boxes
    :show-inheritance:

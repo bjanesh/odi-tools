@@ -152,11 +152,11 @@
             
   <div class="section" id="source-catalogs">
 <h1>Source catalogs<a class="headerlink" href="#source-catalogs" title="Permalink to this headline">¶</a></h1>
-<p>These functions retrieve and parse the SDSS, 2MASS, and Gaia DR1 catalogs to
+<p>These functions retrieve and parse the SDSS and Gaia DR1 catalogs to
 be used when fixing the WCS solutions of individual OTAs.</p>
-<span class="target" id="module-offlinecats"></span><dl class="function">
-<dt id="offlinecats.get_sdss_coords_offline">
-<code class="descclassname">offlinecats.</code><code class="descname">get_sdss_coords_offline</code><span class="sig-paren">(</span><em>img</em>, <em>ota</em>, <em>inst</em>, <em>output='test.sdss'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/offlinecats.html#get_sdss_coords_offline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#offlinecats.get_sdss_coords_offline" title="Permalink to this definition">¶</a></dt>
+<span class="target" id="module-odi_coords"></span><dl class="function">
+<dt id="odi_coords.get_sdss_coords_offline">
+<code class="descclassname">odi_coords.</code><code class="descname">get_sdss_coords_offline</code><span class="sig-paren">(</span><em>img</em>, <em>ota</em>, <em>inst</em>, <em>output='test.sdss'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/odi_coords.html#get_sdss_coords_offline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#odi_coords.get_sdss_coords_offline" title="Permalink to this definition">¶</a></dt>
 <dd><p>Pull out and parse the <code class="docutils literal"><span class="pre">CAT.PHOTCALIB</span></code> table from <code class="docutils literal"><span class="pre">img</span></code> header. This
 function will separate the SDSS stars in <code class="docutils literal"><span class="pre">CAT.PHOTCALIB</span></code> based on which
 <code class="docutils literal"><span class="pre">ota</span></code> they fall on.</p>
@@ -190,38 +190,10 @@ pull out these stars and treat them as SDSS stars. There will be no
 </dd></dl>
 
 <dl class="function">
-<dt id="offlinecats.get_2mass_coords_offline">
-<code class="descclassname">offlinecats.</code><code class="descname">get_2mass_coords_offline</code><span class="sig-paren">(</span><em>img</em>, <em>ota</em>, <em>inst</em>, <em>output='test.mass'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/offlinecats.html#get_2mass_coords_offline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#offlinecats.get_2mass_coords_offline" title="Permalink to this definition">¶</a></dt>
-<dd><p>Pull out and parse the <code class="docutils literal"><span class="pre">CAT.ODI+2MASS</span></code> table from <code class="docutils literal"><span class="pre">img</span></code> header. This
-function will separate the 2MASS stars in <code class="docutils literal"><span class="pre">CAT.ODI+2MASS</span></code> based on which
-<code class="docutils literal"><span class="pre">ota</span></code> they fall on.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>img</strong> (<em>str</em>) &#8211; Name of image</li>
-<li><strong>ota</strong> (<em>str</em>) &#8211; Name of OTA</li>
-<li><strong>int</strong> (<em>str</em>) &#8211; Version of ODI used, <code class="docutils literal"><span class="pre">podi</span></code> or <code class="docutils literal"><span class="pre">5odi</span></code></li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
-<li><strong>xdim</strong> (<em>int</em>) &#8211; Size of OTA in the x direction <code class="docutils literal"><span class="pre">NAXIS1</span></code></li>
-<li><strong>ydim</strong> (<em>int</em>) &#8211; Size of OTA in the y direction <code class="docutils literal"><span class="pre">NAXIS2</span></code></li>
-</ul>
-</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="offlinecats.get_gaia_coords">
-<code class="descclassname">offlinecats.</code><code class="descname">get_gaia_coords</code><span class="sig-paren">(</span><em>img</em>, <em>ota</em>, <em>inst</em>, <em>output='test.gaia'</em>, <em>cluster=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/offlinecats.html#get_gaia_coords"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#offlinecats.get_gaia_coords" title="Permalink to this definition">¶</a></dt>
+<dt id="odi_coords.get_gaia_coords">
+<code class="descclassname">odi_coords.</code><code class="descname">get_gaia_coords</code><span class="sig-paren">(</span><em>img</em>, <em>ota</em>, <em>inst</em>, <em>output='test.gaia'</em>, <em>cluster=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/odi_coords.html#get_gaia_coords"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#odi_coords.get_gaia_coords" title="Permalink to this definition">¶</a></dt>
 <dd><p>Query the online Gaia DR1 based on the central coordinates of the current
-OTA. If the <code class="docutils literal"><span class="pre">cluster</span></code> flag is set to <code class="docutils literal"><span class="pre">True</span></code>, the query will avoid
+OTA. If the <code class="docutils literal"><span class="pre">cluster</span></code> flag is set to <code class="docutils literal"><span class="pre">True</span></code>, the querey will avoid
 a crowded region based on coordinates and a radius set by the user in
 the configuration files.</p>
 <table class="docutils field-list" frame="void" rules="none">

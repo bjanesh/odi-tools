@@ -1,6 +1,6 @@
 Reading configuration files
 ===========================
 
-.. automodule:: odi_cfgparse
+.. automodule:: odi_config
    :members: cfgparse,photcfgparse
    :show-inheritance:
