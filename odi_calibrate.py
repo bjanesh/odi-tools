@@ -181,12 +181,14 @@ def download_sdss(img1, img2, gmaglim = 21):
     with open(image[:-5]+'.sdssxy','w+') as f1:
         print >> f1, "# x_g y_g ra dec u uerr g gerr r rerr i ierr z zerr (all psfmags)"
         for i,id in enumerate(np.where(keep_stars)[0]):
-            print >> f1, pixcrd2[id][0], pixcrd2[id][1], ras[id], decs[id], psfMag_u[id], psfMagErr_u[id], psfMag_g[id], psfMagErr_g[id], psfMag_r[id], psfMagErr_r[id], psfMag_i[id], psfMagErr_i[id], psfMag_z[id], psfMagErr_z[id]
+            if 100.0 < pixcrd2[id][0] < xdim-100.0 and 100.0 < pixcrd2[id][1] < ydim-100.0:
+                print >> f1, pixcrd2[id][0], pixcrd2[id][1], ras[id], decs[id], psfMag_u[id], psfMagErr_u[id], psfMag_g[id], psfMagErr_g[id], psfMag_r[id], psfMagErr_r[id], psfMag_i[id], psfMagErr_i[id], psfMag_z[id], psfMagErr_z[id]
             
     with open(img2[:-5]+'.sdssxy','w+') as f1:
         print >> f1, "# x_r y_r ra dec u uerr g gerr r rerr i ierr z zerr (all psfmags)"
         for i,id in enumerate(np.where(keep_stars)[0]):
-            print >> f1, pixcrd2_r[id][0], pixcrd2_r[id][1], ras[id], decs[id], psfMag_u[id], psfMagErr_u[id], psfMag_g[id], psfMagErr_g[id], psfMag_r[id], psfMagErr_r[id], psfMag_i[id], psfMagErr_i[id], psfMag_z[id], psfMagErr_z[id]
+            if 100.0 < pixcrd2_r[id][0] < xdim-100.0 and 100.0 < pixcrd2_r[id][1] < ydim-100.0:
+                print >> f1, pixcrd2_r[id][0], pixcrd2_r[id][1], ras[id], decs[id], psfMag_u[id], psfMagErr_u[id], psfMag_g[id], psfMagErr_g[id], psfMag_r[id], psfMagErr_r[id], psfMag_i[id], psfMagErr_i[id], psfMag_z[id], psfMagErr_z[id]
 
 # def linear(x, m, b):
 #     y = m*x + b
@@ -201,7 +203,7 @@ def getfwhm(image, radius=4.0, buff=7.0, width=5.0, rplot=15.0, center='yes'):
     import numpy as np
     import os
     
-    outputfile = image[:-5]+'_fwhm.log'
+    outputfile = image[:-5]+'_fwhmCAL.log'
     coords = image[:-5]+'.sdssxy'
     
     iraf.tv.rimexam.setParam('radius',radius)
@@ -214,10 +216,25 @@ def getfwhm(image, radius=4.0, buff=7.0, width=5.0, rplot=15.0, center='yes'):
     iraf.tv.rimexam.setParam('iterati',1)
     
     if not os.path.isfile(outputfile):
-        iraf.tv.imexamine( image, logfile = outputfile, keeplog = 'yes', defkey = "a", imagecur = coords, wcs = "world", use_display='no')
-        
-    fwhms = np.loadtxt(outputfile, usecols=(12,), unpack=True)
-    return np.median(fwhms)
+        iraf.tv.imexamine(image, frame=10, logfile = outputfile, keeplog = 'yes', defkey = "a", nframes=0, imagecur = coords, wcs = "logical", use_display='no',  StdoutG='/dev/null',mode='h')
+    outputfile_clean = open(outputfile.replace('.log','_clean.log'),"w")
+    for line in open(outputfile,"r"):
+        if not 'INDEF' in line:
+            outputfile_clean.write(line)
+        if 'INDEF' in line:
+            outputfile_clean.write(line.replace('INDEF','999'))
+    outputfile_clean.close()
+    os.rename(outputfile.replace('.log','_clean.log'),outputfile)
+    #
+    # # unfortunately we have to toss the first measured fwhm value from the median because of the file format
+    # # gfwhm = np.genfromtxt(outputfile, usecols=(3,), skip_header=4, skip_footer=3, unpack=True)
+    gfwhm = np.loadtxt(outputfile, usecols=(10,), unpack=True)
+    # hdulist = ast.io.fits.open(image)
+    # seeing = hdulist[0].header['FWHMSTAR']
+    # gfwhm = seeing/0.11
+    print 'median gwfhm in ',image+': ',np.median(gfwhm),'pixels'# (determined via QR)'
+    return np.median(gfwhm)
+
     
 def ota_zp(x, y, gi, di, x_ota, y_ota):
     filterName = 'r'
@@ -236,7 +253,7 @@ def ota_zp(x, y, gi, di, x_ota, y_ota):
     print '{0:10.7f} {1:10.7f} {2:10.7f} {3:10.7f}'.format(eps_gi, std_eps_gi, zp_i, std_zp_i)
     return zp_i
     
-def calibrate(img1 = None, img2 = None):
+def calibrate(img1 = None, img2 = None, podicut = 0.03, sdsscut = 0.03):
     try:
         from pyraf import iraf
         from astropy.io import fits
@@ -268,21 +285,26 @@ def calibrate(img1 = None, img2 = None):
     hdulist = fits.open(img2)
     hdr2 = hdulist[0].header
     hdulist.close()
+    
+    # go ahead and just measure the gfwhm in the images (once) so we know for sure
+    # we also need to know the "peak" values of the stellar profiles for quality cuts
+    fwhm1 = getfwhm(img1)
+    fwhm2 = getfwhm(img2)
 
     # now get the (STEVEN) measure of FWHM and the RALF version otherwise
     # this is a first estimate to set a big aperture
-    if not os.path.isfile(img1[0:-5]+'.sdssphot'):
-        try :
-            fwhm1 = hdr1['FWHMPSF']
-            fwhm2 = hdr2['FWHMPSF']
-        except :
-            # print 'no FWHM info in header!'
-            fwhm1 = float(raw_input('Enter a guess value for g in pixels: '))
-            fwhm2 = float(raw_input('Enter a guess value for r/i in pixels: '))
-            # fwhm1 = hdr1['SEEING']/0.11 # ralf gives the value in arcsec so 
-            # fwhm2 = hdr2['SEEING']/0.11 # divide by the ODI pixel scale
-            # fwhm1 = getfwhm(img1)
-            # fwhm2 = getfwhm(img2)
+    # if not os.path.isfile(img1[0:-5]+'.sdssphot'):
+        # try :
+        #     fwhm1 = hdr1['FWHMPSF']
+        #     fwhm2 = hdr2['FWHMPSF']
+        # except :
+        #     # print 'no FWHM info in header!'
+        #     fwhm1 = float(raw_input('Enter a guess value for g in pixels: '))
+        #     fwhm2 = float(raw_input('Enter a guess value for r/i in pixels: '))
+        #     # fwhm1 = hdr1['SEEING']/0.11 # ralf gives the value in arcsec so 
+        #     # fwhm2 = hdr2['SEEING']/0.11 # divide by the ODI pixel scale
+        #     # fwhm1 = getfwhm(img1)
+        #     # fwhm2 = getfwhm(img2)
 
     # alas, we must use IRAF apphot to do the measuring
     # first set common parameters (these shouldn't change if you're using ODI)
@@ -306,37 +328,41 @@ def calibrate(img1 = None, img2 = None):
     # print 'pyraf thinks its in', os.getcwd()
     # now phot each image with the individual params
     # use txdump to put things in a nicer format for reading in
-    if not os.path.isfile(img1[0:-5]+'.sdssphot'): # only do this once
+    if not os.path.isfile(img1[0:-5]+'_cal.sdssphot'): # only do this once
         print 'phot-ing the g image, this might take a while...'
         iraf.datapars.setParam('fwhmpsf',fwhm1)
         iraf.photpars.setParam('apertures',5.*fwhm1) # use a big aperture for this
         iraf.fitskypars.setParam('annulus',6.*fwhm1)
-        iraf.apphot.phot(image=img1, coords=img1[0:-5]+'.sdssxy', output=img1[0:-5]+'.phot.1')
-        with open(img1[0:-5]+'.sdssphot','w+') as txdump_out :
-            iraf.ptools.txdump(textfiles=img1[0:-5]+'.phot.1', fields="id,mag,merr,msky,stdev,rapert,xcen,ycen,ifilter,xairmass,image", expr='MAG != INDEF && MERR != INDEF', headers='no', Stdout=txdump_out)
+        iraf.apphot.phot(image=img1, coords=img1[0:-5]+'.sdssxy', output=img1[0:-5]+'_cal.phot.1')
+        with open(img1[0:-5]+'_cal.sdssphot','w+') as txdump_out :
+            iraf.ptools.txdump(textfiles=img1[0:-5]+'_cal.phot.1', fields="id,mag,merr,msky,stdev,rapert,xcen,ycen,ifilter,xairmass,image", expr='MAG != INDEF && MERR != INDEF', headers='no', Stdout=txdump_out)
 
-    if not os.path.isfile(img2[0:-5]+'.sdssphot'):
+    if not os.path.isfile(img2[0:-5]+'_cal.sdssphot'):
         print 'phot-ing the r/i image, this might take a while...'
         iraf.datapars.setParam('fwhmpsf',fwhm2)
         iraf.photpars.setParam('apertures',5.*fwhm2) # use a big aperture for this
         iraf.fitskypars.setParam('annulus',6.*fwhm2)
-        iraf.apphot.phot(image=img2, coords=img2[0:-5]+'.sdssxy', output=img2[0:-5]+'.phot.1')
-        with open(img2[0:-5]+'.sdssphot','w+') as txdump_out :
-            iraf.ptools.txdump(textfiles=img2[0:-5]+'.phot.1', fields="id,mag,merr,msky,stdev,rapert,xcen,ycen,ifilter,xairmass,image", expr='MAG != INDEF && MERR != INDEF', headers='no', Stdout=txdump_out)
+        iraf.apphot.phot(image=img2, coords=img2[0:-5]+'.sdssxy', output=img2[0:-5]+'_cal.phot.1')
+        with open(img2[0:-5]+'_cal.sdssphot','w+') as txdump_out :
+            iraf.ptools.txdump(textfiles=img2[0:-5]+'_cal.phot.1', fields="id,mag,merr,msky,stdev,rapert,xcen,ycen,ifilter,xairmass,image", expr='MAG != INDEF && MERR != INDEF', headers='no', Stdout=txdump_out)
+
+    # read in getfwhm logs
+    col1, line1, rmag1, flux1, sky1, n1, rmom1, ellip1, pa1, peak1, gfwhm1 = np.loadtxt(img1[0:-5]+'_fwhmCAL.log', usecols=(0,1,2,3,4,5,6,7,8,9,10), dtype=float, unpack=True)
+    col2, line2, rmag2, flux2, sky2, n2, rmom2, ellip2, pa2, peak2, gfwhm2 = np.loadtxt(img2[0:-5]+'_fwhmCAL.log', usecols=(0,1,2,3,4,5,6,7,8,9,10), dtype=float, unpack=True)
 
     # read in the phot output as a string because we need to get rid of the indefs
-    gMAG, gMERR, gSKY, gSERR, gRAPERT, gXPOS, gYPOS = np.loadtxt(img1[0:-5]+'.sdssphot', usecols=(1,2,3,4,5,6,7), dtype=float, unpack=True)
-    iMAG, iMERR, iSKY, iSERR, iRAPERT, iXPOS, iYPOS = np.loadtxt(img2[0:-5]+'.sdssphot', usecols=(1,2,3,4,5,6,7), dtype=float, unpack=True)
+    gMAG, gMERR, gSKY, gSERR, gRAPERT, gXPOS, gYPOS = np.loadtxt(img1[0:-5]+'_cal.sdssphot', usecols=(1,2,3,4,5,6,7), dtype=float, unpack=True)
+    iMAG, iMERR, iSKY, iSERR, iRAPERT, iXPOS, iYPOS = np.loadtxt(img2[0:-5]+'_cal.sdssphot', usecols=(1,2,3,4,5,6,7), dtype=float, unpack=True)
 
     # get some auxiliary info from the phot output
-    gXAIRMASS = np.loadtxt(img1[0:-5]+'.sdssphot', usecols=(9,), dtype=str, unpack=True)
-    iXAIRMASS = np.loadtxt(img2[0:-5]+'.sdssphot', usecols=(9,), dtype=str, unpack=True)
+    gXAIRMASS = np.loadtxt(img1[0:-5]+'_cal.sdssphot', usecols=(9,), dtype=str, unpack=True)
+    iXAIRMASS = np.loadtxt(img2[0:-5]+'_cal.sdssphot', usecols=(9,), dtype=str, unpack=True)
     
-    gFILTER = np.loadtxt(img1[0:-5]+'.sdssphot', usecols=(8,), dtype=str, unpack=True)
-    iFILTER = np.loadtxt(img2[0:-5]+'.sdssphot', usecols=(8,), dtype=str, unpack=True)
+    gFILTER = np.loadtxt(img1[0:-5]+'_cal.sdssphot', usecols=(8,), dtype=str, unpack=True)
+    iFILTER = np.loadtxt(img2[0:-5]+'_cal.sdssphot', usecols=(8,), dtype=str, unpack=True)
 
-    gID = np.loadtxt(img1[0:-5]+'.sdssphot', usecols=(0,), dtype=int, unpack=True)
-    iID = np.loadtxt(img2[0:-5]+'.sdssphot', usecols=(0,), dtype=int, unpack=True)
+    gID = np.loadtxt(img1[0:-5]+'_cal.sdssphot', usecols=(0,), dtype=int, unpack=True)
+    iID = np.loadtxt(img2[0:-5]+'_cal.sdssphot', usecols=(0,), dtype=int, unpack=True)
 
     # keep the actual ID number to select from SDSS stars
     # need to do this because we already dropped INDEFs
@@ -348,17 +374,11 @@ def calibrate(img1 = None, img2 = None):
     keepg = [i for i,element in enumerate(gID) if element in iID]
     keepi = [i for i,element in enumerate(iID) if element in gID]
 
-    # check to see if we're actually getting the same star across all of the files
-    # for i in range(len(keep)):
-    #     print keep[i]+1, gID[keepg[i]], iID[keepi[i]]
-    # and how many
-    # print len(keep), len(keepg), len(keepi)
-
     # read in the the SDSS catalog values
     x, y, ra, dec, u, ue, g, ge, r, re, i, ie, z, ze = np.loadtxt(img1[0:-5]+'.sdssxy', usecols=(0,1,2,3,4,5,6,7,8,9,10,11,12,13), unpack=True)
 
     # pick out the ones that match the good phot stars
-    g, ge, r, re, i, ie = np.array(g[keep]), np.array(ge[keep]), np.array(r[keep]), np.array(re[keep]), np.array(i[keep]), np.array(ie[keep])
+    g, ge, r, re, i, ie, peak1, peak2, gfwhm1, gfwhm2 = np.array(g[keep]), np.array(ge[keep]), np.array(r[keep]), np.array(re[keep]), np.array(i[keep]), np.array(ie[keep]), np.array(peak1[keep]), np.array(peak2[keep]), np.array(gfwhm1[keep]), np.array(gfwhm2[keep])
 
     # and reduce the other vectors
     gXPOS, gYPOS, gMAG, gMERR, gSKY, gSERR, iMAG, iMERR, iSKY, iSERR = np.array(gXPOS[keepg]), np.array(gYPOS[keepg]), np.array(gMAG[keepg]), np.array(gMERR[keepg]), np.array(gSKY[keepg]), np.array(gSERR[keepg]), np.array(iMAG[keepi]), np.array(iMERR[keepi]), np.array(iSKY[keepi]), np.array(iSERR[keepi])
@@ -398,10 +418,10 @@ def calibrate(img1 = None, img2 = None):
     di = i - i0
     die = np.sqrt(ie**2 + iMERR**2)
 
-    podicut, sdsscut = 0.01, 0.03
+    # podicut, sdsscut = 0.01, 0.03
     print np.median(gSERR), np.median(iSERR)
     # cuts for better fits go here
-    errcut = [j for j in range(len(gMERR)) if (gMERR[j] < podicut and iMERR[j] < podicut and ge[j] < sdsscut and ie[j] < sdsscut and gSKY[j] > np.median(gSERR) and iSKY[j] > np.median(iSERR))]
+    errcut = [j for j in range(len(gMERR)) if (gMERR[j] < podicut and iMERR[j] < podicut and ge[j] < sdsscut and ie[j] < sdsscut and 1000.0 < peak1[j]< 45000.0 and 1000.0 < peak2[j]< 45000.0)]#gSKY[j] > np.median(gSERR) and iSKY[j] > np.median(iSERR))]
 
     with open('photcal_stars.pos','w+') as f1:
         for i, xp in enumerate(gXPOS[errcut]):
@@ -599,43 +619,44 @@ def calibrate(img1 = None, img2 = None):
         print >> f1, "  name          symbol     IMHEAD     value"
         print >> f1, "----------------------------------------------------"
         print >> f1, "  extn coeff      k_g      F_KG       {0:.7f}".format(kg)
+        print >> f1, "  extn coeff      k_g      F_KG       {0:.7f}".format(kg)
         print >> f1, "  extn coeff      k_i      F_KI       {0:.7f}".format(ki)
         print >> f1, "  airmass in g    X_g      F_XG       {0:.7f}".format(gXAIRMASS)
-        print >> f1, "  airmass in i    X_i      F_XI       {0:.7f}".format(iXAIRMASS)
+        print >> f1, "  airmass in "+filterName+"    X_"+filterName+"      F_X"+filterName.upper()+"       {0:.7f}".format(iXAIRMASS)
         print >> f1, " - - - - - - - - - - - - - - - - - - - - - - - - - -"
-        print >> f1, "  g-i color term  mu_gi    F_MU_GI    {0:.7f}".format(mu_gi)
-        print >> f1, "  g-i c.t. err    mue_gi   F_MUE_GI   {0:.7f}".format(std_mu_gi)
-        print >> f1, "  g-i zeropoint   ZP_gi    F_ZP_GI    {0:.7f}".format(zp_gi)
-        print >> f1, "  g-i ZP err      ZPE_gi   F_ZPE_GI   {0:.7f}".format(std_zp_gi)
-        print >> f1, "  g-i fit RMS     rms      F_RMS_GI   {0:.7f}".format(dy1.std())
+        print >> f1, "  g-"+filterName+" color term  mu_g"+filterName+"    F_MU_G"+filterName.upper()+"    {0:.7f}".format(mu_gi)
+        print >> f1, "  g-"+filterName+" c.t. err    mue_g"+filterName+"   F_MUE_G"+filterName.upper()+"   {0:.7f}".format(std_mu_gi)
+        print >> f1, "  g-"+filterName+" zeropoint   ZP_g"+filterName+"    F_ZP_G"+filterName.upper()+"    {0:.7f}".format(zp_gi)
+        print >> f1, "  g-"+filterName+" ZP err      ZPE_g"+filterName+"   F_ZPE_G"+filterName.upper()+"   {0:.7f}".format(std_zp_gi)
+        print >> f1, "  g-"+filterName+" fit RMS     rms      F_RMS_G"+filterName.upper()+"   {0:.7f}".format(dy1.std())
         print >> f1, " - - - - - - - - - - - - - - - - - - - - - - - - - -"
-        print >> f1, "  i color term    eps_gi   F_EPS_GI   {0:.7f}".format(eps_gi)
-        print >> f1, "  i c.t. err      epse_gi  F_EPSE_GI  {0:.7f}".format(std_eps_gi)
-        print >> f1, "  i zeropoint     ZP_i     F_ZP_I     {0:.7f}".format(zp_i)
-        print >> f1, "  i ZP err        ZPe_i    F_ZPE_I    {0:.7f}".format(std_zp_i)
-        print >> f1, "  i fit RMS       rms      F_RMS_I    {0:.7f}".format(dy2.std())
+        print >> f1, "  "+filterName+" color term    eps_g"+filterName+"   F_EPS_G"+filterName.upper()+"   {0:.7f}".format(eps_gi)
+        print >> f1, "  "+filterName+" c.t. err      epse_g"+filterName+"  F_EPSE_G"+filterName.upper()+"  {0:.7f}".format(std_eps_gi)
+        print >> f1, "  "+filterName+" zeropoint     ZP_"+filterName+"     F_ZP_"+filterName.upper()+"     {0:.7f}".format(zp_i)
+        print >> f1, "  "+filterName+" ZP err        ZPe_"+filterName+"    F_ZPE_"+filterName.upper()+"    {0:.7f}".format(std_zp_i)
+        print >> f1, "  "+filterName+" fit RMS       rms      F_RMS_"+filterName.upper()+"    {0:.7f}".format(dy2.std())
         print >> f1, "----------------------------------------------------"
         print >> f1, "other details:"
         print >> f1, "  FWHM PSF [px]   fwhm    FWHMPSF    [see header]"
         print >> f1, "  FWHM [arcsec] g fwhm    F_AVGSEE   {0:.5f}".format(0.11*gRAPERT/5)
-        print >> f1, "  FWHM [arcsec] i fwhm    F_AVGSEE   {0:.5f}".format(0.11*iRAPERT/5)
+        print >> f1, "  FWHM [arcsec] "+filterName+" fwhm    F_AVGSEE   {0:.5f}".format(0.11*iRAPERT/5)
         print >> f1, "  phot aperture (5xFWHM) g [arcsec]  {0:.5f}".format(0.11*gRAPERT)
-        print >> f1, "  phot aperture (5xFWHM) i [arcsec]  {0:.5f}".format(0.11*iRAPERT)
+        print >> f1, "  phot aperture (5xFWHM) "+filterName+" [arcsec]  {0:.5f}".format(0.11*iRAPERT)
         print >> f1, "----------------------------------------------------"
         print >> f1, "photometric error cuts:"
         print >> f1, "  maximum acceptable pODI PHOT error: {0:.4f}".format(podicut)
         print >> f1, "  maximum acceptable sdss phot error: {0:.4f}".format(sdsscut)
         print >> f1, "  N_stars surviving error cuts: {0:4d}".format(len(gi[errcut]))
-        print >> f1, "    N_stars surviving sigma clip (i-i0 vs g-i plot): {0:4d}".format(len(gi_3))
+        print >> f1, "  N_stars surviving sigma clip (i-i0 vs g-"+filterName+" plot): {0:4d}".format(len(gi_3))
     print '--------------------------------------------------------------------------'
     print 'Done! I saved some important information in the following files for you:'
     print 'SDSS raw catalog values (csv):         ', img_root+'.sdss'
     print 'SDSS catalog values w/ x,y positions:  ', img_root+'.sdssxy'
-    print 'Instrumental ODI magnitudes per image: ', img_root+'*.sdssphot'
+    print 'Instrumental ODI magnitudes per image: ', img_root+'*_cal.sdssphot'
     print 'Calibration fit diagnostic plots:      ', img_root+'_photcal.pdf'
     print 'Final calibration values:              ', img_root+'_help.txt'
 
-def js_calibrate(img1 = None, img2 = None, verbose=True):
+def js_calibrate(img1 = None, img2 = None, podicut = 0.03, sdsscut = 0.03, verbose=True):
     try:
         from pyraf import iraf
         from astropy.io import fits
@@ -672,24 +693,26 @@ def js_calibrate(img1 = None, img2 = None, verbose=True):
     hdr2 = hdulist[0].header
     hdulist.close()
 
+    # go ahead and just measure the gfwhm in the images (once) so we know for sure
+    # we also need to know the "peak" values of the stellar profiles for quality cuts
+    fwhm1 = getfwhm(img1)
+    fwhm2 = getfwhm(img2)
+    
     # now get the (STEVEN) measure of FWHM and the RALF version otherwise
     # this is a first estimate to set a big aperture
-    if not os.path.isfile(img1[0:-5]+'.sdssphot'):
-        try :
-            fwhm1 = hdr1['FWHMPSF']
-            fwhm2 = hdr2['FWHMPSF']
-        except :
-            # print 'no FWHM info in header!'
-            fwhm1 = float(raw_input('Enter a guess FWHM value for g in pixels: '))
-            fwhm2 = float(raw_input('Enter a guess FWHM value for r/i in pixels: '))
-            # fwhm1 = hdr1['SEEING']/0.11 # ralf gives the value in arcsec so 
-            # fwhm2 = hdr2['SEEING']/0.11 # divide by the ODI pixel scale
-            # fwhm1 = getfwhm(img1)
-            # fwhm2 = getfwhm(img2)
-    else:
-        fwhm1 = 7.0
-        fwhm2 = 7.0
-
+    # if not os.path.isfile(img1[0:-5]+'.sdssphot'):
+        # try :
+        #     fwhm1 = hdr1['FWHMPSF']
+        #     fwhm2 = hdr2['FWHMPSF']
+        # except :
+        #     # print 'no FWHM info in header!'
+        #     fwhm1 = float(raw_input('Enter a guess value for g in pixels: '))
+        #     fwhm2 = float(raw_input('Enter a guess value for r/i in pixels: '))
+        #     # fwhm1 = hdr1['SEEING']/0.11 # ralf gives the value in arcsec so 
+        #     # fwhm2 = hdr2['SEEING']/0.11 # divide by the ODI pixel scale
+        #     # fwhm1 = getfwhm(img1)
+        #     # fwhm2 = getfwhm(img2)
+    
     # alas, we must use IRAF apphot to do the measuring
     # first set common parameters (these shouldn't change if you're using ODI)
     iraf.unlearn(iraf.phot,iraf.datapars,iraf.photpars,iraf.centerpars,iraf.fitskypars)
@@ -708,64 +731,62 @@ def js_calibrate(img1 = None, img2 = None, verbose=True):
     iraf.centerpars.setParam('maxshift',3.)
     iraf.fitskypars.setParam('salgorithm',"median")
     iraf.fitskypars.setParam('dannulus',10.)
-
+    
     # print 'pyraf thinks its in', os.getcwd()
     # now phot each image with the individual params
     # use txdump to put things in a nicer format for reading in
-    if not os.path.isfile(img1[0:-5]+'.sdssphot'): # only do this once
+    if not os.path.isfile(img1[0:-5]+'_cal.sdssphot'): # only do this once
         print 'phot-ing the g image, this might take a while...'
         iraf.datapars.setParam('fwhmpsf',fwhm1)
         iraf.photpars.setParam('apertures',5.*fwhm1) # use a big aperture for this
         iraf.fitskypars.setParam('annulus',6.*fwhm1)
-        iraf.apphot.phot(image=img1, coords=img1[0:-5]+'.sdssxy', output=img1[0:-5]+'.phot.1')
-        with open(img1[0:-5]+'.sdssphot','w+') as txdump_out :
-            iraf.ptools.txdump(textfiles=img1[0:-5]+'.phot.1', fields="id,mag,merr,msky,stdev,rapert,xcen,ycen,ifilter,xairmass,image", expr='MAG != INDEF && MERR != INDEF', headers='no', Stdout=txdump_out)
-
-    if not os.path.isfile(img2[0:-5]+'.sdssphot'):
+        iraf.apphot.phot(image=img1, coords=img1[0:-5]+'.sdssxy', output=img1[0:-5]+'_cal.phot.1')
+        with open(img1[0:-5]+'_cal.sdssphot','w+') as txdump_out :
+            iraf.ptools.txdump(textfiles=img1[0:-5]+'_cal.phot.1', fields="id,mag,merr,msky,stdev,rapert,xcen,ycen,ifilter,xairmass,image", expr='MAG != INDEF && MERR != INDEF', headers='no', Stdout=txdump_out)
+    
+    if not os.path.isfile(img2[0:-5]+'_cal.sdssphot'):
         print 'phot-ing the r/i image, this might take a while...'
         iraf.datapars.setParam('fwhmpsf',fwhm2)
         iraf.photpars.setParam('apertures',5.*fwhm2) # use a big aperture for this
         iraf.fitskypars.setParam('annulus',6.*fwhm2)
-        iraf.apphot.phot(image=img2, coords=img2[0:-5]+'.sdssxy', output=img2[0:-5]+'.phot.1')
-        with open(img2[0:-5]+'.sdssphot','w+') as txdump_out :
-            iraf.ptools.txdump(textfiles=img2[0:-5]+'.phot.1', fields="id,mag,merr,msky,stdev,rapert,xcen,ycen,ifilter,xairmass,image", expr='MAG != INDEF && MERR != INDEF', headers='no', Stdout=txdump_out)
-
+        iraf.apphot.phot(image=img2, coords=img2[0:-5]+'.sdssxy', output=img2[0:-5]+'_cal.phot.1')
+        with open(img2[0:-5]+'_cal.sdssphot','w+') as txdump_out :
+            iraf.ptools.txdump(textfiles=img2[0:-5]+'_cal.phot.1', fields="id,mag,merr,msky,stdev,rapert,xcen,ycen,ifilter,xairmass,image", expr='MAG != INDEF && MERR != INDEF', headers='no', Stdout=txdump_out)
+    
+    # read in getfwhm logs
+    col1, line1, rmag1, flux1, sky1, n1, rmom1, ellip1, pa1, peak1, gfwhm1 = np.loadtxt(img1[0:-5]+'_fwhmCAL.log', usecols=(0,1,2,3,4,5,6,7,8,9,10), dtype=float, unpack=True)
+    col2, line2, rmag2, flux2, sky2, n2, rmom2, ellip2, pa2, peak2, gfwhm2 = np.loadtxt(img2[0:-5]+'_fwhmCAL.log', usecols=(0,1,2,3,4,5,6,7,8,9,10), dtype=float, unpack=True)
+    
     # read in the phot output as a string because we need to get rid of the indefs
-    gMAG, gMERR, gSKY, gSERR, gRAPERT, gXPOS, gYPOS = np.loadtxt(img1[0:-5]+'.sdssphot', usecols=(1,2,3,4,5,6,7), dtype=float, unpack=True)
-    iMAG, iMERR, iSKY, iSERR, iRAPERT, iXPOS, iYPOS = np.loadtxt(img2[0:-5]+'.sdssphot', usecols=(1,2,3,4,5,6,7), dtype=float, unpack=True)
-
+    gMAG, gMERR, gSKY, gSERR, gRAPERT, gXPOS, gYPOS = np.loadtxt(img1[0:-5]+'_cal.sdssphot', usecols=(1,2,3,4,5,6,7), dtype=float, unpack=True)
+    iMAG, iMERR, iSKY, iSERR, iRAPERT, iXPOS, iYPOS = np.loadtxt(img2[0:-5]+'_cal.sdssphot', usecols=(1,2,3,4,5,6,7), dtype=float, unpack=True)
+    
     # get some auxiliary info from the phot output
-    gXAIRMASS = np.loadtxt(img1[0:-5]+'.sdssphot', usecols=(9,), dtype=str, unpack=True)
-    iXAIRMASS = np.loadtxt(img2[0:-5]+'.sdssphot', usecols=(9,), dtype=str, unpack=True)
-
-    gFILTER = np.loadtxt(img1[0:-5]+'.sdssphot', usecols=(8,), dtype=str, unpack=True)
-    iFILTER = np.loadtxt(img2[0:-5]+'.sdssphot', usecols=(8,), dtype=str, unpack=True)
-
-    gID = np.loadtxt(img1[0:-5]+'.sdssphot', usecols=(0,), dtype=int, unpack=True)
-    iID = np.loadtxt(img2[0:-5]+'.sdssphot', usecols=(0,), dtype=int, unpack=True)
-
+    gXAIRMASS = np.loadtxt(img1[0:-5]+'_cal.sdssphot', usecols=(9,), dtype=str, unpack=True)
+    iXAIRMASS = np.loadtxt(img2[0:-5]+'_cal.sdssphot', usecols=(9,), dtype=str, unpack=True)
+    
+    gFILTER = np.loadtxt(img1[0:-5]+'_cal.sdssphot', usecols=(8,), dtype=str, unpack=True)
+    iFILTER = np.loadtxt(img2[0:-5]+'_cal.sdssphot', usecols=(8,), dtype=str, unpack=True)
+    
+    gID = np.loadtxt(img1[0:-5]+'_cal.sdssphot', usecols=(0,), dtype=int, unpack=True)
+    iID = np.loadtxt(img2[0:-5]+'_cal.sdssphot', usecols=(0,), dtype=int, unpack=True)
+    
     # keep the actual ID number to select from SDSS stars
     # need to do this because we already dropped INDEFs
     gID_keep = gID - 1
     iID_keep = iID - 1
     keep = list(set(gID_keep).intersection(iID_keep))
-
+    
     # and keep the common elements between g and i using their list index
     keepg = [i for i,element in enumerate(gID) if element in iID]
     keepi = [i for i,element in enumerate(iID) if element in gID]
-
-    # check to see if we're actually getting the same star across all of the files
-    # for i in range(len(keep)):
-    #     print keep[i]+1, gID[keepg[i]], iID[keepi[i]]
-    # and how many
-    # print len(keep), len(keepg), len(keepi)
-
+    
     # read in the the SDSS catalog values
     x, y, ra, dec, u, ue, g, ge, r, re, i, ie, z, ze = np.loadtxt(img1[0:-5]+'.sdssxy', usecols=(0,1,2,3,4,5,6,7,8,9,10,11,12,13), unpack=True)
-
+    
     # pick out the ones that match the good phot stars
-    g, ge, r, re, i, ie = np.array(g[keep]), np.array(ge[keep]), np.array(r[keep]), np.array(re[keep]), np.array(i[keep]), np.array(ie[keep])
-
+    g, ge, r, re, i, ie, peak1, peak2, gfwhm1, gfwhm2 = np.array(g[keep]), np.array(ge[keep]), np.array(r[keep]), np.array(re[keep]), np.array(i[keep]), np.array(ie[keep]), np.array(peak1[keep]), np.array(peak2[keep]), np.array(gfwhm1[keep]), np.array(gfwhm2[keep])
+    
     # and reduce the other vectors
     gXPOS, gYPOS, gMAG, gMERR, gSKY, gSERR, iMAG, iMERR, iSKY, iSERR = np.array(gXPOS[keepg]), np.array(gYPOS[keepg]), np.array(gMAG[keepg]), np.array(gMERR[keepg]), np.array(gSKY[keepg]), np.array(gSERR[keepg]), np.array(iMAG[keepi]), np.array(iMERR[keepi]), np.array(iSKY[keepi]), np.array(iSERR[keepi])
 
@@ -807,10 +828,11 @@ def js_calibrate(img1 = None, img2 = None, verbose=True):
     dg = g - g0
     dge = np.sqrt(ge**2 + gMERR**2)
 
-    podicut, sdsscut = 0.03, 0.03
+    # podicut, sdsscut = 0.03, 0.03
     # print np.median(gSERR), np.median(iSERR)
     # cuts for better fits go here
-    errcut = [j for j in range(len(gMERR)) if (gMERR[j] < podicut and iMERR[j] < podicut and ge[j] < sdsscut and ie[j] < sdsscut and gSKY[j] > np.median(gSERR) and iSKY[j] > np.median(iSERR) and di[j] > 25.5)]
+    errcut = [j for j in range(len(gMERR)) if (gMERR[j] < podicut and iMERR[j] < podicut and ge[j] < sdsscut and ie[j] < sdsscut and 5000.0 < peak1[j]< 40000.0 and 5000.0 < peak2[j]< 40000.0)]
+    #errcut = [j for j in range(len(gMERR)) if (gMERR[j] < podicut and iMERR[j] < podicut and ge[j] < sdsscut and ie[j] < sdsscut and gSKY[j] > np.median(gSERR) and iSKY[j] > np.median(iSERR) and di[j] > 25.5)]
 
     if verbose:
         for j in range(len(gi[errcut])):
@@ -1009,9 +1031,10 @@ def js_calibrate(img1 = None, img2 = None, verbose=True):
         print >> f1, "#  name           symbol   IMHEAD    value"
         print >> f1, "----------------------------------------------------"
         print >> f1, "  extn coeff      k_g      F_KG      {0:.7f}".format(kg)
+        print >> f1, "  extn coeff      k_r      F_KR      {0:.7f}".format(kr)
         print >> f1, "  extn coeff      k_i      F_KI      {0:.7f}".format(ki)
         print >> f1, "  airmass in g    X_g      F_XG      {0:.7f}".format(gXAIRMASS)
-        print >> f1, "  airmass in i    X_i      F_XI      {0:.7f}".format(iXAIRMASS)
+        print >> f1, "  airmass in "+filterName+"    X_"+filterName+"     F_X"+filterName.upper()+"      {0:.7f}".format(iXAIRMASS)
         print >> f1, " - - - - - - - - - - - - - - - - - - - - - - - - - -"
         print >> f1, "  g color term    eps_g    F_EPS_G   {0:.7f}".format(eps_g)
         print >> f1, "  g c.t. err      epse_g   F_EPSE_G  {0:.7f}".format(std_eps_g)
@@ -1019,19 +1042,19 @@ def js_calibrate(img1 = None, img2 = None, verbose=True):
         print >> f1, "  g ZP err        ZPE_g    F_ZPE_G   {0:.7f}".format(std_zp_g)
         print >> f1, "  g fit RMS       rms      F_RMS_G   {0:.7f}".format(dy1.std())
         print >> f1, " - - - - - - - - - - - - - - - - - - - - - - - - - -"
-        print >> f1, "  i color term    eps_i    F_EPS_I   {0:.7f}".format(eps_i)
-        print >> f1, "  i c.t. err      epse_i   F_EPSE_I  {0:.7f}".format(std_eps_i)
-        print >> f1, "  i zeropoint     ZP_i     F_ZP_I    {0:.7f}".format(zp_i)
-        print >> f1, "  i ZP err        ZPe_i    F_ZPE_I   {0:.7f}".format(std_zp_i)
-        print >> f1, "  i fit RMS       rms      F_RMS_I   {0:.7f}".format(dy2.std())
+        print >> f1, "  "+filterName+" color term    eps_"+filterName+"   F_EPS_"+filterName.upper()+"   {0:.7f}".format(eps_i)
+        print >> f1, "  "+filterName+" c.t. err      epse_"+filterName+"  F_EPSE_"+filterName.upper()+"  {0:.7f}".format(std_eps_i)
+        print >> f1, "  "+filterName+" zeropoint     ZP_"+filterName+"    F_ZP_"+filterName.upper()+"    {0:.7f}".format(zp_i)
+        print >> f1, "  "+filterName+" ZP err        ZPe_"+filterName+"   F_ZPE_"+filterName.upper()+"   {0:.7f}".format(std_zp_i)
+        print >> f1, "  "+filterName+" fit RMS       rms      F_RMS_"+filterName.upper()+"   {0:.7f}".format(dy2.std())
         print >> f1, "----------------------------------------------------"
         print >> f1, "other details:"
         print >> f1, "  FWHM PSF [px] g fwhm     FWHMPSF   {0:6.5f}".format(gRAPERT/5)
-        print >> f1, "  FWHM PSF [px] i fwhm     FWHMPSF   {0:6.5f}".format(iRAPERT/5)
+        print >> f1, "  FWHM PSF [px] "+filterName+" fwhm     FWHMPSF   {0:6.5f}".format(iRAPERT/5)
         print >> f1, "  FWHM [arcsec] g fwhm     F_AVGSEE  {0:.5f}".format(0.11*gRAPERT/5)
-        print >> f1, "  FWHM [arcsec] i fwhm     F_AVGSEE  {0:.5f}".format(0.11*iRAPERT/5)
+        print >> f1, "  FWHM [arcsec] "+filterName+" fwhm     F_AVGSEE  {0:.5f}".format(0.11*iRAPERT/5)
         print >> f1, "  phot aperture (5xFWHM) g [arcsec]  {0:.5f}".format(0.11*gRAPERT)
-        print >> f1, "  phot aperture (5xFWHM) i [arcsec]  {0:.5f}".format(0.11*iRAPERT)
+        print >> f1, "  phot aperture (5xFWHM) "+filterName+" [arcsec]  {0:.5f}".format(0.11*iRAPERT)
         print >> f1, "----------------------------------------------------"
         print >> f1, "photometric error cuts:"
         print >> f1, "  maximum acceptable pODI PHOT error: {0:.4f}".format(podicut)
@@ -1042,7 +1065,7 @@ def js_calibrate(img1 = None, img2 = None, verbose=True):
     print 'Done! I saved some important information in the following files for you:'
     print 'SDSS raw catalog values (csv):         ', img_root+'*.sdss'
     print 'SDSS catalog values w/ x,y positions:  ', img_root+'*.sdssxy'
-    print 'Instrumental ODI magnitudes per image: ', img_root+'*.sdssphot'
+    print 'Instrumental ODI magnitudes per image: ', img_root+'*_cal.sdssphot'
     print 'Calibration fit diagnostic plots:      ', img_root+'_photcal_js.pdf'
     print 'Zero Point map:                        ', img_root+'_photmap_js.pdf'
     print 'Final calibration values:              ', img_root+'_help_js.txt'
@@ -1062,14 +1085,14 @@ def main():
     steps = path.split('/')
     folder = steps[-1].upper()
     
-    g_img = folder+'_odi_g_match.fits'
-    i_img = folder+'_odi_i_match.fits'
+    g_img = folder+'_g.fits'
+    i_img = folder+'_i.fits'
     
     # print '--------------------------------------------------------------------------'
     # if not os.path.isfile(g_img.nofits()+'.sdssxy'):        
     download_sdss(g_img, i_img)
-    # calibrate(img1=g_img, img2=i_img)
-    js_calibrate(img1=g_img, img2=i_img)
+    calibrate(img1=g_img, img2=i_img, podicut = 0.03, sdsscut = 0.03)
+    # js_calibrate(img1=g_img, img2=i_img, podicut = 0.03, sdsscut = 0.03)
 
 if __name__ == '__main__':
     main()
