@@ -150,11 +150,11 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="module-odi_cfgparse">
-<span id="reading-configuration-files"></span><h1>Reading configuration files<a class="headerlink" href="#module-odi_cfgparse" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-odi_config">
+<span id="reading-configuration-files"></span><h1>Reading configuration files<a class="headerlink" href="#module-odi_config" title="Permalink to this headline">¶</a></h1>
 <dl class="function">
-<dt id="odi_cfgparse.cfgparse">
-<code class="descclassname">odi_cfgparse.</code><code class="descname">cfgparse</code><span class="sig-paren">(</span><em>cfg_file</em>, <em>verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/odi_cfgparse.html#cfgparse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#odi_cfgparse.cfgparse" title="Permalink to this definition">¶</a></dt>
+<dt id="odi_config.cfgparse">
+<code class="descclassname">odi_config.</code><code class="descname">cfgparse</code><span class="sig-paren">(</span><em>cfg_file</em>, <em>verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/odi_config.html#cfgparse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#odi_config.cfgparse" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function reads the <code class="docutils literal"><span class="pre">yaml</span></code> configuration file that is needed
 to make the <code class="docutils literal"><span class="pre">odi_process.py</span></code> and <code class="docutils literal"><span class="pre">odi_scalestack_process.py</span></code> functions
 work. The configuration file must be given the name <code class="docutils literal"><span class="pre">config.yaml</span></code> and be
@@ -180,6 +180,7 @@ OTA</li>
 image in the image list.</li>
 <li><strong>scale_flag</strong> (<em>bool</em>) &#8211; If <code class="docutils literal"><span class="pre">True</span></code> the OTAs will be scaled to the same level before stacking</li>
 <li><strong>stack_flag</strong> (<em>bool</em>) &#8211; If <code class="docutils literal"><span class="pre">True</span></code> the processed OTAs will be stacked into a final image</li>
+<li><strong>align_flag</strong> (<em>bool</em>) &#8211; If <code class="docutils literal"><span class="pre">True</span></code> the stacked images will be aligned using pixel shifts computed from the gaia catalog</li>
 <li><strong>gaia_flag</strong> (<em>bool</em>) &#8211; If <code class="docutils literal"><span class="pre">True</span></code> the gaia catalog will be used as the sources in the fix WCS
 step</li>
 <li><strong>cluster_flag</strong> (<em>bool</em>) &#8211; If <code class="docutils literal"><span class="pre">True</span></code> the central regions of a crowded area, such as a globular
@@ -201,8 +202,8 @@ in the configuration file.</li>
 </dd></dl>
 
 <dl class="function">
-<dt id="odi_cfgparse.photcfgparse">
-<code class="descclassname">odi_cfgparse.</code><code class="descname">photcfgparse</code><span class="sig-paren">(</span><em>cfg_file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/odi_cfgparse.html#photcfgparse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#odi_cfgparse.photcfgparse" title="Permalink to this definition">¶</a></dt>
+<dt id="odi_config.photcfgparse">
+<code class="descclassname">odi_config.</code><code class="descname">photcfgparse</code><span class="sig-paren">(</span><em>cfg_file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/odi_config.html#photcfgparse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#odi_config.photcfgparse" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function reads the <code class="docutils literal"><span class="pre">yaml</span></code> configuration file that is needed
 to make the <code class="docutils literal"><span class="pre">odi_phot_process.py</span></code> function work. The configuration file
 must be given the name <code class="docutils literal"><span class="pre">phot_config.yaml</span></code> and be in the same directory

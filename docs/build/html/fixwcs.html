@@ -154,14 +154,14 @@
 <h1>Improving WCS solutions<a class="headerlink" href="#improving-wcs-solutions" title="Permalink to this headline">¶</a></h1>
 <p>These are the functions that improve the WCS solutions of otas based on source
 catalogs with known Ra and Dec positions.</p>
-<span class="target" id="module-fixwcs"></span><dl class="function">
-<dt id="fixwcs.list_wcs_coords">
-<code class="descclassname">fixwcs.</code><code class="descname">list_wcs_coords</code><span class="sig-paren">(</span><em>img</em>, <em>ota</em>, <em>gapmask</em>, <em>inst</em>, <em>output='radec.coo'</em>, <em>gmaglim=20.0</em>, <em>stars_only=True</em>, <em>offline=False</em>, <em>source='sdss'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fixwcs.html#list_wcs_coords"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fixwcs.list_wcs_coords" title="Permalink to this definition">¶</a></dt>
+<span class="target" id="module-odi_helpers"></span><dl class="function">
+<dt id="odi_helpers.list_wcs_coords">
+<code class="descclassname">odi_helpers.</code><code class="descname">list_wcs_coords</code><span class="sig-paren">(</span><em>img</em>, <em>ota</em>, <em>gapmask</em>, <em>inst</em>, <em>output='radec.coo'</em>, <em>gmaglim=20.0</em>, <em>stars_only=True</em>, <em>offline=False</em>, <em>source='sdss'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/odi_helpers.html#list_wcs_coords"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#odi_helpers.list_wcs_coords" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create the files needed to fix the WCS solution on a given ota. This
 function will create lists of SDSS, 2MASS, or Gaia sources depending on the
 options selected by the user. If this function is run in the <code class="docutils literal"><span class="pre">offline</span></code>
 mode, the source catalogs will be taken from the files produced by
-<a class="reference internal" href="offlinecats.html#module-offlinecats" title="offlinecats"><code class="xref py py-func docutils literal"><span class="pre">offlinecats()</span></code></a></p>
+<code class="xref py py-func docutils literal"><span class="pre">offlinecats()</span></code></p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -170,7 +170,7 @@ mode, the source catalogs will be taken from the files produced by
 <li><strong>img</strong> (<em>str</em>) &#8211; Name of image</li>
 <li><strong>ota</strong> (<em>str</em>) &#8211; Name of OTA</li>
 <li><strong>gapmask</strong> (<em>numpy array</em>) &#8211; A numpy array of the gap location on the ota. This can be produced by
-the function <a class="reference internal" href="get_gaps.html#get_gaps.get_gaps" title="get_gaps.get_gaps"><code class="xref py py-func docutils literal"><span class="pre">get_gaps.get_gaps()</span></code></a>. The gap mask is used to
+the function <code class="xref py py-func docutils literal"><span class="pre">get_gaps.get_gaps()</span></code>. The gap mask is used to
 filter out stars that fall in or near gaps on the ota.</li>
 <li><strong>int</strong> (<em>str</em>) &#8211; Version of ODI used, <code class="docutils literal"><span class="pre">podi</span></code> or <code class="docutils literal"><span class="pre">5odi</span></code></li>
 <li><strong>output</strong> (<em>str</em>) &#8211; Desired name of the output catalog</li>
@@ -180,7 +180,7 @@ is too bright, there might not be enough sources to produces a good
 WCS solution.</li>
 <li><strong>stars_only</strong> (<em>bool</em>) &#8211; When using SDSS sources this only includes sources flagged as stars</li>
 <li><strong>offline</strong> (<em>bool</em>) &#8211; When <code class="docutils literal"><span class="pre">True</span></code> this function will use the catalogs produced by
-<a class="reference internal" href="offlinecats.html#module-offlinecats" title="offlinecats"><code class="xref py py-func docutils literal"><span class="pre">offlinecats()</span></code></a>. If <code class="docutils literal"><span class="pre">False</span></code> this function will query the
+<code class="xref py py-func docutils literal"><span class="pre">offlinecats()</span></code>. If <code class="docutils literal"><span class="pre">False</span></code> this function will query the
 online <code class="docutils literal"><span class="pre">SDSS</span></code> catalog for sources.</li>
 <li><strong>source</strong> (<em>str</em>) &#8211; Name of desired source catalog. Must be either <code class="docutils literal"><span class="pre">sdss</span></code>,``twomass``, or
 <code class="docutils literal"><span class="pre">gaia</span></code>.</li>
@@ -202,11 +202,11 @@ directory with the following naming scheme:</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="fixwcs.fix_wcs">
-<code class="descclassname">fixwcs.</code><code class="descname">fix_wcs</code><span class="sig-paren">(</span><em>img</em>, <em>ota</em>, <em>coords='radec.coo'</em>, <em>iters=3</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fixwcs.html#fix_wcs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fixwcs.fix_wcs" title="Permalink to this definition">¶</a></dt>
+<dt id="odi_helpers.fix_wcs">
+<code class="descclassname">odi_helpers.</code><code class="descname">fix_wcs</code><span class="sig-paren">(</span><em>img</em>, <em>ota</em>, <em>coords='radec.coo'</em>, <em>iters=3</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/odi_helpers.html#fix_wcs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#odi_helpers.fix_wcs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Try to improve the WCS solution of an OTA using the IRAF task <code class="docutils literal"><span class="pre">msccmatch</span></code>.
 This function will use the <code class="docutils literal"><span class="pre">img.nofits()+'.'+ota+'.radec.coo'</span></code> file produced
-by <a class="reference internal" href="#fixwcs.list_wcs_coords" title="fixwcs.list_wcs_coords"><code class="xref py py-func docutils literal"><span class="pre">list_wcs_coords()</span></code></a>.</p>
+by <a class="reference internal" href="#odi_helpers.list_wcs_coords" title="odi_helpers.list_wcs_coords"><code class="xref py py-func docutils literal"><span class="pre">list_wcs_coords()</span></code></a>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -249,8 +249,8 @@ following are the parameters used by <code class="docutils literal"><span class=
 </dd></dl>
 
 <dl class="function">
-<dt id="fixwcs.fix_wcs_full">
-<code class="descclassname">fixwcs.</code><code class="descname">fix_wcs_full</code><span class="sig-paren">(</span><em>img</em>, <em>coords='radec.coo'</em>, <em>iters=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fixwcs.html#fix_wcs_full"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fixwcs.fix_wcs_full" title="Permalink to this definition">¶</a></dt>
+<dt id="odi_helpers.fix_wcs_full">
+<code class="descclassname">odi_helpers.</code><code class="descname">fix_wcs_full</code><span class="sig-paren">(</span><em>img</em>, <em>coords='radec.coo'</em>, <em>iters=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/odi_helpers.html#fix_wcs_full"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#odi_helpers.fix_wcs_full" title="Permalink to this definition">¶</a></dt>
 <dd><p>Try to improve the WCS solution of a final stacked image.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />

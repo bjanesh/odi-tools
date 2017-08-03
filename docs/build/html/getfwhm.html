@@ -166,9 +166,9 @@ Here is how the parameters are set for <code class="docutils literal"><span clas
 <span class="n">iraf</span><span class="o">.</span><span class="n">tv</span><span class="o">.</span><span class="n">rimexam</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;iterati&#39;</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
 </pre></div>
 </div>
-<span class="target" id="module-getfwhm"></span><dl class="function">
-<dt id="getfwhm.getfwhm_ota">
-<code class="descclassname">getfwhm.</code><code class="descname">getfwhm_ota</code><span class="sig-paren">(</span><em>img</em>, <em>ota</em>, <em>gaia=False</em>, <em>radius=4.0</em>, <em>buff=7.0</em>, <em>width=5.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/getfwhm.html#getfwhm_ota"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#getfwhm.getfwhm_ota" title="Permalink to this definition">¶</a></dt>
+<span class="target" id="module-odi_helpers"></span><dl class="function">
+<dt id="odi_helpers.getfwhm_ota">
+<code class="descclassname">odi_helpers.</code><code class="descname">getfwhm_ota</code><span class="sig-paren">(</span><em>img</em>, <em>ota</em>, <em>gaia=False</em>, <em>radius=4.0</em>, <em>buff=7.0</em>, <em>width=5.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/odi_helpers.html#getfwhm_ota"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#odi_helpers.getfwhm_ota" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get a fwhm estimate for a single OTA using the SDSS catalog stars and
 IRAF imexam (SLOW, but works). Adapted from Kathy Rohde&#8217;s getfwhm script
 (this implementation is simpler in practice). The radius, buff, and width
@@ -209,8 +209,8 @@ The name of this <code class="docutils literal"><span class="pre">output</span><
 </dd></dl>
 
 <dl class="function">
-<dt id="getfwhm.getfwhm_full">
-<code class="descclassname">getfwhm.</code><code class="descname">getfwhm_full</code><span class="sig-paren">(</span><em>img</em>, <em>radius=4.0</em>, <em>buff=7.0</em>, <em>width=5.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/getfwhm.html#getfwhm_full"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#getfwhm.getfwhm_full" title="Permalink to this definition">¶</a></dt>
+<dt id="odi_helpers.getfwhm_full">
+<code class="descclassname">odi_helpers.</code><code class="descname">getfwhm_full</code><span class="sig-paren">(</span><em>img</em>, <em>radius=4.0</em>, <em>buff=7.0</em>, <em>width=5.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/odi_helpers.html#getfwhm_full"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#odi_helpers.getfwhm_full" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get a fwhm estimate for a stacked image using the SDSS catalog stars and
 IRAF imexam (SLOW, but works). Adapted from Kathy Rohde&#8217;s getfwhm script
 (this implementation is simpler in practice). The radius, buff, and width

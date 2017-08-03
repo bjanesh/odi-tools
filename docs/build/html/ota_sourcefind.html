@@ -155,9 +155,9 @@
 <p>These functions locate the bright sources on OTAs, runs phot on these sources,
 and calculate the scaling factor needed to be applied to each OTA based on
 a reference image.</p>
-<span class="target" id="module-ota_sourcefind"></span><dl class="function">
-<dt id="ota_sourcefind.source_find">
-<code class="descclassname">ota_sourcefind.</code><code class="descname">source_find</code><span class="sig-paren">(</span><em>img</em>, <em>ota</em>, <em>inst</em>, <em>nbg_std=10.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ota_sourcefind.html#source_find"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ota_sourcefind.source_find" title="Permalink to this definition">¶</a></dt>
+<span class="target" id="module-odi_scale"></span><dl class="function">
+<dt id="odi_scale.source_find">
+<code class="descclassname">odi_scale.</code><code class="descname">source_find</code><span class="sig-paren">(</span><em>img</em>, <em>ota</em>, <em>inst</em>, <em>nbg_std=10.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/odi_scale.html#source_find"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#odi_scale.source_find" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function will find sources on an OTA using the detect_sources module
 from photutils. This will return of csv file of the sources found with the
 x,y,Ra,Dec,source_sum,max_value, and elongation of the source. The
@@ -187,10 +187,10 @@ following naming convention <code class="docutils literal"><span class="pre">'so
 </dd></dl>
 
 <dl class="function">
-<dt id="ota_sourcefind.source_xy">
-<code class="descclassname">ota_sourcefind.</code><code class="descname">source_xy</code><span class="sig-paren">(</span><em>img</em>, <em>ota</em>, <em>gapmask</em>, <em>filter</em>, <em>inst</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ota_sourcefind.html#source_xy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ota_sourcefind.source_xy" title="Permalink to this definition">¶</a></dt>
+<dt id="odi_scale.source_xy">
+<code class="descclassname">odi_scale.</code><code class="descname">source_xy</code><span class="sig-paren">(</span><em>img</em>, <em>ota</em>, <em>gapmask</em>, <em>filter</em>, <em>inst</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/odi_scale.html#source_xy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#odi_scale.source_xy" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function will return the x,y positions of sources found by
-<a class="reference internal" href="#ota_sourcefind.source_find" title="ota_sourcefind.source_find"><code class="xref py py-func docutils literal"><span class="pre">source_find()</span></code></a> that are not too close to gaps or the edges of the
+<a class="reference internal" href="#odi_scale.source_find" title="odi_scale.source_find"><code class="xref py py-func docutils literal"><span class="pre">source_find()</span></code></a> that are not too close to gaps or the edges of the
 ota.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -213,12 +213,12 @@ following naming convention <code class="docutils literal"><span class="pre">'so
 </dd></dl>
 
 <dl class="function">
-<dt id="ota_sourcefind.getfwhm_source">
-<code class="descclassname">ota_sourcefind.</code><code class="descname">getfwhm_source</code><span class="sig-paren">(</span><em>img</em>, <em>ota</em>, <em>radius=4.0</em>, <em>buff=7.0</em>, <em>width=5.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ota_sourcefind.html#getfwhm_source"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ota_sourcefind.getfwhm_source" title="Permalink to this definition">¶</a></dt>
+<dt id="odi_scale.getfwhm_source">
+<code class="descclassname">odi_scale.</code><code class="descname">getfwhm_source</code><span class="sig-paren">(</span><em>img</em>, <em>ota</em>, <em>radius=4.0</em>, <em>buff=7.0</em>, <em>width=5.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/odi_scale.html#getfwhm_source"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#odi_scale.getfwhm_source" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function will measure the FWHM of the sources in the catalog produced
-by <a class="reference internal" href="#ota_sourcefind.source_xy" title="ota_sourcefind.source_xy"><code class="xref py py-func docutils literal"><span class="pre">source_xy()</span></code></a>. These are the sources that were not too close to
+by <a class="reference internal" href="#odi_scale.source_xy" title="odi_scale.source_xy"><code class="xref py py-func docutils literal"><span class="pre">source_xy()</span></code></a>. These are the sources that were not too close to
 the edges of the OTA or the gaps. The FWHM measurement is done using the
-same IRAF tasks outlined in <a class="reference internal" href="getfwhm.html#getfwhm.getfwhm_ota" title="getfwhm.getfwhm_ota"><code class="xref py py-func docutils literal"><span class="pre">getfwhm.getfwhm_ota()</span></code></a>.</p>
+same IRAF tasks outlined in <code class="xref py py-func docutils literal"><span class="pre">getfwhm.getfwhm_ota()</span></code>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -240,10 +240,10 @@ same IRAF tasks outlined in <a class="reference internal" href="getfwhm.html#get
 </dd></dl>
 
 <dl class="function">
-<dt id="ota_sourcefind.phot_sources">
-<code class="descclassname">ota_sourcefind.</code><code class="descname">phot_sources</code><span class="sig-paren">(</span><em>img</em>, <em>ota</em>, <em>fwhm</em>, <em>run_detect=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ota_sourcefind.html#phot_sources"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ota_sourcefind.phot_sources" title="Permalink to this definition">¶</a></dt>
-<dd><p>Run IRAF phot on the sources filtered by <a class="reference internal" href="#ota_sourcefind.source_xy" title="ota_sourcefind.source_xy"><code class="xref py py-func docutils literal"><span class="pre">source_xy()</span></code></a>. The <code class="docutils literal"><span class="pre">fwhm</span></code>
-values used by phot is calculated by <a class="reference internal" href="#ota_sourcefind.getfwhm_source" title="ota_sourcefind.getfwhm_source"><code class="xref py py-func docutils literal"><span class="pre">getfwhm_source()</span></code></a>.</p>
+<dt id="odi_scale.phot_sources">
+<code class="descclassname">odi_scale.</code><code class="descname">phot_sources</code><span class="sig-paren">(</span><em>img</em>, <em>ota</em>, <em>fwhm</em>, <em>run_detect=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/odi_scale.html#phot_sources"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#odi_scale.phot_sources" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run IRAF phot on the sources filtered by <a class="reference internal" href="#odi_scale.source_xy" title="odi_scale.source_xy"><code class="xref py py-func docutils literal"><span class="pre">source_xy()</span></code></a>. The <code class="docutils literal"><span class="pre">fwhm</span></code>
+values used by phot is calculated by <a class="reference internal" href="#odi_scale.getfwhm_source" title="odi_scale.getfwhm_source"><code class="xref py py-func docutils literal"><span class="pre">getfwhm_source()</span></code></a>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -284,11 +284,11 @@ values used by phot is calculated by <a class="reference internal" href="#ota_so
 </dd></dl>
 
 <dl class="function">
-<dt id="ota_sourcefind.phot_combine">
-<code class="descclassname">ota_sourcefind.</code><code class="descname">phot_combine</code><span class="sig-paren">(</span><em>img</em>, <em>ota</em>, <em>run_detect=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ota_sourcefind.html#phot_combine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ota_sourcefind.phot_combine" title="Permalink to this definition">¶</a></dt>
+<dt id="odi_scale.phot_combine">
+<code class="descclassname">odi_scale.</code><code class="descname">phot_combine</code><span class="sig-paren">(</span><em>img</em>, <em>ota</em>, <em>run_detect=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/odi_scale.html#phot_combine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#odi_scale.phot_combine" title="Permalink to this definition">¶</a></dt>
 <dd><p>Combine all of the information gathered on the found sources.
-These will be all of the values returned by <a class="reference internal" href="#ota_sourcefind.source_find" title="ota_sourcefind.source_find"><code class="xref py py-func docutils literal"><span class="pre">source_find()</span></code></a>,
-<a class="reference internal" href="#ota_sourcefind.source_xy" title="ota_sourcefind.source_xy"><code class="xref py py-func docutils literal"><span class="pre">source_xy()</span></code></a>, <a class="reference internal" href="#ota_sourcefind.getfwhm_source" title="ota_sourcefind.getfwhm_source"><code class="xref py py-func docutils literal"><span class="pre">getfwhm_source()</span></code></a>, <a class="reference internal" href="#ota_sourcefind.phot_sources" title="ota_sourcefind.phot_sources"><code class="xref py py-func docutils literal"><span class="pre">phot_sources()</span></code></a>.</p>
+These will be all of the values returned by <a class="reference internal" href="#odi_scale.source_find" title="odi_scale.source_find"><code class="xref py py-func docutils literal"><span class="pre">source_find()</span></code></a>,
+<a class="reference internal" href="#odi_scale.source_xy" title="odi_scale.source_xy"><code class="xref py py-func docutils literal"><span class="pre">source_xy()</span></code></a>, <a class="reference internal" href="#odi_scale.getfwhm_source" title="odi_scale.getfwhm_source"><code class="xref py py-func docutils literal"><span class="pre">getfwhm_source()</span></code></a>, <a class="reference internal" href="#odi_scale.phot_sources" title="odi_scale.phot_sources"><code class="xref py py-func docutils literal"><span class="pre">phot_sources()</span></code></a>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -309,10 +309,10 @@ These will be all of the values returned by <a class="reference internal" href="
 </dd></dl>
 
 <dl class="function">
-<dt id="ota_sourcefind.source_scale">
-<code class="descclassname">ota_sourcefind.</code><code class="descname">source_scale</code><span class="sig-paren">(</span><em>img</em>, <em>ref</em>, <em>filter</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ota_sourcefind.html#source_scale"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ota_sourcefind.source_scale" title="Permalink to this definition">¶</a></dt>
+<dt id="odi_scale.source_scale">
+<code class="descclassname">odi_scale.</code><code class="descname">source_scale</code><span class="sig-paren">(</span><em>img</em>, <em>ref</em>, <em>filter</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/odi_scale.html#source_scale"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#odi_scale.source_scale" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function calculates the scaling based on a reference image. The tables
-returned by <a class="reference internal" href="#ota_sourcefind.phot_combine" title="ota_sourcefind.phot_combine"><code class="xref py py-func docutils literal"><span class="pre">phot_combine()</span></code></a> are used to match the sources in the
+returned by <a class="reference internal" href="#odi_scale.phot_combine" title="odi_scale.phot_combine"><code class="xref py py-func docutils literal"><span class="pre">phot_combine()</span></code></a> are used to match the sources in the
 image and the reference image, as well as make cuts based and other source
 properties. These values will likely have to adjusted based on your data.</p>
 <table class="docutils field-list" frame="void" rules="none">

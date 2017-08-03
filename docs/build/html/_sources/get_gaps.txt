@@ -1,6 +1,6 @@
 Create OTA gaps bad pixel masks
 ===============================
 
-.. automodule:: get_gaps
+.. automodule:: odi_illcor
    :members: get_gaps,get_gaps_rep
    :show-inheritance:

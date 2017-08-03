@@ -200,6 +200,446 @@
 
     <span class="k">return</span> <span class="n">ra</span><span class="p">,</span> <span class="n">dec</span>
     <span class="n">hdulist</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+    
+<div class="viewcode-block" id="list_wcs_coords"><a class="viewcode-back" href="../fixwcs.html#odi_helpers.list_wcs_coords">[docs]</a><span class="k">def</span> <span class="nf">list_wcs_coords</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">ota</span><span class="p">,</span> <span class="n">gapmask</span><span class="p">,</span> <span class="n">inst</span><span class="p">,</span><span class="n">output</span><span class="o">=</span><span class="s1">&#39;radec.coo&#39;</span><span class="p">,</span> <span class="n">gmaglim</span><span class="o">=</span><span class="mf">20.</span><span class="p">,</span> <span class="n">stars_only</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">offline</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">source</span> <span class="o">=</span> <span class="s1">&#39;sdss&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create the files needed to fix the WCS solution on a given ota. This</span>
+<span class="sd">    function will create lists of SDSS, 2MASS, or Gaia sources depending on the</span>
+<span class="sd">    options selected by the user. If this function is run in the ``offline``</span>
+<span class="sd">    mode, the source catalogs will be taken from the files produced by</span>
+<span class="sd">    :py:func:`offlinecats`</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    img : str</span>
+<span class="sd">        Name of image</span>
+<span class="sd">    ota : str</span>
+<span class="sd">        Name of OTA</span>
+<span class="sd">    gapmask : numpy array</span>
+<span class="sd">        A numpy array of the gap location on the ota. This can be produced by</span>
+<span class="sd">        the function :py:func:`get_gaps.get_gaps`. The gap mask is used to</span>
+<span class="sd">        filter out stars that fall in or near gaps on the ota.</span>
+<span class="sd">    int : str</span>
+<span class="sd">        Version of ODI used, ``podi`` or ``5odi``</span>
+<span class="sd">    output : str</span>
+<span class="sd">        Desired name of the output catalog</span>
+<span class="sd">    gmaglim : float</span>
+<span class="sd">        Magnitude limit in the g band for sources that will be included in the</span>
+<span class="sd">        catalogs. This might need to be adjusted according to your data. If it</span>
+<span class="sd">        is too bright, there might not be enough sources to produces a good</span>
+<span class="sd">        WCS solution.</span>
+<span class="sd">    stars_only : bool</span>
+<span class="sd">        When using SDSS sources this only includes sources flagged as stars</span>
+<span class="sd">    offline : bool</span>
+<span class="sd">        When ``True`` this function will use the catalogs produced by</span>
+<span class="sd">        :py:func:`offlinecats`. If ``False`` this function will query the</span>
+<span class="sd">        online ``SDSS`` catalog for sources.</span>
+<span class="sd">    source : str</span>
+<span class="sd">        Name of desired source catalog. Must be either ``sdss``,``twomass``, or</span>
+<span class="sd">        ``gaia``.</span>
+
+<span class="sd">    Note</span>
+<span class="sd">    ----</span>
+<span class="sd">    This functions produces three files for each ota in the ``coords``</span>
+<span class="sd">    directory with the following naming scheme:</span>
+
+<span class="sd">    1. ``img.nofits()+&#39;.&#39;+ota+&#39;.radec.coo&#39;``</span>
+<span class="sd">    2. ``img.nofits()+&#39;.&#39;+ota+&#39;.radec.coo.px&#39;``</span>
+<span class="sd">    3. ``img.nofits()+&#39;.&#39;+ota+&#39;.sdssxy&#39;``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">offline</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="n">xdim</span><span class="p">,</span> <span class="n">ydim</span> <span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">get_sdss_coords</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">ota</span><span class="p">,</span> <span class="n">inst</span><span class="p">,</span><span class="n">output</span><span class="o">=</span><span class="n">odi</span><span class="o">.</span><span class="n">coordspath</span><span class="o">+</span><span class="n">img</span><span class="o">.</span><span class="n">nofits</span><span class="p">()</span><span class="o">+</span><span class="s1">&#39;.&#39;</span><span class="o">+</span><span class="n">ota</span><span class="o">+</span><span class="s1">&#39;.sdss&#39;</span><span class="p">)</span>
+        <span class="n">ras</span><span class="p">,</span><span class="n">decs</span><span class="p">,</span><span class="n">psfMag_u</span><span class="p">,</span><span class="n">psfMagErr_u</span><span class="p">,</span><span class="n">psfMag_g</span><span class="p">,</span><span class="n">psfMagErr_g</span><span class="p">,</span><span class="n">psfMag_r</span><span class="p">,</span><span class="n">psfMagErr_r</span><span class="p">,</span><span class="n">psfMag_i</span><span class="p">,</span><span class="n">psfMagErr_i</span><span class="p">,</span><span class="n">psfMag_z</span><span class="p">,</span><span class="n">psfMagErr_z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">odi</span><span class="o">.</span><span class="n">coordspath</span><span class="o">+</span><span class="n">img</span><span class="o">.</span><span class="n">nofits</span><span class="p">()</span><span class="o">+</span><span class="s1">&#39;.&#39;</span><span class="o">+</span><span class="n">ota</span><span class="o">+</span><span class="s1">&#39;.sdss&#39;</span><span class="p">,</span><span class="n">usecols</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">11</span><span class="p">),</span> <span class="n">unpack</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">probPSF</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">odi</span><span class="o">.</span><span class="n">coordspath</span><span class="o">+</span><span class="n">img</span><span class="o">.</span><span class="n">nofits</span><span class="p">()</span><span class="o">+</span><span class="s1">&#39;.&#39;</span><span class="o">+</span><span class="n">ota</span><span class="o">+</span><span class="s1">&#39;.sdss&#39;</span><span class="p">,</span> <span class="n">usecols</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">unpack</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">coords2</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ras</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">psfMag_g</span><span class="o">&lt;</span><span class="n">gmaglim</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">probPSF</span><span class="o">==</span><span class="mi">1</span><span class="p">))],</span><span class="n">decs</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">psfMag_g</span><span class="o">&lt;</span><span class="n">gmaglim</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">probPSF</span><span class="o">==</span><span class="mi">1</span><span class="p">))])</span>
+    <span class="k">if</span> <span class="n">offline</span> <span class="o">==</span> <span class="kc">True</span> <span class="ow">and</span> <span class="n">source</span> <span class="o">==</span> <span class="s1">&#39;sdss&#39;</span><span class="p">:</span>
+        <span class="n">sdss_cat</span> <span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">sdsspath</span><span class="o">+</span><span class="s1">&#39;offline_&#39;</span><span class="o">+</span><span class="n">ota</span><span class="o">+</span><span class="s1">&#39;.&#39;</span><span class="o">+</span><span class="n">img</span><span class="o">.</span><span class="n">base</span><span class="p">()</span><span class="o">+</span><span class="s1">&#39;.sdss&#39;</span>
+        <span class="nb">print</span> <span class="s1">&#39;Using Ra and Dec from:&#39;</span><span class="p">,</span> <span class="n">sdss_cat</span><span class="p">,</span><span class="s1">&#39;for fixwcs&#39;</span>
+        <span class="n">ras</span><span class="p">,</span><span class="n">decs</span><span class="p">,</span><span class="n">psfMag_u</span><span class="p">,</span><span class="n">psfMagErr_u</span><span class="p">,</span><span class="n">psfMag_g</span><span class="p">,</span><span class="n">psfMagErr_g</span><span class="p">,</span><span class="n">psfMag_r</span><span class="p">,</span><span class="n">psfMagErr_r</span><span class="p">,</span><span class="n">psfMag_i</span><span class="p">,</span><span class="n">psfMagErr_i</span><span class="p">,</span><span class="n">psfMag_z</span><span class="p">,</span><span class="n">psfMagErr_z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">sdss_cat</span><span class="p">,</span><span class="n">usecols</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">11</span><span class="p">),</span> <span class="n">unpack</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">coords2</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ras</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">psfMag_g</span><span class="o">&lt;</span><span class="n">gmaglim</span><span class="p">)],</span><span class="n">decs</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">psfMag_g</span><span class="o">&lt;</span><span class="n">gmaglim</span><span class="p">)])</span>
+    <span class="k">if</span> <span class="n">offline</span> <span class="o">==</span> <span class="kc">True</span> <span class="ow">and</span> <span class="n">source</span> <span class="o">==</span> <span class="s1">&#39;twomass&#39;</span><span class="p">:</span>
+        <span class="n">twomass_cat</span> <span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">twomasspath</span><span class="o">+</span><span class="s1">&#39;offline_&#39;</span><span class="o">+</span><span class="n">ota</span><span class="o">+</span><span class="s1">&#39;.&#39;</span><span class="o">+</span><span class="n">img</span><span class="o">.</span><span class="n">base</span><span class="p">()</span><span class="o">+</span><span class="s1">&#39;.mass&#39;</span>
+        <span class="n">ras</span><span class="p">,</span><span class="n">decs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">twomass_cat</span><span class="p">,</span><span class="n">usecols</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span> <span class="n">unpack</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="c1"># Just creating dummy variables so that the file formats remain the same for other functions</span>
+        <span class="n">psfMag_u</span>       <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ras</span><span class="p">))</span>
+        <span class="n">psfMagErr_u</span>    <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ras</span><span class="p">))</span>
+        <span class="n">psfMag_g</span>       <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ras</span><span class="p">))</span>
+        <span class="n">psfMagErr_g</span>    <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ras</span><span class="p">))</span>
+        <span class="n">psfMag_r</span>       <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ras</span><span class="p">))</span>
+        <span class="n">psfMagErr_r</span>    <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ras</span><span class="p">))</span>
+        <span class="n">psfMag_i</span>       <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ras</span><span class="p">))</span>
+        <span class="n">psfMagErr_i</span>    <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ras</span><span class="p">))</span>
+        <span class="n">psfMag_z</span>       <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ras</span><span class="p">))</span>
+        <span class="n">psfMagErr_z</span>    <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ras</span><span class="p">))</span>
+        <span class="n">coords2</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ras</span><span class="p">,</span><span class="n">decs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">source</span> <span class="o">==</span> <span class="s1">&#39;gaia&#39;</span><span class="p">:</span>
+        <span class="n">gaia_cat</span> <span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">gaiapath</span><span class="o">+</span><span class="s1">&#39;offline_&#39;</span><span class="o">+</span><span class="n">ota</span><span class="o">+</span><span class="s1">&#39;.&#39;</span><span class="o">+</span><span class="n">img</span><span class="o">.</span><span class="n">base</span><span class="p">()</span><span class="o">+</span><span class="s1">&#39;.gaia&#39;</span>
+        <span class="n">ras</span><span class="p">,</span><span class="n">decs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">gaia_cat</span><span class="p">,</span><span class="n">usecols</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="n">unpack</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="c1"># Just creating dummy variables so that the file formats remain the same</span>
+        <span class="c1"># for other functions</span>
+        <span class="n">psfMag_u</span>       <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ras</span><span class="p">))</span>
+        <span class="n">psfMagErr_u</span>    <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ras</span><span class="p">))</span>
+        <span class="n">psfMag_g</span>       <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ras</span><span class="p">))</span>
+        <span class="n">psfMagErr_g</span>    <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ras</span><span class="p">))</span>
+        <span class="n">psfMag_r</span>       <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ras</span><span class="p">))</span>
+        <span class="n">psfMagErr_r</span>    <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ras</span><span class="p">))</span>
+        <span class="n">psfMag_i</span>       <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ras</span><span class="p">))</span>
+        <span class="n">psfMagErr_i</span>    <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ras</span><span class="p">))</span>
+        <span class="n">psfMag_z</span>       <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ras</span><span class="p">))</span>
+        <span class="n">psfMagErr_z</span>    <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ras</span><span class="p">))</span>
+        <span class="n">coords2</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ras</span><span class="p">,</span><span class="n">decs</span><span class="p">)</span>
+
+    <span class="n">hdulist</span> <span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">f</span><span class="p">)</span>
+    <span class="n">hdu</span> <span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">tan_header_fix</span><span class="p">(</span><span class="n">hdulist</span><span class="p">[</span><span class="n">ota</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="n">offline</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">xdim</span> <span class="o">=</span> <span class="n">hdu</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s1">&#39;NAXIS1&#39;</span><span class="p">]</span>
+        <span class="n">ydim</span> <span class="o">=</span> <span class="n">hdu</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s1">&#39;NAXIS2&#39;</span><span class="p">]</span>
+
+    <span class="n">w</span> <span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">WCS</span><span class="p">(</span><span class="n">hdu</span><span class="o">.</span><span class="n">header</span><span class="p">)</span>
+    <span class="n">pixcrd2</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">wcs_world2pix</span><span class="p">(</span><span class="n">coords2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">pixid</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">odi</span><span class="o">.</span><span class="n">coordspath</span><span class="o">+</span><span class="n">output</span><span class="p">,</span><span class="s1">&#39;w+&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">odi</span><span class="o">.</span><span class="n">coordspath</span><span class="o">+</span><span class="n">output</span><span class="o">+</span><span class="s1">&#39;.pix&#39;</span><span class="p">,</span> <span class="s1">&#39;w+&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">odi</span><span class="o">.</span><span class="n">coordspath</span><span class="o">+</span><span class="n">img</span><span class="o">.</span><span class="n">nofits</span><span class="p">()</span><span class="o">+</span><span class="s1">&#39;.&#39;</span><span class="o">+</span><span class="n">ota</span><span class="o">+</span><span class="s1">&#39;.sdssxy&#39;</span><span class="p">,</span> <span class="s1">&#39;w+&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fxy</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">coords2</span><span class="p">):</span>
+                    <span class="k">if</span>  <span class="mf">20.0</span> <span class="o">&lt;=</span> <span class="n">pixcrd2</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">xdim</span><span class="o">-</span><span class="mf">100.0</span> <span class="ow">and</span> <span class="mf">20.0</span> <span class="o">&lt;=</span> <span class="n">pixcrd2</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">ydim</span><span class="o">-</span><span class="mf">100.0</span><span class="p">:</span>
+                        <span class="c1"># make an image cutout of the gap mask</span>
+                        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">pixcrd2</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">])),</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">pixcrd2</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">1</span><span class="p">]))</span>
+                        <span class="n">cutout</span> <span class="o">=</span> <span class="n">gapmask</span><span class="p">[</span><span class="n">y</span><span class="o">-</span><span class="mi">30</span><span class="p">:</span><span class="n">y</span><span class="o">+</span><span class="mi">30</span><span class="p">,</span><span class="n">x</span><span class="o">-</span><span class="mi">30</span><span class="p">:</span><span class="n">x</span><span class="o">+</span><span class="mi">30</span><span class="p">]</span>
+                        <span class="c1"># print cutout</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">cutout</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">))</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+                            <span class="n">pixid</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                            <span class="n">r</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">deg_to_sex</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                            <span class="nb">print</span> <span class="o">&gt;&gt;</span> <span class="n">f</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">psfMag_g</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                            <span class="nb">print</span> <span class="o">&gt;&gt;</span> <span class="n">fp</span><span class="p">,</span> <span class="n">pixcrd2</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="n">pixcrd2</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">i</span><span class="p">,</span> <span class="s1">&#39;m&#39;</span>
+                            <span class="nb">print</span> <span class="o">&gt;&gt;</span> <span class="n">fxy</span><span class="p">,</span> <span class="n">pixcrd2</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="n">pixcrd2</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">ras</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">decs</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">psfMag_u</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">psfMagErr_u</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">psfMag_g</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">psfMagErr_g</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">psfMag_r</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">psfMagErr_r</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">psfMag_i</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">psfMagErr_i</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">psfMag_z</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">psfMagErr_z</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+    <span class="n">pixid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pixid</span><span class="p">)</span>
+    <span class="n">pixcrd3</span> <span class="o">=</span> <span class="n">pixcrd2</span><span class="p">[</span><span class="n">pixid</span><span class="p">]</span>
+    <span class="n">hdulist</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">pixcrd3</span></div>
+
+<div class="viewcode-block" id="fix_wcs"><a class="viewcode-back" href="../fixwcs.html#odi_helpers.fix_wcs">[docs]</a><span class="k">def</span> <span class="nf">fix_wcs</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">ota</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="s1">&#39;radec.coo&#39;</span><span class="p">,</span> <span class="n">iters</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Try to improve the WCS solution of an OTA using the IRAF task ``msccmatch``.</span>
+<span class="sd">    This function will use the ``img.nofits()+&#39;.&#39;+ota+&#39;.radec.coo&#39;`` file produced</span>
+<span class="sd">    by :py:func:`list_wcs_coords`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    img : str</span>
+<span class="sd">        Name of image</span>
+<span class="sd">    ota : str</span>
+<span class="sd">        Name of OTA</span>
+<span class="sd">    coords : str</span>
+<span class="sd">        Name of coordinate file</span>
+<span class="sd">    iter : int</span>
+<span class="sd">        Number of desired iterations of  ``msccmatch``. It is still being</span>
+<span class="sd">        tested, but one might be all that is necessary, especially if using the</span>
+<span class="sd">        Gaia catalog.</span>
+
+<span class="sd">    Note</span>
+<span class="sd">    ----</span>
+<span class="sd">    This function is set up to use the files in the ``illcor`` directory. The</span>
+<span class="sd">    following are the parameters used by ``msccmatch``.</span>
+
+<span class="sd">    - verbose=&#39;yes&#39;</span>
+<span class="sd">    - usebpm=&#39;no&#39;</span>
+<span class="sd">    - nsearch=250</span>
+<span class="sd">    - search=30</span>
+<span class="sd">    - rsearch=0.2</span>
+<span class="sd">    - cfrac=.5</span>
+<span class="sd">    - csig=0.1</span>
+<span class="sd">    - nfit=5</span>
+<span class="sd">    - rms=1.0</span>
+<span class="sd">    - maxshif=5.0</span>
+<span class="sd">    - fitgeom=&quot;general&quot;</span>
+<span class="sd">    - update=&#39;yes&#39;</span>
+<span class="sd">    - interac=&#39;yes&#39;</span>
+<span class="sd">    - fit=&#39;no&#39;,</span>
+<span class="sd">    - accept=&#39;yes&#39;</span>
+<span class="sd">    - Stdout=1</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">illcorpath</span><span class="o">+</span><span class="s1">&#39;illcor_&#39;</span><span class="o">+</span><span class="n">ota</span><span class="o">+</span><span class="s1">&#39;.&#39;</span><span class="o">+</span><span class="n">img</span><span class="o">.</span><span class="n">stem</span><span class="p">()</span>
+    <span class="n">iraf</span><span class="o">.</span><span class="n">mscred</span><span class="p">(</span><span class="n">_doprint</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">iraf</span><span class="o">.</span><span class="n">unlearn</span><span class="p">(</span><span class="n">iraf</span><span class="o">.</span><span class="n">mscred</span><span class="o">.</span><span class="n">msccmatch</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">iters</span><span class="p">):</span>
+        <span class="n">fix</span> <span class="o">=</span> <span class="n">iraf</span><span class="o">.</span><span class="n">msccmatch</span><span class="p">(</span><span class="nb">input</span><span class="o">=</span><span class="n">image</span><span class="p">,</span>
+                             <span class="n">coords</span><span class="o">=</span><span class="n">odi</span><span class="o">.</span><span class="n">coordspath</span><span class="o">+</span><span class="n">coords</span><span class="p">,</span>
+                             <span class="n">usebpm</span><span class="o">=</span><span class="s1">&#39;no&#39;</span><span class="p">,</span>
+                             <span class="n">verbose</span><span class="o">=</span><span class="s1">&#39;yes&#39;</span><span class="p">,</span>
+                             <span class="n">nsearch</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span>
+                             <span class="n">search</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+                             <span class="n">rsearch</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+                             <span class="n">cfrac</span><span class="o">=.</span><span class="mi">5</span><span class="p">,</span>
+                             <span class="n">csig</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+                             <span class="n">nfit</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                             <span class="n">rms</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                             <span class="n">maxshif</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span>
+                             <span class="n">fitgeom</span><span class="o">=</span><span class="s2">&quot;general&quot;</span><span class="p">,</span>
+                             <span class="n">update</span><span class="o">=</span><span class="s1">&#39;yes&#39;</span><span class="p">,</span>
+                             <span class="n">interac</span><span class="o">=</span><span class="s1">&#39;yes&#39;</span><span class="p">,</span>
+                             <span class="n">fit</span><span class="o">=</span><span class="s1">&#39;no&#39;</span><span class="p">,</span>
+                             <span class="n">accept</span><span class="o">=</span><span class="s1">&#39;yes&#39;</span><span class="p">,</span>
+                             <span class="n">Stdout</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="nb">print</span> <span class="s1">&#39;fixing WCS for&#39;</span><span class="p">,</span><span class="n">img</span><span class="o">.</span><span class="n">f</span><span class="o">+</span><span class="s1">&#39;[&#39;</span><span class="o">+</span><span class="n">ota</span><span class="o">+</span><span class="s1">&#39;], iter =&#39;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="nb">print</span> <span class="n">fix</span><span class="p">[</span><span class="o">-</span><span class="mi">6</span><span class="p">]</span>
+        <span class="nb">print</span> <span class="n">fix</span><span class="p">[</span><span class="o">-</span><span class="mi">5</span><span class="p">]</span>
+        <span class="nb">print</span> <span class="n">fix</span><span class="p">[</span><span class="o">-</span><span class="mi">4</span><span class="p">]</span>
+        <span class="nb">print</span> <span class="n">fix</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span>
+        <span class="nb">print</span> <span class="n">fix</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="fix_wcs_full"><a class="viewcode-back" href="../fixwcs.html#odi_helpers.fix_wcs_full">[docs]</a><span class="k">def</span> <span class="nf">fix_wcs_full</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="s1">&#39;radec.coo&#39;</span><span class="p">,</span> <span class="n">iters</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Try to improve the WCS solution of a final stacked image.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    img : str</span>
+<span class="sd">        Name of image</span>
+<span class="sd">    coords : str</span>
+<span class="sd">        Name of coordinate file</span>
+<span class="sd">    iter : int</span>
+<span class="sd">        Number of desired iterations of  ``msccmatch``. It is still being</span>
+<span class="sd">        tested, but one might be all that is necessary, especially if using the</span>
+<span class="sd">        Gaia catalog.</span>
+
+<span class="sd">    Note</span>
+<span class="sd">    ----</span>
+<span class="sd">    This function is set up to use the files in the ``illcor`` directory. The</span>
+<span class="sd">    following are the parameters used by ``msccmatch``.</span>
+
+<span class="sd">    - verbose=&#39;yes&#39;</span>
+<span class="sd">    - usebpm=&#39;no&#39;</span>
+<span class="sd">    - nsearch=250</span>
+<span class="sd">    - search=30</span>
+<span class="sd">    - rsearch=0.2</span>
+<span class="sd">    - cfrac=.5</span>
+<span class="sd">    - csig=0.1</span>
+<span class="sd">    - nfit=5</span>
+<span class="sd">    - rms=1.0</span>
+<span class="sd">    - maxshif=5.0</span>
+<span class="sd">    - fitgeom=&quot;general&quot;</span>
+<span class="sd">    - update=&#39;yes&#39;</span>
+<span class="sd">    - interac=&#39;yes&#39;</span>
+<span class="sd">    - fit=&#39;no&#39;,</span>
+<span class="sd">    - accept=&#39;yes&#39;</span>
+<span class="sd">    - Stdout=1</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span> <span class="n">coords</span>
+    <span class="n">iraf</span><span class="o">.</span><span class="n">mscred</span><span class="p">(</span><span class="n">_doprint</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">iraf</span><span class="o">.</span><span class="n">unlearn</span><span class="p">(</span><span class="n">iraf</span><span class="o">.</span><span class="n">mscred</span><span class="o">.</span><span class="n">msccmatch</span><span class="p">)</span>
+    <span class="c1"># otaext = {&#39;33&#39;:&#39;[1]&#39;,&#39;34&#39;:&#39;[2]&#39;,&#39;44&#39;:&#39;[3]&#39;,&#39;43&#39;:&#39;[4]&#39;,&#39;42&#39;:&#39;[5]&#39;,&#39;32&#39;:&#39;[6]&#39;,&#39;22&#39;:&#39;[7]&#39;,&#39;23&#39;:&#39;[8]&#39;,&#39;24&#39;:&#39;[9]&#39;}</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">iters</span><span class="p">):</span>
+        <span class="n">fix</span> <span class="o">=</span> <span class="n">iraf</span><span class="o">.</span><span class="n">msccmatch</span><span class="p">(</span><span class="nb">input</span><span class="o">=</span><span class="n">img</span><span class="p">,</span>
+                             <span class="n">coords</span><span class="o">=</span><span class="n">coords</span><span class="p">,</span>
+                             <span class="n">usebpm</span><span class="o">=</span><span class="s1">&#39;no&#39;</span><span class="p">,</span>
+                             <span class="n">verbose</span><span class="o">=</span><span class="s1">&#39;yes&#39;</span><span class="p">,</span>
+                             <span class="n">nsearch</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span>
+                             <span class="n">search</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+                             <span class="n">rsearch</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+                             <span class="n">cfrac</span><span class="o">=.</span><span class="mi">5</span><span class="p">,</span>
+                             <span class="n">csig</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+                             <span class="n">nfit</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                             <span class="n">rms</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                             <span class="n">maxshif</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span>
+                             <span class="n">fitgeom</span><span class="o">=</span><span class="s2">&quot;general&quot;</span><span class="p">,</span>
+                             <span class="n">update</span><span class="o">=</span><span class="s1">&#39;yes&#39;</span><span class="p">,</span>
+                             <span class="n">interac</span><span class="o">=</span><span class="s1">&#39;yes&#39;</span><span class="p">,</span>
+                             <span class="n">fit</span><span class="o">=</span><span class="s1">&#39;no&#39;</span><span class="p">,</span>
+                             <span class="n">accept</span><span class="o">=</span><span class="s1">&#39;yes&#39;</span><span class="p">,</span>
+                             <span class="n">Stdout</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="nb">print</span> <span class="s1">&#39;fixing WCS for&#39;</span><span class="p">,</span><span class="n">img</span><span class="o">.</span><span class="n">f</span><span class="o">+</span><span class="s1">&#39;, iter =&#39;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="nb">print</span> <span class="n">fix</span><span class="p">[</span><span class="o">-</span><span class="mi">6</span><span class="p">]</span>
+        <span class="nb">print</span> <span class="n">fix</span><span class="p">[</span><span class="o">-</span><span class="mi">5</span><span class="p">]</span>
+        <span class="nb">print</span> <span class="n">fix</span><span class="p">[</span><span class="o">-</span><span class="mi">4</span><span class="p">]</span>
+        <span class="nb">print</span> <span class="n">fix</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span>
+        <span class="nb">print</span> <span class="n">fix</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span></div>
+
+<span class="k">def</span> <span class="nf">repair_bad_wcs</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">ota</span><span class="p">,</span> <span class="n">refimg</span><span class="p">,</span> <span class="n">refota</span><span class="p">):</span>
+    <span class="nb">print</span> <span class="s1">&#39;repairing bad wcs solution for&#39;</span><span class="p">,</span><span class="n">img</span><span class="o">.</span><span class="n">f</span><span class="o">+</span><span class="s1">&#39;[&#39;</span><span class="o">+</span><span class="n">ota</span><span class="o">+</span><span class="s1">&#39;]...&#39;</span>
+    <span class="c1"># get good CD matrix values from the reference image</span>
+    <span class="c1"># refimg = refimg.f+&#39;[&#39;+refota+&#39;]&#39;</span>
+    <span class="n">refhdu</span> <span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">refimg</span><span class="p">)</span>
+    <span class="n">pvlist</span> <span class="o">=</span> <span class="n">refhdu</span><span class="p">[</span><span class="n">refota</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s1">&#39;PV*&#39;</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">pv</span> <span class="ow">in</span> <span class="n">pvlist</span><span class="p">:</span>
+        <span class="n">tpv</span> <span class="o">=</span> <span class="s1">&#39;T&#39;</span><span class="o">+</span><span class="n">pv</span>
+        <span class="n">refhdu</span><span class="p">[</span><span class="n">refota</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">rename_keyword</span><span class="p">(</span><span class="n">pv</span><span class="p">,</span> <span class="n">tpv</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">w_ref</span> <span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">WCS</span><span class="p">(</span><span class="n">refhdu</span><span class="p">[</span><span class="n">refota</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">)</span>
+    <span class="nb">print</span> <span class="n">w_ref</span><span class="o">.</span><span class="n">wcs</span><span class="o">.</span><span class="n">cd</span><span class="p">,</span> <span class="n">w_ref</span><span class="o">.</span><span class="n">wcs</span><span class="o">.</span><span class="n">crpix</span><span class="p">,</span> <span class="n">w_ref</span><span class="o">.</span><span class="n">wcs</span><span class="o">.</span><span class="n">crval</span>
+
+    <span class="c1"># get the bad WCS info so we can do some checking</span>
+    <span class="c1"># image = img.f+&#39;[&#39;+ota+&#39;]&#39;</span>
+    <span class="n">hdu</span> <span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">f</span><span class="p">)</span>
+    <span class="n">pvlist</span> <span class="o">=</span> <span class="n">hdu</span><span class="p">[</span><span class="n">refota</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s1">&#39;PV*&#39;</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">pv</span> <span class="ow">in</span> <span class="n">pvlist</span><span class="p">:</span>
+        <span class="n">tpv</span> <span class="o">=</span> <span class="s1">&#39;T&#39;</span><span class="o">+</span><span class="n">pv</span>
+        <span class="n">hdu</span><span class="p">[</span><span class="n">refota</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">rename_keyword</span><span class="p">(</span><span class="n">pv</span><span class="p">,</span> <span class="n">tpv</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">WCS</span><span class="p">(</span><span class="n">hdu</span><span class="p">[</span><span class="n">ota</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">)</span>
+    <span class="nb">print</span> <span class="n">w</span><span class="o">.</span><span class="n">wcs</span><span class="o">.</span><span class="n">cd</span><span class="p">,</span> <span class="n">w</span><span class="o">.</span><span class="n">wcs</span><span class="o">.</span><span class="n">crpix</span><span class="p">,</span> <span class="n">w</span><span class="o">.</span><span class="n">wcs</span><span class="o">.</span><span class="n">crval</span>
+
+<span class="k">def</span> <span class="nf">repair_wcs_keywords</span><span class="p">(</span><span class="n">img</span><span class="p">):</span>
+    <span class="n">hdulist</span> <span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">f</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;update&#39;</span><span class="p">)</span>
+    <span class="n">existing_radesys</span> <span class="o">=</span> <span class="n">hdulist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s1">&#39;RADESYS&#39;</span><span class="p">]</span>
+    <span class="nb">print</span> <span class="n">img</span><span class="o">.</span><span class="n">f</span>
+    <span class="nb">print</span> <span class="s1">&#39;--&gt; Existing RADESYS value:&#39;</span><span class="p">,</span> <span class="n">existing_radesys</span>
+    <span class="n">correct_radesys</span> <span class="o">=</span> <span class="n">existing_radesys</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="nb">print</span> <span class="s1">&#39;--&gt; Correct RADESYS value:&#39;</span><span class="p">,</span> <span class="n">correct_radesys</span>
+    <span class="n">hdulist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s2">&quot;RADESYS&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">correct_radesys</span>
+    <span class="c1"># print &#39;fixing CTYPES in OTA headers&#39;</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">otas</span><span class="p">):</span>
+        <span class="n">existing_ctype1</span> <span class="o">=</span> <span class="n">hdulist</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s1">&#39;CTYPE1&#39;</span><span class="p">]</span>
+        <span class="n">existing_ctype2</span> <span class="o">=</span> <span class="n">hdulist</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s1">&#39;CTYPE2&#39;</span><span class="p">]</span>
+        <span class="n">correct_ctype1</span> <span class="o">=</span> <span class="n">existing_ctype1</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;TAN&#39;</span><span class="p">,</span><span class="s1">&#39;TPV&#39;</span><span class="p">)</span>
+        <span class="n">correct_ctype2</span> <span class="o">=</span> <span class="n">existing_ctype2</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;TAN&#39;</span><span class="p">,</span><span class="s1">&#39;TPV&#39;</span><span class="p">)</span>
+        <span class="n">hdulist</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s1">&#39;CTYPE1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">correct_ctype1</span>
+        <span class="n">hdulist</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s1">&#39;CTYPE2&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">correct_ctype2</span>
+
+    <span class="n">hdulist</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+    <span class="n">hdulist</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    
+<div class="viewcode-block" id="getfwhm_ota"><a class="viewcode-back" href="../getfwhm.html#odi_helpers.getfwhm_ota">[docs]</a><span class="k">def</span> <span class="nf">getfwhm_ota</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">ota</span><span class="p">,</span> <span class="n">gaia</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span> <span class="n">buff</span><span class="o">=</span><span class="mf">7.0</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">5.0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get a fwhm estimate for a single OTA using the SDSS catalog stars and</span>
+<span class="sd">    IRAF imexam (SLOW, but works). Adapted from Kathy Rohde&#39;s getfwhm script</span>
+<span class="sd">    (this implementation is simpler in practice). The radius, buff, and width</span>
+<span class="sd">    parameters are for the pyraf task rimexam. This fwhm measure comes from</span>
+<span class="sd">    a gaussian fittype.</span>
+
+<span class="sd">    The positions of the SDSS starts are pulled from a ``coords`` file. This</span>
+<span class="sd">    module automatically fetches the ``coords`` file for the ``img`` and ``ota``</span>
+<span class="sd">    being processed from the appropriate directory.</span>
+
+<span class="sd">    In addition to a median fwhm measurement this module will also</span>
+<span class="sd">    produce an ouputfile where the positions and fwhm of each source are stored.</span>
+<span class="sd">    This ``output`` file is used in other modules in the ``odi-tools`` software.</span>
+<span class="sd">    The name of this ``output`` file is generated based on the ``img`` and</span>
+<span class="sd">    ``ota``.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    -----------</span>
+<span class="sd">    img : str</span>
+<span class="sd">       String containing name of the image currently in use</span>
+
+<span class="sd">    ota : str</span>
+<span class="sd">       Name of ota extension to be used (e.g. OTA33.SCI)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    --------</span>
+<span class="sd">    gfwhm : float</span>
+<span class="sd">          Median fwhm measure of sources found in the ota field.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; img = &#39;img1.fits&#39;</span>
+<span class="sd">    &gt;&gt;&gt; ota = &#39;OTA33.SCI&#39;</span>
+<span class="sd">    &gt;&gt;&gt; gfwhm = getfwhm_ota(img,ota)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># coords= img.nofits()+&#39;.&#39;+ota+&#39;.sdssxy&#39;</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">reprojpath</span><span class="o">+</span><span class="s1">&#39;reproj_&#39;</span><span class="o">+</span><span class="n">ota</span><span class="o">+</span><span class="s1">&#39;.&#39;</span><span class="o">+</span><span class="n">img</span><span class="o">.</span><span class="n">stem</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">gaia</span><span class="p">:</span>
+        <span class="n">coords</span> <span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">coordspath</span><span class="o">+</span><span class="s1">&#39;reproj_&#39;</span><span class="o">+</span><span class="n">ota</span><span class="o">+</span><span class="s1">&#39;.&#39;</span><span class="o">+</span><span class="n">img</span><span class="o">.</span><span class="n">base</span><span class="p">()</span><span class="o">+</span><span class="s1">&#39;.gaiaxy&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">coords</span> <span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">coordspath</span><span class="o">+</span><span class="s1">&#39;reproj_&#39;</span><span class="o">+</span><span class="n">ota</span><span class="o">+</span><span class="s1">&#39;.&#39;</span><span class="o">+</span><span class="n">img</span><span class="o">.</span><span class="n">base</span><span class="p">()</span><span class="o">+</span><span class="s1">&#39;.sdssxy&#39;</span>
+    <span class="n">tqdm</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;Measuring GFWHM in </span><span class="si">{:s}</span><span class="s1"> </span><span class="se">\n</span><span class="s1">using coordinates from </span><span class="si">{:s}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">coords</span><span class="p">))</span>
+    <span class="n">outputfile</span> <span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">coordspath</span><span class="o">+</span><span class="n">img</span><span class="o">.</span><span class="n">nofits</span><span class="p">()</span><span class="o">+</span><span class="s1">&#39;.&#39;</span><span class="o">+</span><span class="n">ota</span><span class="o">+</span><span class="s1">&#39;.fwhm.log&#39;</span>
+
+    <span class="n">iraf</span><span class="o">.</span><span class="n">tv</span><span class="o">.</span><span class="n">rimexam</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;radius&#39;</span><span class="p">,</span><span class="n">radius</span><span class="p">)</span>
+    <span class="n">iraf</span><span class="o">.</span><span class="n">tv</span><span class="o">.</span><span class="n">rimexam</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;buffer&#39;</span><span class="p">,</span><span class="n">buff</span><span class="p">)</span>
+    <span class="n">iraf</span><span class="o">.</span><span class="n">tv</span><span class="o">.</span><span class="n">rimexam</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;width&#39;</span><span class="p">,</span><span class="n">width</span><span class="p">)</span>
+    <span class="n">iraf</span><span class="o">.</span><span class="n">tv</span><span class="o">.</span><span class="n">rimexam</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;rplot&#39;</span><span class="p">,</span><span class="mf">20.</span><span class="p">)</span>
+    <span class="n">iraf</span><span class="o">.</span><span class="n">tv</span><span class="o">.</span><span class="n">rimexam</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;center&#39;</span><span class="p">,</span><span class="s1">&#39;yes&#39;</span><span class="p">)</span>
+    <span class="c1"># fit a gaussian, rather than a moffat profile (it&#39;s more robust for faint sources)</span>
+    <span class="n">iraf</span><span class="o">.</span><span class="n">tv</span><span class="o">.</span><span class="n">rimexam</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;fittype&#39;</span><span class="p">,</span><span class="s1">&#39;gaussian&#39;</span><span class="p">)</span>
+    <span class="n">iraf</span><span class="o">.</span><span class="n">tv</span><span class="o">.</span><span class="n">rimexam</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;iterati&#39;</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">outputfile</span><span class="p">):</span>
+        <span class="n">iraf</span><span class="o">.</span><span class="n">tv</span><span class="o">.</span><span class="n">imexamine</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">logfile</span> <span class="o">=</span> <span class="n">outputfile</span><span class="p">,</span> <span class="n">keeplog</span> <span class="o">=</span> <span class="s1">&#39;yes&#39;</span><span class="p">,</span> <span class="n">defkey</span> <span class="o">=</span> <span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="n">nframes</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">imagecur</span> <span class="o">=</span> <span class="n">coords</span><span class="p">,</span><span class="n">use_display</span><span class="o">=</span><span class="s1">&#39;no&#39;</span><span class="p">,</span>  <span class="n">StdoutG</span><span class="o">=</span><span class="s1">&#39;/dev/null&#39;</span><span class="p">,</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;h&#39;</span><span class="p">)</span>
+
+    <span class="n">outputfile_clean</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">outputfile</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.log&#39;</span><span class="p">,</span><span class="s1">&#39;_clean.log&#39;</span><span class="p">),</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">outputfile</span><span class="p">,</span><span class="s2">&quot;r&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;INDEF&#39;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+            <span class="n">outputfile_clean</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;INDEF&#39;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+            <span class="n">outputfile_clean</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;INDEF&#39;</span><span class="p">,</span><span class="s1">&#39;999&#39;</span><span class="p">))</span>
+    <span class="n">outputfile_clean</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">outputfile</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.log&#39;</span><span class="p">,</span><span class="s1">&#39;_clean.log&#39;</span><span class="p">),</span><span class="n">outputfile</span><span class="p">)</span>
+    <span class="n">gfwhm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">outputfile</span><span class="p">,</span> <span class="n">usecols</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,),</span> <span class="n">unpack</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="c1"># hdulist = ast.io.fits.open(image)</span>
+    <span class="c1"># seeing = hdulist[0].header[&#39;FWHMSTAR&#39;]</span>
+    <span class="c1"># gfwhm = seeing/0.11</span>
+    <span class="nb">print</span> <span class="s1">&#39;median gwfhm in ota&#39;</span><span class="p">,</span><span class="n">ota</span><span class="o">+</span><span class="s1">&#39;: &#39;</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">gfwhm</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">gfwhm</span> <span class="o">&lt;</span> <span class="mf">900.0</span><span class="p">)]),</span><span class="s1">&#39;pixels&#39;</span><span class="c1"># (determined via QR)&#39;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">gfwhm</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">gfwhm</span> <span class="o">&lt;</span> <span class="mf">900.0</span><span class="p">)])</span></div>
+
+<div class="viewcode-block" id="getfwhm_full"><a class="viewcode-back" href="../getfwhm.html#odi_helpers.getfwhm_full">[docs]</a><span class="k">def</span> <span class="nf">getfwhm_full</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span> <span class="n">buff</span><span class="o">=</span><span class="mf">7.0</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">5.0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get a fwhm estimate for a stacked image using the SDSS catalog stars and</span>
+<span class="sd">    IRAF imexam (SLOW, but works). Adapted from Kathy Rohde&#39;s getfwhm script</span>
+<span class="sd">    (this implementation is simpler in practice). The radius, buff, and width</span>
+<span class="sd">    parameters are for the pyraf task rimexam. This fwhm measure comes from</span>
+<span class="sd">    a gaussian fittype.</span>
+
+<span class="sd">    The positions of the SDSS starts are pulled from a ``coords`` file. This</span>
+<span class="sd">    module automatically fetches the ``coords`` file for the ``img`` and ``ota``</span>
+<span class="sd">    being processed from the appropriate directory.</span>
+
+<span class="sd">    In addition to a median fwhm measurement this module will also</span>
+<span class="sd">    produce an ouputfile where the positions and fwhm of each source are stored.</span>
+<span class="sd">    This ``output`` file is used in other modules in the ``odi-tools`` software.</span>
+<span class="sd">    The name of this ``output`` file is generated based on the ``img``.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    -----------</span>
+<span class="sd">    img : str</span>
+<span class="sd">       String containing name of the image currently in use</span>
+
+
+<span class="sd">    Returns</span>
+<span class="sd">    --------</span>
+<span class="sd">    gfwhm : float</span>
+<span class="sd">          Median fwhm measure of sources found in the ota field.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; img = &#39;stack1.fits&#39;</span>
+<span class="sd">    &gt;&gt;&gt; gfwhm = getfwhm_full(img)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">coords</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">nofits</span><span class="p">()</span><span class="o">+</span><span class="s1">&#39;.sdssxy&#39;</span>
+    <span class="n">outputfile</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">nofits</span><span class="p">()</span><span class="o">+</span><span class="s1">&#39;.fwhm.log&#39;</span>
+
+    <span class="n">iraf</span><span class="o">.</span><span class="n">tv</span><span class="o">.</span><span class="n">rimexam</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;radius&#39;</span><span class="p">,</span><span class="n">radius</span><span class="p">)</span>
+    <span class="n">iraf</span><span class="o">.</span><span class="n">tv</span><span class="o">.</span><span class="n">rimexam</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;buffer&#39;</span><span class="p">,</span><span class="n">buff</span><span class="p">)</span>
+    <span class="n">iraf</span><span class="o">.</span><span class="n">tv</span><span class="o">.</span><span class="n">rimexam</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;width&#39;</span><span class="p">,</span><span class="n">width</span><span class="p">)</span>
+    <span class="n">iraf</span><span class="o">.</span><span class="n">tv</span><span class="o">.</span><span class="n">rimexam</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;rplot&#39;</span><span class="p">,</span><span class="mf">20.</span><span class="p">)</span>
+    <span class="n">iraf</span><span class="o">.</span><span class="n">tv</span><span class="o">.</span><span class="n">rimexam</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;center&#39;</span><span class="p">,</span><span class="s1">&#39;yes&#39;</span><span class="p">)</span>
+    <span class="c1"># fit a gaussian, rather than a moffat profile (it&#39;s more robust for faint sources)</span>
+    <span class="n">iraf</span><span class="o">.</span><span class="n">tv</span><span class="o">.</span><span class="n">rimexam</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;fittype&#39;</span><span class="p">,</span><span class="s1">&#39;gaussian&#39;</span><span class="p">)</span>
+    <span class="n">iraf</span><span class="o">.</span><span class="n">tv</span><span class="o">.</span><span class="n">rimexam</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;iterati&#39;</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">outputfile</span><span class="p">):</span>
+        <span class="n">iraf</span><span class="o">.</span><span class="n">tv</span><span class="o">.</span><span class="n">imexamine</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">logfile</span> <span class="o">=</span> <span class="n">outputfile</span><span class="p">,</span> <span class="n">keeplog</span> <span class="o">=</span> <span class="s1">&#39;yes&#39;</span><span class="p">,</span> <span class="n">defkey</span> <span class="o">=</span> <span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="n">nframes</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">imagecur</span> <span class="o">=</span> <span class="n">coords</span><span class="p">,</span> <span class="n">wcs</span> <span class="o">=</span> <span class="s2">&quot;logical&quot;</span><span class="p">,</span> <span class="n">use_display</span><span class="o">=</span><span class="s1">&#39;no&#39;</span><span class="p">,</span>  <span class="n">StdoutG</span><span class="o">=</span><span class="s1">&#39;/dev/null&#39;</span><span class="p">,</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;h&#39;</span><span class="p">)</span>
+    <span class="n">outputfile_clean</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">outputfile</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.log&#39;</span><span class="p">,</span><span class="s1">&#39;_clean.log&#39;</span><span class="p">),</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">outputfile</span><span class="p">,</span><span class="s2">&quot;r&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;INDEF&#39;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+            <span class="n">outputfile_clean</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;INDEF&#39;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+            <span class="n">outputfile_clean</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;INDEF&#39;</span><span class="p">,</span><span class="s1">&#39;999&#39;</span><span class="p">))</span>
+    <span class="n">outputfile_clean</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">outputfile</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.log&#39;</span><span class="p">,</span><span class="s1">&#39;_clean.log&#39;</span><span class="p">),</span><span class="n">outputfile</span><span class="p">)</span>
+    <span class="c1">#</span>
+    <span class="c1"># # unfortunately we have to toss the first measured fwhm value from the median because of the file format</span>
+    <span class="c1"># # gfwhm = np.genfromtxt(outputfile, usecols=(3,), skip_header=4, skip_footer=3, unpack=True)</span>
+    <span class="n">gfwhm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">outputfile</span><span class="p">,</span> <span class="n">usecols</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,),</span> <span class="n">unpack</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="c1"># hdulist = ast.io.fits.open(image)</span>
+    <span class="c1"># seeing = hdulist[0].header[&#39;FWHMSTAR&#39;]</span>
+    <span class="c1"># gfwhm = seeing/0.11</span>
+    <span class="nb">print</span> <span class="s1">&#39;median gwfhm in &#39;</span><span class="p">,</span><span class="n">img</span><span class="o">.</span><span class="n">f</span><span class="o">+</span><span class="s1">&#39;: &#39;</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">gfwhm</span><span class="p">),</span><span class="s1">&#39;pixels&#39;</span><span class="c1"># (determined via QR)&#39;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">gfwhm</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="imcombine_lists"><a class="viewcode-back" href="../odi_helpers.html#odi_helpers.imcombine_lists">[docs]</a><span class="k">def</span> <span class="nf">imcombine_lists</span><span class="p">(</span><span class="n">images</span><span class="p">,</span> <span class="n">filters</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -302,6 +742,115 @@
     <span class="n">iraf</span><span class="o">.</span><span class="n">mscred</span><span class="o">.</span><span class="n">mscimage</span><span class="p">(</span><span class="n">image</span><span class="p">,</span><span class="n">imout</span><span class="p">)</span>
 
     <span class="k">return</span></div>
+
+<div class="viewcode-block" id="bkg_boxes"><a class="viewcode-back" href="../rand_bkg.html#odi_helpers.bkg_boxes">[docs]</a><span class="k">def</span> <span class="nf">bkg_boxes</span><span class="p">(</span><span class="n">hdu</span><span class="p">,</span><span class="n">nboxes</span><span class="p">,</span><span class="n">length</span><span class="p">,</span><span class="n">sources</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function to calculate the sigma clipped statistics of a number of randomly</span>
+<span class="sd">    generated boxes over an ota.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    hdu : fits object</span>
+<span class="sd">        Hdulist that as been opened by astropy.fits.io</span>
+
+<span class="sd">    nboxes : int</span>
+<span class="sd">        Number of random boxes to generate over the ota</span>
+
+<span class="sd">    length : int</span>
+<span class="sd">        Length of side of box in pixels</span>
+
+<span class="sd">    sources : bool</span>
+<span class="sd">        If ``True`` any sources detected in a given box will be masked before</span>
+<span class="sd">        calculating the background statistics</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bg_stats : numpy array</span>
+<span class="sd">        Array containing the background stats of all of the boxes</span>
+<span class="sd">    bg_median : float</span>
+<span class="sd">        Median background level of the boxes</span>
+<span class="sd">    med_std : float</span>
+<span class="sd">        Median standard deviation of the background level in each box</span>
+<span class="sd">    std_std : float</span>
+<span class="sd">        Standard deviation of the standard deviations in each box</span>
+<span class="sd">    centers : list</span>
+<span class="sd">        Pixel centers of each box</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">hdu</span><span class="o">.</span><span class="n">data</span>
+
+    <span class="c1">#Get length of image in each axis</span>
+    <span class="n">naxis1</span> <span class="o">=</span> <span class="n">hdu</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s1">&#39;NAXIS1&#39;</span><span class="p">]</span>
+    <span class="n">naxis2</span> <span class="o">=</span> <span class="n">hdu</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s1">&#39;NAXIS2&#39;</span><span class="p">]</span>
+
+    <span class="c1">#generate the centers of n random boxes.</span>
+
+    <span class="n">box_centers</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="n">length</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">([</span><span class="n">naxis1</span><span class="o">-</span><span class="n">length</span><span class="p">,</span><span class="n">naxis2</span><span class="o">-</span><span class="n">length</span><span class="p">]),</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">nboxes</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+
+    <span class="c1">#divide length by 2</span>
+    <span class="c1"># another numpy error on wopr (can&#39;t convert to integer), so don&#39;t worry about integer arithmetic</span>
+    <span class="n">side</span> <span class="o">=</span> <span class="n">length</span><span class="o">/</span><span class="mi">2</span>
+
+    <span class="n">bg_stats</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">centers</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">center</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">box_centers</span><span class="p">)):</span>
+        <span class="n">x1</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">box_centers</span><span class="p">[</span><span class="n">center</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">side</span><span class="p">)</span>
+        <span class="n">x2</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">box_centers</span><span class="p">[</span><span class="n">center</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">side</span><span class="p">)</span>
+        <span class="n">y1</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">box_centers</span><span class="p">[</span><span class="n">center</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">side</span><span class="p">)</span>
+        <span class="n">y2</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">box_centers</span><span class="p">[</span><span class="n">center</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">side</span><span class="p">)</span>
+
+        <span class="c1">#Check to ensure that box is within image</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">x1</span> <span class="o">&gt;</span> <span class="n">side</span> <span class="ow">and</span> <span class="n">x2</span> <span class="o">&lt;</span> <span class="n">naxis1</span><span class="o">-</span><span class="mf">1.5</span><span class="o">*</span><span class="n">side</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">y1</span> <span class="o">&gt;</span> <span class="n">side</span> <span class="ow">and</span> <span class="n">y2</span> <span class="o">&lt;</span> <span class="n">naxis2</span><span class="o">-</span><span class="mf">1.5</span><span class="o">*</span><span class="n">side</span><span class="p">):</span>
+            <span class="n">centers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">box_centers</span><span class="p">[</span><span class="n">center</span><span class="p">])</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            The centers that are within the image bounds are returned</span>
+<span class="sd">            in case you need to examine the regions used.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">box</span> <span class="o">=</span> <span class="n">image</span><span class="p">[</span><span class="n">x1</span><span class="p">:</span><span class="n">x2</span><span class="p">,</span><span class="n">y1</span><span class="p">:</span><span class="n">y2</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">box</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">()</span> <span class="o">==</span> <span class="kc">False</span> <span class="ow">and</span> <span class="p">(</span><span class="n">box</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Only boxes with non-negative values are kept.</span>
+<span class="sd">                This should help deal with cell gaps</span>
+<span class="sd">                The sigma and iter values might need some tuning.</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="n">mean</span><span class="p">,</span> <span class="n">median</span><span class="p">,</span> <span class="n">std</span> <span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">sigma_clipped_stats</span><span class="p">(</span><span class="n">box</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">3.0</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">std</span> <span class="o">&gt;=</span> <span class="mf">2.0</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">median</span><span class="p">):</span>
+                    <span class="k">pass</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">sources</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+                        <span class="n">bg_stats</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">mean</span><span class="p">,</span> <span class="n">median</span><span class="p">,</span> <span class="n">std</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="n">sources</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+                        <span class="n">threshold</span> <span class="o">=</span> <span class="n">median</span> <span class="o">+</span> <span class="p">(</span><span class="n">std</span> <span class="o">*</span> <span class="mf">2.</span><span class="p">)</span>
+                        <span class="n">segm_img</span> <span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">detect_sources</span><span class="p">(</span><span class="n">box</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">npixels</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+                        <span class="n">mask</span> <span class="o">=</span> <span class="n">segm_img</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span><span class="c1"># turn segm_img into a mask</span>
+                        <span class="n">selem</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>    <span class="c1"># dilate using a 25x25 box</span>
+                        <span class="n">mask2</span> <span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">binary_dilation</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">selem</span><span class="p">)</span>
+                        <span class="c1">#new_mask = mask_first_pass + mask2</span>
+                        <span class="n">new_mask</span> <span class="o">=</span> <span class="n">mask2</span>
+
+                        <span class="n">mean_mask</span><span class="p">,</span> <span class="n">median_mask</span><span class="p">,</span> <span class="n">std_mask</span> <span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">sigma_clipped_stats</span><span class="p">(</span><span class="n">box</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">new_mask</span><span class="p">)</span>
+                        <span class="n">bg_stats</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">mean_mask</span><span class="p">,</span> <span class="n">median_mask</span><span class="p">,</span> <span class="n">std_mask</span><span class="p">))</span>
+
+    <span class="n">bg_stats</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">bg_stats</span><span class="p">),(</span><span class="nb">len</span><span class="p">(</span><span class="n">bg_stats</span><span class="p">),</span><span class="mi">3</span><span class="p">))</span>
+    <span class="n">centers</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">centers</span><span class="p">),(</span><span class="nb">len</span><span class="p">(</span><span class="n">centers</span><span class="p">),</span><span class="mi">2</span><span class="p">))</span>
+    <span class="c1">#Calculate median std of Background</span>
+    <span class="n">med_std</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">bg_stats</span><span class="p">[:,</span><span class="mi">2</span><span class="p">])</span>
+    <span class="c1">#calculate standard deviation of the std values</span>
+    <span class="n">std_std</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">bg_stats</span><span class="p">[:,</span><span class="mi">2</span><span class="p">])</span>
+    <span class="c1">#median</span>
+    <span class="n">bg_median</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">bg_stats</span><span class="p">[:,</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="c1">#Locate the box that had the largest std</span>
+    <span class="c1">#Array will be returned for plotting if wanted</span>
+    <span class="c1"># max_std = np.argmax(bg_stats[:,2])</span>
+    <span class="c1"># max_center = centers[max_std]</span>
+    <span class="c1"># max_box = image[max_center[0]-side:max_center[0]+side,max_center[1]-side:max_center[1]+side]</span>
+    <span class="c1"># max_box is currently not needed.</span>
+    <span class="n">max_box</span> <span class="o">=</span> <span class="mf">1.0</span>
+
+    <span class="k">return</span> <span class="n">bg_stats</span><span class="p">,</span><span class="n">bg_median</span><span class="p">,</span><span class="n">med_std</span><span class="p">,</span><span class="n">std_std</span><span class="p">,</span><span class="n">centers</span><span class="p">,</span><span class="n">max_box</span></div>
+
 
 <span class="k">def</span> <span class="nf">bgsub_ota</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">ota</span><span class="p">,</span> <span class="n">apply</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -736,7 +1285,7 @@
 <span class="k">def</span> <span class="nf">tpv2tan_hdr</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">ota</span><span class="p">):</span>
     <span class="n">image</span> <span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">reprojpath</span><span class="o">+</span><span class="s1">&#39;reproj_&#39;</span><span class="o">+</span><span class="n">ota</span><span class="o">+</span><span class="s1">&#39;.&#39;</span><span class="o">+</span><span class="n">img</span><span class="o">.</span><span class="n">stem</span><span class="p">()</span>
     <span class="c1"># change the CTYPENs to be TANs if they aren&#39;t already</span>
-    <span class="nb">print</span> <span class="s1">&#39;TPV -&gt; TAN in &#39;</span><span class="p">,</span> <span class="n">image</span>
+    <span class="n">tqdm</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;TPV -&gt; TAN in </span><span class="si">{:s}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">image</span><span class="p">))</span>
     <span class="n">iraf</span><span class="o">.</span><span class="n">imutil</span><span class="o">.</span><span class="n">hedit</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;images&#39;</span><span class="p">,</span><span class="n">image</span><span class="p">)</span>
     <span class="n">iraf</span><span class="o">.</span><span class="n">imutil</span><span class="o">.</span><span class="n">hedit</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;fields&#39;</span><span class="p">,</span><span class="s1">&#39;CTYPE1&#39;</span><span class="p">)</span>
     <span class="n">iraf</span><span class="o">.</span><span class="n">imutil</span><span class="o">.</span><span class="n">hedit</span><span class="o">.</span><span class="n">setParam</span><span class="p">(</span><span class="s1">&#39;value&#39;</span><span class="p">,</span><span class="s1">&#39;RA---TAN&#39;</span><span class="p">)</span>
@@ -791,51 +1340,79 @@
 <span class="k">def</span> <span class="nf">imalign</span><span class="p">(</span><span class="n">images</span><span class="p">,</span> <span class="n">square</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="kn">from</span> <span class="nn">astropy.wcs</span> <span class="k">import</span> <span class="n">WCS</span>
     <span class="kn">from</span> <span class="nn">astropy.io</span> <span class="k">import</span> <span class="n">fits</span>
+
+    <span class="n">img_ref</span> <span class="o">=</span> <span class="n">images</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">img</span>     <span class="o">=</span> <span class="n">images</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
     <span class="c1"># fetch a gaia catalog for the full image footprint</span>
-    <span class="n">outputg</span> <span class="o">=</span> <span class="n">images</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">f</span><span class="o">+</span><span class="s1">&#39;.gaia&#39;</span>
-    <span class="n">gaia_cat</span> <span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">get_gaia_coords</span><span class="p">(</span><span class="n">images</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ota</span><span class="o">=</span><span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="n">inst</span><span class="o">=</span><span class="s1">&#39;5odi&#39;</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="n">outputg</span><span class="p">)</span>
+    <span class="n">outputg</span> <span class="o">=</span> <span class="n">img_ref</span><span class="o">.</span><span class="n">f</span><span class="o">+</span><span class="s1">&#39;.gaia&#39;</span>
+    <span class="n">gaia_cat</span> <span class="o">=</span> <span class="n">odi</span><span class="o">.</span><span class="n">get_gaia_coords</span><span class="p">(</span><span class="n">images</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ota</span><span class="o">=</span><span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="n">inst</span><span class="o">=</span><span class="s1">&#39;podi&#39;</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="n">outputg</span><span class="p">)</span>
     <span class="c1"># print gaia_cat</span>
     <span class="c1"># convert the ra, dec to image coordinates in each image</span>
     <span class="c1"># first get the wcs for each image</span>
     <span class="c1"># (pick the first image as a &quot;reference&quot;)</span>
-    <span class="n">hdu_ref</span> <span class="o">=</span> <span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">images</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">f</span><span class="p">)</span>
+    <span class="n">hdu_ref</span> <span class="o">=</span> <span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">img_ref</span><span class="o">.</span><span class="n">f</span><span class="p">)</span>
+    <span class="n">naxis1_ref</span> <span class="o">=</span> <span class="n">hdu_ref</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s1">&#39;NAXIS1&#39;</span><span class="p">]</span>
+    <span class="n">naxis2_ref</span> <span class="o">=</span> <span class="n">hdu_ref</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s1">&#39;NAXIS2&#39;</span><span class="p">]</span>
     <span class="n">w_ref</span> <span class="o">=</span> <span class="n">WCS</span><span class="p">(</span><span class="n">hdu_ref</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">)</span>
     <span class="n">x_ref</span><span class="p">,</span> <span class="n">y_ref</span> <span class="o">=</span> <span class="n">w_ref</span><span class="o">.</span><span class="n">all_world2pix</span><span class="p">(</span><span class="n">gaia_cat</span><span class="o">.</span><span class="n">ra</span><span class="p">,</span> <span class="n">gaia_cat</span><span class="o">.</span><span class="n">dec</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="c1"># compute the pair-wise integer pixel shifts for each image</span>
-    <span class="n">x_shift</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="n">y_shift</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="n">naxis1</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="n">naxis2</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">for</span> <span class="n">img</span> <span class="ow">in</span> <span class="n">images</span><span class="p">:</span>
-        <span class="n">hdu_img</span> <span class="o">=</span> <span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">f</span><span class="p">)</span>
-        <span class="n">naxis1</span><span class="p">[</span><span class="n">img</span><span class="o">.</span><span class="n">f</span><span class="p">]</span> <span class="o">=</span> <span class="n">hdu_img</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s1">&#39;NAXIS1&#39;</span><span class="p">]</span>
-        <span class="n">naxis2</span><span class="p">[</span><span class="n">img</span><span class="o">.</span><span class="n">f</span><span class="p">]</span> <span class="o">=</span> <span class="n">hdu_img</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s1">&#39;NAXIS2&#39;</span><span class="p">]</span>
-        <span class="n">w_img</span> <span class="o">=</span> <span class="n">WCS</span><span class="p">(</span><span class="n">hdu_img</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">)</span>
-        <span class="n">x_img</span><span class="p">,</span> <span class="n">y_img</span> <span class="o">=</span> <span class="n">w_img</span><span class="o">.</span><span class="n">all_world2pix</span><span class="p">(</span><span class="n">gaia_cat</span><span class="o">.</span><span class="n">ra</span><span class="p">,</span> <span class="n">gaia_cat</span><span class="o">.</span><span class="n">dec</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">x_shift</span><span class="p">[</span><span class="n">img</span><span class="o">.</span><span class="n">f</span><span class="p">],</span> <span class="n">y_shift</span><span class="p">[</span><span class="n">img</span><span class="o">.</span><span class="n">f</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rint</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">x_ref</span><span class="o">-</span><span class="n">x_img</span><span class="p">)),</span> <span class="n">np</span><span class="o">.</span><span class="n">rint</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">y_ref</span><span class="o">-</span><span class="n">y_img</span><span class="p">))</span>
-    
-    
-    <span class="nb">print</span> <span class="n">x_shift</span><span class="p">,</span> <span class="n">y_shift</span><span class="p">,</span> <span class="n">naxis1</span><span class="p">,</span> <span class="n">naxis2</span>
+
+    <span class="n">hdu_img</span> <span class="o">=</span> <span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">f</span><span class="p">)</span>
+    <span class="n">naxis1</span> <span class="o">=</span> <span class="n">hdu_img</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s1">&#39;NAXIS1&#39;</span><span class="p">]</span>
+    <span class="n">naxis2</span> <span class="o">=</span> <span class="n">hdu_img</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s1">&#39;NAXIS2&#39;</span><span class="p">]</span>
+    <span class="n">w_img</span> <span class="o">=</span> <span class="n">WCS</span><span class="p">(</span><span class="n">hdu_img</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">)</span>
+    <span class="n">x_img</span><span class="p">,</span> <span class="n">y_img</span> <span class="o">=</span> <span class="n">w_img</span><span class="o">.</span><span class="n">all_world2pix</span><span class="p">(</span><span class="n">gaia_cat</span><span class="o">.</span><span class="n">ra</span><span class="p">,</span> <span class="n">gaia_cat</span><span class="o">.</span><span class="n">dec</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># compute the pair-wise integer pixel shifts between the image and the reference</span>
+    <span class="n">x_shift</span><span class="p">,</span> <span class="n">y_shift</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rint</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">x_ref</span><span class="o">-</span><span class="n">x_img</span><span class="p">)),</span> <span class="n">np</span><span class="o">.</span><span class="n">rint</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">y_ref</span><span class="o">-</span><span class="n">y_img</span><span class="p">))</span>
+
     <span class="c1"># shift the images so that they are aligned to the &quot;reference&quot;</span>
-    <span class="n">max_xshift</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">x_shift</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
-    <span class="n">max_yshift</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">y_shift</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
-    <span class="n">new_x_hdim</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">naxis1</span><span class="p">[</span><span class="n">images</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">f</span><span class="p">]</span> <span class="o">-</span> <span class="mi">2</span><span class="o">*</span><span class="n">max_xshift</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
-    <span class="n">new_y_hdim</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">naxis2</span><span class="p">[</span><span class="n">images</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">f</span><span class="p">]</span> <span class="o">-</span> <span class="mi">2</span><span class="o">*</span><span class="n">max_yshift</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
-    
-    <span class="k">for</span> <span class="n">img</span> <span class="ow">in</span> <span class="n">images</span><span class="p">:</span>
-        <span class="n">xcent</span><span class="p">,</span> <span class="n">ycent</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">naxis1</span><span class="p">[</span><span class="n">img</span><span class="o">.</span><span class="n">f</span><span class="p">]</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">-</span><span class="n">x_shift</span><span class="p">[</span><span class="n">img</span><span class="o">.</span><span class="n">f</span><span class="p">]),</span> <span class="nb">int</span><span class="p">((</span><span class="n">naxis2</span><span class="p">[</span><span class="n">img</span><span class="o">.</span><span class="n">f</span><span class="p">]</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">-</span><span class="n">y_shift</span><span class="p">[</span><span class="n">img</span><span class="o">.</span><span class="n">f</span><span class="p">])</span>
-        <span class="k">if</span> <span class="n">square</span><span class="p">:</span> 
-            <span class="n">ledge</span><span class="p">,</span> <span class="n">redge</span> <span class="o">=</span> <span class="n">xcent</span><span class="o">-</span><span class="nb">min</span><span class="p">(</span><span class="n">new_x_hdim</span><span class="p">,</span> <span class="n">new_y_hdim</span><span class="p">),</span> <span class="n">xcent</span><span class="o">+</span><span class="nb">min</span><span class="p">(</span><span class="n">new_x_hdim</span><span class="p">,</span> <span class="n">new_y_hdim</span><span class="p">)</span>
-            <span class="n">bedge</span><span class="p">,</span> <span class="n">tedge</span> <span class="o">=</span> <span class="n">ycent</span><span class="o">-</span><span class="nb">min</span><span class="p">(</span><span class="n">new_x_hdim</span><span class="p">,</span> <span class="n">new_y_hdim</span><span class="p">),</span> <span class="n">ycent</span><span class="o">+</span><span class="nb">min</span><span class="p">(</span><span class="n">new_x_hdim</span><span class="p">,</span> <span class="n">new_y_hdim</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">ledge</span><span class="p">,</span> <span class="n">redge</span> <span class="o">=</span> <span class="n">xcent</span><span class="o">-</span><span class="n">new_x_hdim</span><span class="p">,</span> <span class="n">xcent</span><span class="o">+</span><span class="n">new_x_hdim</span>
-            <span class="n">bedge</span><span class="p">,</span> <span class="n">tedge</span> <span class="o">=</span> <span class="n">ycent</span><span class="o">-</span><span class="n">new_y_hdim</span><span class="p">,</span> <span class="n">ycent</span><span class="o">+</span><span class="n">new_y_hdim</span>
-        <span class="n">trim_img</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{:s}</span><span class="s1">[</span><span class="si">{:d}</span><span class="s1">:</span><span class="si">{:d}</span><span class="s1">,</span><span class="si">{:d}</span><span class="s1">:</span><span class="si">{:d}</span><span class="s1">]&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">f</span><span class="p">,</span> <span class="n">ledge</span><span class="p">,</span> <span class="n">redge</span><span class="p">,</span> <span class="n">bedge</span><span class="p">,</span> <span class="n">tedge</span><span class="p">)</span>
-        <span class="n">new_img</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">f</span><span class="p">[:</span><span class="o">-</span><span class="mi">5</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39;_match.fits&#39;</span>
-        <span class="n">iraf</span><span class="o">.</span><span class="n">imcopy</span><span class="p">(</span><span class="n">trim_img</span><span class="p">,</span> <span class="n">new_img</span><span class="p">)</span>
+    <span class="c1"># use relative coordinates-- negative values are applied to the image, positives to the &#39;reference&#39;</span>
+    <span class="n">iraf</span><span class="o">.</span><span class="n">imcopy</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">f</span><span class="p">,</span> <span class="s1">&#39;temp.fits&#39;</span><span class="p">)</span>
+    <span class="n">iraf</span><span class="o">.</span><span class="n">imcopy</span><span class="p">(</span><span class="n">img_ref</span><span class="o">.</span><span class="n">f</span><span class="p">,</span> <span class="s1">&#39;temp_ref.fits&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">x_shift</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
+        <span class="n">trim_img</span> <span class="o">=</span> <span class="s1">&#39;temp.fits[</span><span class="si">{:d}</span><span class="s1">:</span><span class="si">{:d}</span><span class="s1">,*]&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">x_shift</span><span class="p">))</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">naxis1</span><span class="p">)</span>
+        <span class="n">iraf</span><span class="o">.</span><span class="n">imcopy</span><span class="p">(</span><span class="n">trim_img</span><span class="p">,</span> <span class="s1">&#39;temp.fits&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">trim_img</span> <span class="o">=</span> <span class="s1">&#39;temp_ref.fits[</span><span class="si">{:d}</span><span class="s1">:</span><span class="si">{:d}</span><span class="s1">,*]&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">x_shift</span><span class="p">))</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">naxis1_ref</span><span class="p">)</span>
+        <span class="n">iraf</span><span class="o">.</span><span class="n">imcopy</span><span class="p">(</span><span class="n">trim_img</span><span class="p">,</span> <span class="s1">&#39;temp_ref.fits&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">y_shift</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
+        <span class="n">trim_img</span> <span class="o">=</span> <span class="s1">&#39;temp.fits[*,</span><span class="si">{:d}</span><span class="s1">:</span><span class="si">{:d}</span><span class="s1">]&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">y_shift</span><span class="p">))</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">naxis2</span><span class="p">)</span>
+        <span class="n">iraf</span><span class="o">.</span><span class="n">imcopy</span><span class="p">(</span><span class="n">trim_img</span><span class="p">,</span> <span class="s1">&#39;temp.fits&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">trim_img</span> <span class="o">=</span> <span class="s1">&#39;temp_ref.fits[*,</span><span class="si">{:d}</span><span class="s1">:</span><span class="si">{:d}</span><span class="s1">]&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">y_shift</span><span class="p">))</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">naxis2_ref</span><span class="p">)</span>
+        <span class="n">iraf</span><span class="o">.</span><span class="n">imcopy</span><span class="p">(</span><span class="n">trim_img</span><span class="p">,</span> <span class="s1">&#39;temp_ref.fits&#39;</span><span class="p">)</span>
+
+    <span class="c1"># then take any excess pixels off at the high end of the range in each dimension so that the images have identical dimensions</span>
+    <span class="c1"># select the smallest dimension in any image</span>
+    <span class="n">new_img</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">f</span><span class="p">[:</span><span class="o">-</span><span class="mi">5</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39;_match.fits&#39;</span>
+    <span class="n">new_ref</span> <span class="o">=</span> <span class="n">img_ref</span><span class="o">.</span><span class="n">f</span><span class="p">[:</span><span class="o">-</span><span class="mi">5</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39;_match.fits&#39;</span>
+
+    <span class="n">hdu_tempref</span> <span class="o">=</span> <span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">&#39;temp_ref.fits&#39;</span><span class="p">)</span>
+    <span class="n">naxis1_tempref</span> <span class="o">=</span> <span class="n">hdu_tempref</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s1">&#39;NAXIS1&#39;</span><span class="p">]</span>
+    <span class="n">naxis2_tempref</span> <span class="o">=</span> <span class="n">hdu_tempref</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s1">&#39;NAXIS2&#39;</span><span class="p">]</span>
+
+    <span class="n">hdu_temp</span> <span class="o">=</span> <span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">&#39;temp.fits&#39;</span><span class="p">)</span>
+    <span class="n">naxis1_temp</span> <span class="o">=</span> <span class="n">hdu_temp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s1">&#39;NAXIS1&#39;</span><span class="p">]</span>
+    <span class="n">naxis2_temp</span> <span class="o">=</span> <span class="n">hdu_temp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s1">&#39;NAXIS2&#39;</span><span class="p">]</span>
+
+    <span class="n">min_xsize</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">naxis1_temp</span><span class="p">,</span> <span class="n">naxis1_tempref</span><span class="p">)</span>
+    <span class="n">min_ysize</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">naxis2_temp</span><span class="p">,</span> <span class="n">naxis2_tempref</span><span class="p">)</span>
+
+    <span class="n">trim_img</span> <span class="o">=</span> <span class="s1">&#39;temp.fits[1:</span><span class="si">{:d}</span><span class="s1">,1:</span><span class="si">{:d}</span><span class="s1">]&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">min_xsize</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">min_ysize</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> 
+    <span class="n">trim_ref</span> <span class="o">=</span> <span class="s1">&#39;temp_ref.fits[1:</span><span class="si">{:d}</span><span class="s1">,1:</span><span class="si">{:d}</span><span class="s1">]&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">min_xsize</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">min_ysize</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">iraf</span><span class="o">.</span><span class="n">imcopy</span><span class="p">(</span><span class="n">trim_img</span><span class="p">,</span> <span class="n">new_img</span><span class="p">)</span>
+    <span class="n">iraf</span><span class="o">.</span><span class="n">imcopy</span><span class="p">(</span><span class="n">trim_ref</span><span class="p">,</span> <span class="n">new_ref</span><span class="p">)</span>    
+
+    <span class="c1"># delete the temporary working images</span>
+    <span class="n">iraf</span><span class="o">.</span><span class="n">imdelete</span><span class="p">(</span><span class="s1">&#39;temp.fits&#39;</span><span class="p">)</span>
+    <span class="n">iraf</span><span class="o">.</span><span class="n">imdelete</span><span class="p">(</span><span class="s1">&#39;temp_ref.fits&#39;</span><span class="p">)</span>
     
 <span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
-    <span class="n">images</span> <span class="o">=</span> <span class="p">[</span><span class="n">odi</span><span class="o">.</span><span class="n">StackedImage</span><span class="p">(</span><span class="s1">&#39;AGC198511_odi_g.fits&#39;</span><span class="p">),</span><span class="n">odi</span><span class="o">.</span><span class="n">StackedImage</span><span class="p">(</span><span class="s1">&#39;AGC198511_odi_i.fits&#39;</span><span class="p">)]</span>
+    <span class="n">images</span> <span class="o">=</span> <span class="p">[</span><span class="n">odi</span><span class="o">.</span><span class="n">StackedImage</span><span class="p">(</span><span class="s1">&#39;AGC249320_odi_g.fits&#39;</span><span class="p">),</span><span class="n">odi</span><span class="o">.</span><span class="n">StackedImage</span><span class="p">(</span><span class="s1">&#39;AGC249320_odi_i.fits&#39;</span><span class="p">)]</span>
     <span class="n">imalign</span><span class="p">(</span><span class="n">images</span><span class="p">)</span>
 
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
