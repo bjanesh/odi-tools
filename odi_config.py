@@ -339,7 +339,7 @@ def cfgparse(cfg_file, verbose=True):
                     except KeyError:
                         dither_string = dither_string + ' --no data'+'-'*(len(data[filter][1])-9)+' '
                 print dither_string        
-        return object_str, filters, instrument, images, illcor_flag, skyflat_src, wcs_flag, reproject_flag, scale_flag, stack_flag, align_flag, gaia_flag, cluster_flag, ra_center, dec_center, min_radius
+        return object_str, filters, instrument, images, illcor_flag, skyflat_src, wcs_flag, reproject_flag, scale_flag, scale_ref, stack_flag, align_flag, gaia_flag, cluster_flag, ra_center, dec_center, min_radius
 
 def photcfgparse(cfg_file):
     """
