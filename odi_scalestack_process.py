@@ -58,9 +58,13 @@ for filter in filters:
             cat_command = 'cat sources/*SCI.'+dither+'*'+filter+'*.totphot' + '>' + dither_total
             os.system(cat_command)
 
-    # choose the initial reference image (lowest airmass to start)
+    # choose the initial reference image (lowest airmass to start, unless we've specified one)
     # print images_.values()
-    refimg_ = odi.find_ref_image(images_)
+    if scale_ref == {}:
+        refimg_ = odi.find_ref_image(images_)
+    else:
+        refimg_ = scale_ref[filter]
+        
     ref_img = images_[refimg_]
 
     # calculate scaling factors
@@ -76,23 +80,25 @@ for filter in filters:
         n_[img] = n
 
     # recalculate scaling factors IF the highest scaling factor is not the initial reference image
+    # BUT ONLY IF we haven't specifically selected a reference image
     # print the scaling factors out to a file for review
     # iterate
 
-    print np.array(scales_.values()) > 1.002
-    while (np.array(scales_.values()) > 1.002).any() and iters < 6:
-        iters += 1
-        ims = scales_.keys()
-        scls = scales_.values()
-        new_ref = ims[np.argmax(scls)]
-        if new_ref != ref_img:
-            ref_img = new_ref
-            for img in images_:
-                # img = images_[dith]
-                scale,std,n = odi.source_scale(img,ref_img,filter)
-                scales_[img] = scale
-                stds_[img] = std
-                n_[img] = n
+    # print np.array(scales_.values()) > 1.002
+    if scale_ref == {}:
+        while (np.array(scales_.values()) > 1.002).any() and iters < 6:
+            iters += 1
+            ims = scales_.keys()
+            scls = scales_.values()
+            new_ref = ims[np.argmax(scls)]
+            if new_ref != ref_img:
+                ref_img = new_ref
+                for img in images_:
+                    # img = images_[dith]
+                    scale,std,n = odi.source_scale(img,ref_img,filter)
+                    scales_[img] = scale
+                    stds_[img] = std
+                    n_[img] = n
 
     with open(filter+'_scales.txt','w+') as sclfile:
         print >> sclfile, '# image'+' '*(len(images_[1].stem())-4)+'scale   std     n (iters = '+repr(iters)+')'

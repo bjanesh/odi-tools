@@ -314,7 +314,7 @@ def cfgparse(cfg_file, verbose=True):
                         imglist.append(ODIImage(f, d, instrument))
                     # keep the 'ref' in a dictionary for passing. other string names are ignored!
                     elif 'ref' in d:
-                        scale_ref[filter] = f
+                        scale_ref[filter] = ODIImage(f, d, instrument)
                 images[filter] = imglist
             except KeyError:
                 print "images for filter '"+filter+"' not defined in configuration file..."
@@ -431,7 +431,8 @@ def photcfgparse(cfg_file):
     return object_str, filters, instrument, images, new_extension, remove_tpv_flag, trim_image_flag, wcs_flag, trim_section, airmasses
 
 def main():
-    cfgparse('example_config.yaml', verbose=True)
+    object_str, filters, instrument, images, illcor_flag, skyflat_src, wcs_flag, reproject_flag, scale_flag, scale_ref, stack_flag, align_flag, gaia_flag, cluster_flag, ra_center, dec_center, min_radius = cfgparse('example_config.yaml', verbose=True)
+    # print scale_ref
 
 if __name__ == '__main__':
     main()
