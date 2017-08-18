@@ -254,7 +254,7 @@ def phot_sources(img, ota, fwhm, run_detect = True):
     if not os.path.isfile(output):
         iraf.apphot.phot(image=image, coords=coords, output=output)
     with open(phot_tbl,'w+') as txdump_out :
-        iraf.ptools.txdump(textfiles=output, fields="id,mag,merr,msky,stdev,rapert,xcen,ycen,ifilter,xairmass,peak,flux,image", expr='yes', headers='no', Stdout=txdump_out)
+        iraf.ptools.txdump(textfiles=output, fields="id,mag,merr,msky,stdev,rapert,xcen,ycen,ifilter,xairmass,itime,flux,image", expr='yes', headers='no', Stdout=txdump_out)
     outputfile_clean = open(phot_tbl.replace('.sourcephot','_clean.sourcephot'),"w")
     for line in open(phot_tbl,"r"):
         if not 'INDEF' in line:
@@ -299,7 +299,7 @@ def phot_combine(img, ota, run_detect = True):
 
     phot_tbl = odi.sourcepath+img.nofits()+'.'+ota+'.sourcephot'
 
-    MAG, MERR, SKY, SERR, RAPERT, XPOS, YPOS = np.loadtxt(phot_tbl, usecols=(1,2,3,4,5,6,7), dtype=float, unpack=True)
+    MAG, MERR, SKY, SERR, RAPERT, XPOS, YPOS, ITIME = np.loadtxt(phot_tbl, usecols=(1,2,3,4,5,6,7,10), dtype=float, unpack=True)
 
     # fwhmfile = odi.sourcepath+img.nofits()+'.'+ota+'.fwhm.log'
 
@@ -309,7 +309,7 @@ def phot_combine(img, ota, run_detect = True):
 
     with open(output, 'w+') as xy:
 	for i in range(len(x)):
-	    print >> xy,x[i], y[i], id[i],ra_icrs_centroid[i],dec_icrs_centroid[i],source_sum[i],max_value[i],elongation[i], MAG[i], MERR[i], SKY[i], SERR[i], RAPERT[i], XPOS[i], YPOS[i], fwhm[i],peak[i]
+	    print >> xy,x[i], y[i], id[i],ra_icrs_centroid[i],dec_icrs_centroid[i],source_sum[i],max_value[i],elongation[i], MAG[i], MERR[i], SKY[i], SERR[i], RAPERT[i], XPOS[i], YPOS[i], fwhm[i],peak[i], ITIME[i]
     xy.close()
 
 def source_scale(img,ref,filter):
@@ -354,11 +354,11 @@ def source_scale(img,ref,filter):
     img_sources = odi.sourcepath+img.dither()+'_'+filter+'.allsource'
     ref_sources = odi.sourcepath+ref.dither()+'_'+filter+'.allsource'
 
-    x_img, y_img, id_img,ra_icrs_centroid_img,dec_icrs_centroid_img,source_sum_img,max_value_img,elongation_img, MAG_img, MERR_img, SKY_img, SERR_img, RAPERT_img, XPOS_img, YPOS_img, fwhm_img,peak_img = np.loadtxt(
-        img_sources,usecols=(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16),unpack=True)
+    x_img, y_img, id_img,ra_icrs_centroid_img,dec_icrs_centroid_img,source_sum_img,max_value_img,elongation_img, MAG_img, MERR_img, SKY_img, SERR_img, RAPERT_img, XPOS_img, YPOS_img, fwhm_img,peak_img, itime_img = np.loadtxt(
+        img_sources,usecols=(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17),unpack=True)
 
-    x_ref, y_ref, id_ref,ra_icrs_centroid_ref,dec_icrs_centroid_ref,source_sum_ref,max_value_ref,elongation_ref, MAG_ref, MERR_ref, SKY_ref, SERR_ref, RAPERT_ref, XPOS_ref, YPOS_ref, fwhm_ref,peak_ref = np.loadtxt(
-        ref_sources,usecols=(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16),unpack=True)
+    x_ref, y_ref, id_ref,ra_icrs_centroid_ref,dec_icrs_centroid_ref,source_sum_ref,max_value_ref,elongation_ref, MAG_ref, MERR_ref, SKY_ref, SERR_ref, RAPERT_ref, XPOS_ref, YPOS_ref, fwhm_ref,peak_ref, itime_ref = np.loadtxt(
+        ref_sources,usecols=(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17),unpack=True)
 
     img_catalog = SkyCoord(ra = ra_icrs_centroid_img*u.degree, dec = dec_icrs_centroid_img*u.degree)
 
@@ -406,11 +406,13 @@ def source_scale(img,ref,filter):
     raA, decA = ra_icrs_centroid_img[keep], dec_icrs_centroid_img[keep]
     raRef, decRef = ra_icrs_centroid_ref[keep], dec_icrs_centroid_ref[keep]
 
-    with open('scale_stars.pos','w+') as f:
-        for i,m in enumerate(magA):
-            print >> f, raA[i], decA[i], raRef[i], decRef[i], magA[i], magRef[i]
+    # with open('scale_stars.pos','w+') as f:
+    #     for i,m in enumerate(magA):
+    #         print >> f, raA[i], decA[i], raRef[i], decRef[i], magA[i], magRef[i]
+    
+    expRatio = itime_ref[0]/itime_img[0]
 
-    rat = np.power(10.0,-0.4*(magA-magRef))/1.0
+    rat = np.power(10.0,-0.4*(magA-magRef))/expRatio
 
     print np.mean(rat),np.std(rat),len(rat)
     sigThreshold = 0.005
@@ -425,7 +427,7 @@ def source_scale(img,ref,filter):
             magTempRef = magRef
             magA = magTempA[np.where(abs(rat-np.median(rat))<sigTest)]
             magRef = magTempRef[np.where(abs(rat-np.median(rat))<sigTest)]
-            rat = np.power(10.0,-0.4*(magA-magRef))/1.0
+            rat = np.power(10.0,-0.4*(magA-magRef))/expRatio
             #for i,r in enumerate(rat):
             #print magA[i], magRef[i], r
             sigTest = np.std(rat)
