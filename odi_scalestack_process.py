@@ -60,13 +60,12 @@ for filter in filters:
 
     # choose the initial reference image (lowest airmass to start, unless we've specified one)
     # print images_.values()
-    if scale_ref == {}:
+    if filter not in scale_ref.keys():
         refimg_ = odi.find_ref_image(images_)
+        ref_img = images_[refimg_]
     else:
-        refimg_ = scale_ref[filter]
-        
-    ref_img = images_[refimg_]
-
+        ref_img = scale_ref[filter]
+    
     # calculate scaling factors
     scales_ = {}
     stds_ = {}
@@ -85,7 +84,7 @@ for filter in filters:
     # iterate
 
     # print np.array(scales_.values()) > 1.002
-    if scale_ref == {}:
+    if filter not in scale_ref.keys():
         while (np.array(scales_.values()) > 1.002).any() and iters < 6:
             iters += 1
             ims = scales_.keys()

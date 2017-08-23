@@ -306,16 +306,17 @@ def cfgparse(cfg_file, verbose=True):
             print '----------------------------------'
         header_string = 'dither  '
         for filter in filters:
-            imglist = []
+            imglist = {}
             try:
                 for d,f in data[filter].iteritems():
                     # only keep integer numbers as dither names, 
                     if type(d) is int:
-                        imglist.append(ODIImage(f, d, instrument))
+                        im = ODIImage(f, d, instrument)
+                        imglist[d] = im
                     # keep the 'ref' in a dictionary for passing. other string names are ignored!
                     elif 'ref' in d:
-                        scale_ref[filter] = ODIImage(f, d, instrument)
-                images[filter] = imglist
+                        scale_ref[filter] = imglist[f]
+                images[filter] = imglist.values()
             except KeyError:
                 print "images for filter '"+filter+"' not defined in configuration file..."
                 exit()
@@ -332,7 +333,7 @@ def cfgparse(cfg_file, verbose=True):
                 dither_string = '   {:2d}  '.format(dither)
                 for filter in filters:
                     try:
-                        if data[filter][dither] == scale_ref[filter]:
+                        if filter in scale_ref.keys() and data[filter][dither] == scale_ref[filter].f:
                             dither_string = dither_string + '*'+data[filter][dither]+' '
                         else:
                             dither_string = dither_string + ' '+data[filter][dither]+' '
@@ -432,7 +433,7 @@ def photcfgparse(cfg_file):
 
 def main():
     object_str, filters, instrument, images, illcor_flag, skyflat_src, wcs_flag, reproject_flag, scale_flag, scale_ref, stack_flag, align_flag, gaia_flag, cluster_flag, ra_center, dec_center, min_radius = cfgparse('example_config.yaml', verbose=True)
-    # print scale_ref
+    print scale_ref
 
 if __name__ == '__main__':
     main()

@@ -2,18 +2,18 @@
 basic:
   object: M53                           # the name of your object
   filters: [odi_g, odi_r, odi_i]        # correct filter strings required
-  instrument: 5odi                      # podi | 5odi | mosaic; script will verify using image header info
+  instrument: podi                      # podi | 5odi | mosaic; script will verify using image header info
 
 processing: # optional steps performed in odi_process.py
   illumination_correction: yes          # if yes, set dark sky flat source below
   dark_sky_flat_source: object          # object | master
-  wcs_correction: yes
+  wcs_correction: no
   reproject: yes
   scale_images: yes
   stack_images: yes
   align_images: yes
   get_gaia: yes
-  cluster_field: yes                    #if yes, provide cluster ra and dec
+  cluster_field: no                    #if yes, provide cluster ra and dec
   ra_center:  '198.230033'              #cluster center ra deg
   dec_center: '18.168394'               #cluster center dec deg
   min_radius: '1.5'                     #min radius (") away from cluster center
@@ -33,7 +33,7 @@ odi_g:
   7: 20130510T002928.7_m13-9_odi_g.5869.fits
   8: 20130510T002928.8_m13-9_odi_g.5869.fits
   9: 20130510T002928.9_m13-9_odi_g.5869.fits
-  ref: 20130510T002928.4_m13-9_odi_g.5869.fits
+  ref: 4
 
 odi_r:
   1: 20130510T002928.1_m13-9_odi_r.5869.fits
@@ -44,7 +44,7 @@ odi_r:
   7: 20130510T002921.1_m13-9_odi_r.5869.fits
   8: 20130510T002921.2_m13-9_odi_r.5869.fits
   9: 20130510T002921.3_m13-9_odi_r.5869.fits
-  ref: 20130510T002921.3_m13-9_odi_r.5869.fits
+  ref: 9
 
 odi_i:
   1: 20130510T002924.1_m13-9_odi_i.5869.fits
@@ -55,4 +55,4 @@ odi_i:
   6: 20130510T002928.5_m13-9_odi_i.5869.fits
   7: 20130510T002926.1_m13-9_odi_i.5869.fits
   10: 20130510T002927.1_m13-9_odi_i.5869.fits
-  ref: 20130510T002924.1_m13-9_odi_i.5869.fits
+

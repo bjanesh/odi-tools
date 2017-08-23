@@ -656,7 +656,7 @@ def calibrate(img1 = None, img2 = None, podicut = 0.03, sdsscut = 0.03):
     print 'Calibration fit diagnostic plots:      ', img_root+'_photcal.pdf'
     print 'Final calibration values:              ', img_root+'_help.txt'
 
-def js_calibrate(img1 = None, img2 = None, podicut = 0.03, sdsscut = 0.03, verbose=True):
+def js_calibrate(img1 = None, img2 = None, podicut = 0.03, sdsscut = 0.03, verbose=False):
     try:
         from pyraf import iraf
         from astropy.io import fits
@@ -824,14 +824,17 @@ def js_calibrate(img1 = None, img2 = None, podicut = 0.03, sdsscut = 0.03, verbo
     # find the difference between instrumental i or r and catalog value & error
     di = i - i0
     die = np.sqrt(ie**2 + iMERR**2)
+    dsgi = np.absolute((di - np.median(di))/np.std(di))
     
     dg = g - g0
     dge = np.sqrt(ge**2 + gMERR**2)
+    dsgg = np.absolute((dg - np.median(dg))/np.std(dg))
 
     # podicut, sdsscut = 0.03, 0.03
     # print np.median(gSERR), np.median(iSERR)
     # cuts for better fits go here
-    errcut = [j for j in range(len(gMERR)) if (gMERR[j] < podicut and iMERR[j] < podicut and ge[j] < sdsscut and ie[j] < sdsscut and 5000.0 < peak1[j]< 40000.0 and 5000.0 < peak2[j]< 40000.0)]
+    errcut = [j for j in range(len(gMERR)) if (gMERR[j] < podicut and iMERR[j] < podicut and ge[j] < sdsscut and ie[j] < sdsscut and dsgi[j] < 1.0 and dsgg[j] < 1.0)]
+    # and 1000.0 < peak1[j]< 45000.0 and 1000.0 < peak2[j]< 45000.0
     #errcut = [j for j in range(len(gMERR)) if (gMERR[j] < podicut and iMERR[j] < podicut and ge[j] < sdsscut and ie[j] < sdsscut and gSKY[j] > np.median(gSERR) and iSKY[j] > np.median(iSERR) and di[j] > 25.5)]
 
     if verbose:
@@ -936,6 +939,21 @@ def js_calibrate(img1 = None, img2 = None, podicut = 0.03, sdsscut = 0.03, verbo
     plt.ylabel('$'+filterName+' - '+filterName+'_0$ (SDSS - ODI)')
     plt.text(-0.9, zp_i-0.8, '$\epsilon_{'+filterName+'} = %.4f \pm %.4f$'%(eps_i,std_eps_i))
     plt.text(-0.9, zp_i-0.6, '$\mathrm{zp}_{'+filterName+'} = %.4f \pm %.4f$'%(zp_i,std_zp_i))
+    
+    # plt.subplot(222)
+    # plt.scatter(gYPOS[errcut], dg[errcut], facecolor='black', edgecolor='none', s=3)
+    # plt.xlim(0,20)
+    # plt.ylim(zp_g+1.0,zp_g-1.0)
+    # plt.xlabel('$g - '+filterName+'$ (SDSS)')
+    # plt.ylabel('$'+filterName+' - '+filterName+'_0$ (SDSS - ODI)')
+    
+    # plt.subplot(224)
+    # plt.scatter(gYPOS[errcut], di[errcut], facecolor='black', edgecolor='none', s=3)
+    # plt.xlim(0,20)
+    # plt.ylim(zp_i+1.0,zp_i-1.0)
+    # plt.xlabel('$g - '+filterName+'$ (SDSS)')
+    # plt.ylabel('$'+filterName+' - '+filterName+'_0$ (SDSS - ODI)')
+    
     plt.tight_layout()
     plt.savefig(img_root+'_photcal_js.pdf')
     
@@ -1091,8 +1109,8 @@ def main():
     # print '--------------------------------------------------------------------------'
     # if not os.path.isfile(g_img.nofits()+'.sdssxy'):        
     download_sdss(g_img, i_img)
-    calibrate(img1=g_img, img2=i_img, podicut = 0.03, sdsscut = 0.03)
-    # js_calibrate(img1=g_img, img2=i_img, podicut = 0.03, sdsscut = 0.03)
+    # calibrate(img1=g_img, img2=i_img, podicut = 0.03, sdsscut = 0.03)
+    js_calibrate(img1=g_img, img2=i_img, podicut = 0.03, sdsscut = 0.03)
 
 if __name__ == '__main__':
     main()
