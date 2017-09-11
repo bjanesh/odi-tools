@@ -72,6 +72,15 @@ odi5mosaic_dictionary = {
     13:'OTA22.SCI',
 }
 
+# for simple demonstrations and tests, only use the central 4 OTAs for speed purposes
+# valid for any configuration (podi, 5odi, mosaic)
+test_dictionary = {
+    1 :'OTA33.SCI',
+    2 :'OTA34.SCI',
+    3 :'OTA43.SCI',
+    4 :'OTA44.SCI'
+}
+
 class ODIImage:
     def __init__(self, filename, dither, inst):
         self.f = filename
@@ -327,8 +336,9 @@ def cfgparse(cfg_file, verbose=True):
             dithernos = set()
             for filt in filters:
                 dithernos = dithernos | set(data[filt].keys())
-            # remove the 'ref' designation from the set of dither numbers
-            dithernos.remove('ref')
+            # remove the 'ref' designation from the set of dither numbers if it exists
+            if 'ref' in dithernos:
+                dithernos.remove('ref')
             for dither in dithernos:
                 dither_string = '   {:2d}  '.format(dither)
                 for filter in filters:
