@@ -137,12 +137,12 @@ if not os.path.exists(scaleddirectory):
 
 scaledpath = scaleddirectory+'/'
 
-otastackdirectory = 'otastack'
-if not os.path.exists(otastackdirectory):
-    print 'Creating directory for stacked ota images...'
-    os.makedirs(otastackdirectory)
-
-otastackpath = otastackdirectory+'/'
+# otastackdirectory = 'otastack'
+# if not os.path.exists(otastackdirectory):
+#     print 'Creating directory for stacked ota images...'
+#     os.makedirs(otastackdirectory)
+# 
+# otastackpath = otastackdirectory+'/'
 
 skyflatdirectory = 'skyflat'
 if not os.path.exists(skyflatdirectory):
@@ -172,12 +172,12 @@ if not os.path.exists(sdssofflinedir):
 
 sdsspath = sdssofflinedir+'/'
 
-twomassofflinedir = 'twomassoffline'
-if not os.path.exists(twomassofflinedir):
-    print 'Creating directory for 2mass catalogs...'
-    os.makedirs(twomassofflinedir)
-
-twomasspath = twomassofflinedir+'/'
+# twomassofflinedir = 'twomassoffline'
+# if not os.path.exists(twomassofflinedir):
+#     print 'Creating directory for 2mass catalogs...'
+#     os.makedirs(twomassofflinedir)
+# 
+# twomasspath = twomassofflinedir+'/'
 
 gaiaofflinedir = 'gaiaoffline'
 if not os.path.exists(gaiaofflinedir):
@@ -328,7 +328,8 @@ def cfgparse(cfg_file, verbose=True):
             for filt in filters:
                 dithernos = dithernos | set(data[filt].keys())
             # remove the 'ref' designation from the set of dither numbers
-            dithernos.remove('ref')
+            if 'ref' in dithernos:
+                dithernos.remove('ref')
             for dither in dithernos:
                 dither_string = '   {:2d}  '.format(dither)
                 for filter in filters:
