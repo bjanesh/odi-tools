@@ -231,6 +231,8 @@ def get_gaps_rep(img, ota):
         iraf.imutil.imcopy.setParam('output',mask_name.replace('fits','pl'))
         iraf.imutil.imcopy.setParam('verbose','no')
         iraf.imutil.imcopy(mode='h')
+    if os.path.isfile(mask_name): # we don't need to keep the reproj fits mask, it takes up a ton of space
+        iraf.imutil.imdelete(mask_name, verify='no', mode='h')
     iraf.unlearn(iraf.imutil.hedit)
     iraf.imutil.hedit.setParam('images',image)
     iraf.imutil.hedit.setParam('fields','BPM')
