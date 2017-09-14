@@ -368,7 +368,7 @@ def source_scale(img,ref,filter):
 
     #id_ref, d2d_ref, d3d_ref = img_catalog.match_to_catalog_sky(ref_catalog)
 
-    id_img, id_ref, d2d, d3d = ref_catalog.search_around_sky(img_catalog,0.00005*u.deg)
+    id_img, id_ref, d2d, d3d = ref_catalog.search_around_sky(img_catalog,0.0005*u.deg)
 
     print img.stem(), len(id_img),len(id_ref)
 
@@ -427,6 +427,8 @@ def source_scale(img,ref,filter):
             magTempRef = magRef
             magA = magTempA[np.where(abs(rat-np.median(rat))<sigTest)]
             magRef = magTempRef[np.where(abs(rat-np.median(rat))<sigTest)]
+            if len(magA) == 0:
+                break
             rat = np.power(10.0,-0.4*(magA-magRef))/expRatio
             #for i,r in enumerate(rat):
             #print magA[i], magRef[i], r
