@@ -20,8 +20,8 @@ def dark_sky_flat(filter):
         iraf.immatch.imcombine.setParam('masktype','goodvalue')
         iraf.immatch.imcombine.setParam('maskvalue',0)
         iraf.immatch.imcombine.setParam('scale','median')
-        # iraf.immatch.imcombine.setParam('zero','none')
-        iraf.immatch.imcombine.setParam('zero','median')
+        iraf.immatch.imcombine.setParam('zero','none')
+        # iraf.immatch.imcombine.setParam('zero','median')
         iraf.immatch.imcombine(logfile='imcombine.log.txt', mode='h')
         
     iraf.set(clobber = 'yes')
@@ -34,18 +34,23 @@ def dark_sky_flat(filter):
 
         # smooth the flat with a 50 x 50 median box
         iraf.unlearn(iraf.imutil.imarith,iraf.imfilter.median)
-        iraf.imfilter.median.setParam('input',odi.skyflatpath+med_out)
-        iraf.imfilter.median.setParam('output',odi.skyflatpath+med_smooth)
-        iraf.imfilter.median.setParam('xwindow',51)
-        iraf.imfilter.median.setParam('ywindow',51)
-        iraf.imfilter.median.setParam('zloreject',1.0) # ignore 0.0s in the smoothing, they'll cause image artifacts
-        iraf.imfilter.median(verbose='no', mode='h')
+        iraf.imfilter.fmedian.setParam('input',odi.skyflatpath+med_out)
+        iraf.imfilter.fmedian.setParam('output',repr(key)+'temp_smooth.fits')
+        iraf.imfilter.fmedian.setParam('xwindow',51)
+        iraf.imfilter.fmedian.setParam('ywindow',51)
+        iraf.imfilter.fmedian.setParam('zloreject',1.0) # ignore 0.0s in the smoothing, they'll cause image artifacts
+        iraf.imfilter.fmedian(verbose='no', mode='h')
+        
+        # smoothing is not leaving zeros but instead some very small number--replace them with 0.0s
+        iraf.imutil.imexpr('(a < 1.51) ? 0 : a',odi.skyflatpath+med_smooth,repr(key)+'temp_smooth.fits',verbose='no')
+        iraf.imutil.imdelete(key+'temp_smooth.fits')
         
         # determine the normalization factor from the _smoothed_ image
         if key == 1:
             data,header = odi.fits.getdata(odi.skyflatpath+med_smooth,header=True)
             mean, median, std = odi.sigma_clipped_stats(data, sigma=3.0, mask_value=0.0) # be sure to ignore 0.0s in the flat
             normalization_factor = median
+            print normalization_factor
         
         # smoothing using numpy, this method is much slower
         # data, header = odi.fits.getdata(odi.skyflatpath+med_out, header=True)
@@ -231,8 +236,8 @@ def get_gaps_rep(img, ota):
         iraf.imutil.imcopy.setParam('output',mask_name.replace('fits','pl'))
         iraf.imutil.imcopy.setParam('verbose','no')
         iraf.imutil.imcopy(mode='h')
-    if os.path.isfile(mask_name): # we don't need to keep the reproj fits mask, it takes up a ton of space
-        iraf.imutil.imdelete(mask_name, verify='no', mode='h')
+    # if os.path.isfile(mask_name): # we don't need to keep the reproj fits mask, it takes up a ton of space
+    #     iraf.imutil.imdelete(mask_name, verify='no', mode='h')
     iraf.unlearn(iraf.imutil.hedit)
     iraf.imutil.hedit.setParam('images',image)
     iraf.imutil.hedit.setParam('fields','BPM')
