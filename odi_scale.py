@@ -350,6 +350,11 @@ def source_scale(img,ref,filter):
     """
     # img_dither = img.split('.')[1][0]+'_'
     # ref_dither = ref.split('.')[1][0]+'_'
+    
+    match_radius = 0.0005    # in deg, too big will get you too many matches
+    peak_count_min = 1000.0  # in counts, too small will get you poorly measured stars
+    sigThreshold = 0.005     # scaling factor quality via standard deviation (actual value)
+                             # smaller is "better" but gets you fewer stars, so may be less robust
 
     img_sources = odi.sourcepath+img.dither()+'_'+filter+'.allsource'
     ref_sources = odi.sourcepath+ref.dither()+'_'+filter+'.allsource'
@@ -398,7 +403,7 @@ def source_scale(img,ref,filter):
 
 
     #keep = np.where((SKY_img>0.0) & (SKY_ref > 0.0) & (peak_img>200) & (peak_ref >200.0) & (45000.0>peak_img) & (45000.0>peak_ref) & (peak_img < 100) & (peak_ref < 100))
-    keep = np.where((np.array(peak_img)>1000.0) & (np.array(peak_ref) >1000.0)&(np.array(peak_img)<45000.0) & (np.array(peak_ref) <45000.0)
+    keep = np.where((np.array(peak_img)> peak_count_min) & (np.array(peak_ref) > peak_count_min) & (np.array(peak_img)<45000.0) & (np.array(peak_ref) <45000.0)
                     & (np.array(fwhm_img)<900.0) & (np.array(fwhm_ref) <900.0) & (np.array(MAG_img)<900.0) & (np.array(MAG_ref) <900.0))
 
     magA =  np.array(MAG_img[keep[0]])
@@ -415,7 +420,6 @@ def source_scale(img,ref,filter):
     rat = np.power(10.0,-0.4*(magA-magRef))/expRatio
 
     print np.mean(rat),np.std(rat),len(rat)
-    sigThreshold = 0.005
     n = 1
     sigTest = np.std(rat)
     if sigTest <= sigThreshold:
@@ -427,7 +431,7 @@ def source_scale(img,ref,filter):
             magTempRef = magRef
             magA = magTempA[np.where(abs(rat-np.median(rat))<sigTest)]
             magRef = magTempRef[np.where(abs(rat-np.median(rat))<sigTest)]
-            if len(magA) == 0:
+            if len(magA) == 0: # don't let any NaNs happen
                 break
             rat = np.power(10.0,-0.4*(magA-magRef))/expRatio
             #for i,r in enumerate(rat):
