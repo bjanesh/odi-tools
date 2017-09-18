@@ -43,7 +43,7 @@ def dark_sky_flat(filter):
         
         # smoothing is not leaving zeros but instead some very small number--replace them with 0.0s
         iraf.imutil.imexpr('(a < 1.51) ? 0 : a',odi.skyflatpath+med_smooth,repr(key)+'temp_smooth.fits',verbose='no')
-        iraf.imutil.imdelete(key+'temp_smooth.fits')
+        iraf.imutil.imdelete(repr(key)+'temp_smooth.fits')
         
         # determine the normalization factor from the _smoothed_ image
         if key == 1:
