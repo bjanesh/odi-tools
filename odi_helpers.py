@@ -1095,7 +1095,7 @@ def stack_images(stackname, refimg):
 
     return output
 
-def instrument(img):
+def instrument(instrument_name):
     """
     A function to grab what version of ODI has been used.
 
@@ -1110,15 +1110,17 @@ def instrument(img):
         Will return ``5odi`` or ``podi``.
     """
 
-    from astropy.io import fits
-    hdulist = fits.open(img.f)
-    instrument_name = hdulist[0].header['INSTRUME']
-    hdulist.close()
+    # from astropy.io import fits
+    # hdulist = fits.open(img.f)
+    # instrument_name = hdulist[0].header['INSTRUME']
+    # hdulist.close()
     print 'Setting instrument to: ', instrument_name
 
     if instrument_name == '5odi':
         # odi.OTA_dictionary = odi.odi5narrow_dictionary
         odi.OTA_dictionary = odi.odi5_dictionary
+    elif instrument_name == 'mosaic':
+        odi.OTA_dictionary = odi.odi5mosaic_dictionary
     else :
         odi.OTA_dictionary = odi.podi_dictionary
 

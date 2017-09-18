@@ -24,7 +24,7 @@ if gaia_flag:
     source = 'gaia'
 else:
     source = 'sdss'
-inst = odi.instrument(images_[0])
+inst = odi.instrument(instrument)
 
 #Create offline catalogs
 for img in images_:
