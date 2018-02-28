@@ -72,7 +72,10 @@ if not os.path.isfile('bpms.done'):
 listfiles = glob.glob(odi.skyflatpath+'*.med.fits')
 if len(listfiles) == 0:
     for filter in filters:
-        odi.dark_sky_flat(filter)
+        if len(images_) > len(filters)+1:
+            odi.dark_sky_flat(filter, box_size=51)
+        else :
+            odi.dark_sky_flat(filter, box_size=151)
 else:
     print 'dark sky flats done'
 
