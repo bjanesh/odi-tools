@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 import odi_config as odi
 
-def dark_sky_flat(filter):
+def dark_sky_flat(filter, box_size=51):
     # from cv2 import medianBlur
     med_otalist = []
     print 'making dark sky flats for',filter
@@ -25,32 +25,32 @@ def dark_sky_flat(filter):
         iraf.immatch.imcombine(logfile='imcombine.log.txt', mode='h')
         
     iraf.set(clobber = 'yes')
-    print 'smoothing dark sky flats for',filter
+    print 'smoothing dark sky flats for',filter,'with box size {0:3d}x{0:3d}'.format(box_size)
     for key in tqdm(odi.OTA_dictionary):
         image_list = odi.OTA_dictionary[key]+'.'+filter+'.lis'
         med_out = image_list.replace('.lis','.med.fits')
         # don't overwrite the original flat
         med_smooth = image_list.replace('.lis','.med.smooth.fits')
 
-        # smooth the flat with a 50 x 50 median box
+        # smooth the flat with a N x N median box
         iraf.unlearn(iraf.imutil.imarith,iraf.imfilter.median)
         iraf.imfilter.fmedian.setParam('input',odi.skyflatpath+med_out)
         iraf.imfilter.fmedian.setParam('output',repr(key)+'temp_smooth.fits')
-        iraf.imfilter.fmedian.setParam('xwindow',51)
-        iraf.imfilter.fmedian.setParam('ywindow',51)
+        iraf.imfilter.fmedian.setParam('xwindow',box_size)
+        iraf.imfilter.fmedian.setParam('ywindow',box_size)
         iraf.imfilter.fmedian.setParam('zloreject',1.0) # ignore 0.0s in the smoothing, they'll cause image artifacts
         iraf.imfilter.fmedian(verbose='no', mode='h')
         
         # smoothing is not leaving zeros but instead some very small number--replace them with 0.0s
         iraf.imutil.imexpr('(a < 1.51) ? 0 : a',odi.skyflatpath+med_smooth,repr(key)+'temp_smooth.fits',verbose='no')
-        iraf.imutil.imdelete(key+'temp_smooth.fits')
+        iraf.imutil.imdelete(repr(key)+'temp_smooth.fits')
         
         # determine the normalization factor from the _smoothed_ image
         if key == 1:
             data,header = odi.fits.getdata(odi.skyflatpath+med_smooth,header=True)
             mean, median, std = odi.sigma_clipped_stats(data, sigma=3.0, mask_value=0.0) # be sure to ignore 0.0s in the flat
             normalization_factor = median
-            print normalization_factor
+            # print normalization_factor
         
         # smoothing using numpy, this method is much slower
         # data, header = odi.fits.getdata(odi.skyflatpath+med_out, header=True)
@@ -118,7 +118,7 @@ def make_bpms(img, ota):
         mask,gaps = odi.mask_ota(img,ota)
         hdu = odi.fits.PrimaryHDU(mask.astype(float))
         if not os.path.isfile(mask_name):
-            hdu.writeto(mask_name,clobber=True)
+            hdu.writeto(mask_name,overwrite=True)
         #if not os.path.isfile(mask_name.replace('fits','pl')):
             iraf.unlearn(iraf.imutil.imcopy)
             iraf.imutil.imcopy.setParam('input',mask_name)
@@ -229,7 +229,7 @@ def get_gaps_rep(img, ota):
         # mask,gaps = mask_ota(img,ota)
         hdu = odi.fits.PrimaryHDU(gaps_mask.astype(float))
         if not os.path.isfile(mask_name):
-            hdu.writeto(mask_name,clobber=True)
+            hdu.writeto(mask_name,overwrite=True)
     if not os.path.isfile(mask_name.replace('fits','pl')):
         iraf.unlearn(iraf.imutil.imcopy)
         iraf.imutil.imcopy.setParam('input',mask_name)
@@ -342,7 +342,7 @@ def mask_ota(img, ota, reproj=False, deep_obj=False):
       # BPM = mask_name.replace('fits','pl')
       if not os.path.isfile(odi.bppath+mask_name):
           hdu = odi.fits.PrimaryHDU(source_mask2.astype(float))
-          hdu.writeto(odi.bppath+mask_name,clobber=True)
+          hdu.writeto(odi.bppath+mask_name,overwrite=True)
 
       ota_mask = 'objmask_'+ota+'.'+str(img.dither())+'.fits'
 
