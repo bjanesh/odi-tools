@@ -803,4 +803,6 @@ def get_gaia_coords(img,ota,inst,output='test.gaia',cluster=False,**kwargs):
 
 
 if __name__ == '__main__':
-    get_sdss_coords()
+    from odi_config import ODIImage
+    img = ODIImage("20161029T215338.1_AGC748738_odi_g.7498.fits", 1, '5odi')
+    get_gaia_coords(img, img.otas.values()[0], img.inst, output='test.gaia', cluster=False)
