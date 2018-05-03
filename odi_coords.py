@@ -576,6 +576,7 @@ def get_sdss_coords_offline(img, ota, inst,output='test.sdss'):
     pull out these stars and treat them as SDSS stars. There will be no
     ``u`` magnitudes available, however.
     """
+    ota_id = ota
     hdulist = odi.fits.open(img.f)
     hdu = odi.tan_header_fix(hdulist[ota])
 
@@ -689,7 +690,7 @@ def get_sdss_coords_offline(img, ota, inst,output='test.sdss'):
                 output_df = ota_matches_df[needed_columns]
                 output_df.to_csv(output,index=False)
     except KeyError:
-        print 'missing PHOTCALIB table, skipping SDSS'
+        tqdm.write(img.f+'['+ota_id+']: missing PHOTCALIB table, skipping SDSS')
     hdulist.close()
     return xdim, ydim
 

@@ -18,7 +18,7 @@ except IOError:
     exit()
 
 source = 'sdss'
-inst = odi.instrument(images[filters[0]][1])
+inst = odi.instrument(images[filters[0]][0])
 
 imgnum,fwhm_d,zp_med, zp_std, bg_mean, bg_median, bg_std = np.loadtxt('derived_props.txt',usecols=(0,3,4,5,6,7,8),unpack=True)
 ota_d, filt_d = np.loadtxt('derived_props.txt',usecols=(1,2),unpack=True,dtype=str)
@@ -100,7 +100,7 @@ for filter in filters:
                     n_[img] = n
 
     with open(filter+'_scales.txt','w+') as sclfile:
-        print >> sclfile, '# image'+' '*(len(images_[1].stem())-4)+'scale   std     n (iters = '+repr(iters)+')'
+        print >> sclfile, '# image'+' '*(len(images_[0].stem())-4)+'scale   std     n (iters = '+repr(iters)+')'
         for img in images_:
             # img = images_[dith]
             print >> sclfile, img.stem(), '{0:7.5f} {1:7.5f} {2:5d}'.format(scales_[img], stds_[img], n_[img])

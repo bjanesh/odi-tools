@@ -73,7 +73,10 @@ listfiles = glob.glob(odi.skyflatpath+'*.med.fits')
 if len(listfiles) == 0:
     for filter in filters:
         if illcor_flag:
-            odi.dark_sky_flat(filter)
+            if len(images_) > len(filters)+1:
+                odi.dark_sky_flat(filter, box_size=51)
+            else :
+                odi.dark_sky_flat(filter, box_size=151)
         else:
             print 'not making dark sky flats for', filter
 else:
