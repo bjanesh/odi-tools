@@ -740,7 +740,7 @@ def get_gaia_coords(img,ota,inst,output='test.gaia',cluster=False,**kwargs):
                                corners[0,1]*u.deg,frame='icrs')
     cone_radius = center_skycoord.separation(corner_skycoord).value
     # tqdm.write('{:4.0f} {:4.0f} {:6.4f}'.format(naxis1/2., naxis2/2., cone_radius))
-
+    print '{:4.0f} {:4.0f} {:6.4f}'.format(naxis1/2., naxis2/2., cone_radius)
     #Set up vizier query for Gaia DR1
     #Taken from example at: github.com/mommermi/photometrypipeline
     vquery = Vizier(columns=['RA_ICRS', 'DE_ICRS',
@@ -749,14 +749,22 @@ def get_gaia_coords(img,ota,inst,output='test.gaia',cluster=False,**kwargs):
                     column_filters={"phot_g_mean_mag":
                                     ("<%f" % 21.0)},
                     row_limit = -1)
+    vquery.catalog = 'I/337/gaia'
+    print vquery.catalog
+    check = vquery.query_region_async(SkyCoord(ra=ota_center_radec[0][0],
+                                          dec=ota_center_radec[0][1],
+                                          unit=(u.deg, u.deg),
+                                          frame='icrs'),
+                                 radius=cone_radius*u.deg)      
+    print check                             
+                                           
     gaia_table = vquery.query_region(SkyCoord(ra=ota_center_radec[0][0],
                                               dec=ota_center_radec[0][1],
                                               unit=(u.deg, u.deg),
                                               frame='icrs'),
-                                     radius=cone_radius*u.deg,
-                                     catalog=['I/337/gaia'])[0]
+                                     radius=cone_radius*u.deg)[0]
 
-    # print gaia_table
+    print gaia_table
     
     hdulist.close()
     if cluster == True:
