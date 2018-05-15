@@ -503,8 +503,8 @@ def apcor_sdss(img,fwhm,inspect=False):
     import matplotlib.pyplot as plt
     from scipy import interpolate
     from matplotlib.colors import LogNorm
-    from astropy.visualization import *
-    from astropy.visualization.mpl_normalize import ImageNormalize
+    # from astropy.visualization import *
+    from astropy.visualization.mpl_normalize import ImageNormalize, LogStretch
     iraf.ptools(_doprint=0)
     sdss_source_file = img.nofits()+'.match.sdssxy'
 
