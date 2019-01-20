@@ -731,6 +731,7 @@ def get_gaia_coords(img,ota,inst,output='test.gaia',cluster=False,**kwargs):
     naxis1 = hdu_ota.header['NAXIS1']
     naxis2 = hdu_ota.header['NAXIS2']
     ota_center_radec = w.wcs_pix2world([[naxis1/2.,naxis2/2.]],1)
+    print ota_center_radec
 
     corners = w.calc_footprint()
 
@@ -741,31 +742,25 @@ def get_gaia_coords(img,ota,inst,output='test.gaia',cluster=False,**kwargs):
     cone_radius = center_skycoord.separation(corner_skycoord).value
     # tqdm.write('{:4.0f} {:4.0f} {:6.4f}'.format(naxis1/2., naxis2/2., cone_radius))
     print '{:4.0f} {:4.0f} {:6.4f}'.format(naxis1/2., naxis2/2., cone_radius)
-    #Set up vizier query for Gaia DR1
-    #Taken from example at: github.com/mommermi/photometrypipeline
-    vquery = Vizier(columns=['RA_ICRS', 'DE_ICRS',
-                             'e_RA_ICRS', 'e_DE_ICRS',
-                             'phot_g_mean_mag'],
-                    column_filters={"phot_g_mean_mag":
-                                    ("<%f" % 21.0)},
-                    row_limit = -1)
-    vquery.catalog = 'I/337/gaia'
-    print vquery.catalog
-    check = vquery.query_region_async(SkyCoord(ra=ota_center_radec[0][0],
-                                          dec=ota_center_radec[0][1],
-                                          unit=(u.deg, u.deg),
-                                          frame='icrs'),
-                                 radius=cone_radius*u.deg)      
-    print check                             
-                                           
-    gaia_table = vquery.query_region(SkyCoord(ra=ota_center_radec[0][0],
-                                              dec=ota_center_radec[0][1],
-                                              unit=(u.deg, u.deg),
-                                              frame='icrs'),
-                                     radius=cone_radius*u.deg)[0]
+    #Set up vizier query for Gaia DR2
+    vquery = Vizier(columns=['RA_ICRS', 'DE_ICRS', 'e_RA_ICRS', 'e_DE_ICRS', 'Gmag'],
+                    column_filters={"Gmag":"<21.0"},
+                    row_limit = -1, catalog='I/345/gaia2')
+    # vquery = Vizier(columns=['ra', 'dec','ra_error', 'dec_error','phot_g_mean_mag'],
+    #                 column_filters={"phot_g_mean_mag":"<21.0"},
+    #                 row_limit = -1)
+    # vquery.catalog = 'I/345/gaia2'
+    # print vquery.catalog
+    check = vquery.query_region_async(SkyCoord(ra=ota_center_radec[0][0], dec=ota_center_radec[0][1], unit=(u.deg, u.deg), frame='icrs'), radius=cone_radius*u.deg, catalog='I/345/gaia2')      
+    # print check                             
+                    
+    try:                                       
+        gaia_table = vquery.query_region(SkyCoord(ra=ota_center_radec[0][0], dec=ota_center_radec[0][1], unit=(u.deg, u.deg), frame='icrs'), radius=cone_radius*u.deg, catalog='I/345/gaia2')[0]
+    except:
+        print vquery.response.content
 
-    print gaia_table
-    
+    print gaia_table.columns
+
     hdulist.close()
     if cluster == True:
         try:
@@ -799,7 +794,7 @@ def get_gaia_coords(img,ota,inst,output='test.gaia',cluster=False,**kwargs):
 
     ota_gaia_df = gaia_table_cut.to_pandas()
 
-    cols_needed = ['RA_ICRS','DE_ICRS','__Gmag_','e_RA_ICRS','e_DE_ICRS']
+    cols_needed = ['RA_ICRS','DE_ICRS','Gmag','e_RA_ICRS','e_DE_ICRS']
 
     ota_gaia_df = ota_gaia_df[cols_needed]
     ota_gaia_df.columns = ['ra', 'dec','phot_g_mean_mag','e_ra','e_dec']
@@ -813,5 +808,5 @@ def get_gaia_coords(img,ota,inst,output='test.gaia',cluster=False,**kwargs):
 
 if __name__ == '__main__':
     from odi_config import ODIImage
-    img = ODIImage("20161029T215338.1_AGC748738_odi_g.7498.fits", 1, '5odi')
+    img = ODIImage("20130316T011714.1_AGC238626_odi_g.7474.fits", 1, 'podi')
     get_gaia_coords(img, img.otas.values()[0], img.inst, output='test.gaia', cluster=False)
