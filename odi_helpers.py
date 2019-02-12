@@ -760,6 +760,9 @@ def bgsub_ota(img, ota, apply=False):
         iraf.imutil.imarith(mode='h')
     return bg_mean, bg_median, bg_std
 
+def getfwhm_new():
+    pass
+
 def stack_otas(ota):
     """
     (Currently not used)
@@ -1208,78 +1211,79 @@ def imalign(images, square=False):
     from astropy.wcs import WCS
     from astropy.io import fits
 
-    img_ref = images[0]
-    img     = images[1]
+    img_cat = images[0] # arbitrarily pick the first image to get a catalog with
 
     # fetch a gaia catalog for the full image footprint
-    outputg = img_ref.f+'.gaia'
+    outputg = img_cat.f+'.gaia'
     gaia_cat = odi.get_gaia_coords(images[0], ota='None', inst='podi', output=outputg)
     # print gaia_cat
     # convert the ra, dec to image coordinates in each image
     # first get the wcs for each image
-    # (pick the first image as a "reference")
+
+    x0s, y0s, xsizes, ysizes = np.zeros_like(images), np.zeros_like(images), np.zeros_like(images), np.zeros_like(images)
+
+    for j,img in enumerate(images):
+        hdu_img = fits.open(img.f)
+        img.naxis1 = hdu_img[0].header['NAXIS1']
+        img.naxis2 = hdu_img[0].header['NAXIS2']
+        w_img = WCS(hdu_img[0].header)
+        img.x_img, img.y_img = w_img.all_world2pix(gaia_cat.ra, gaia_cat.dec, 1)
+        x0s[j], y0s[j] = img.x_img[0], img.y_img[0]
+        hdu_img.close()
+    x_ref = np.argmin(x0s)
+    y_ref = np.argmin(y0s)
+
+    # (pick the most positive image as a "reference")
+    img_ref = images[x_ref]
+    
     hdu_ref = fits.open(img_ref.f)
     naxis1_ref = hdu_ref[0].header['NAXIS1']
     naxis2_ref = hdu_ref[0].header['NAXIS2']
     w_ref = WCS(hdu_ref[0].header)
     x_ref, y_ref = w_ref.all_world2pix(gaia_cat.ra, gaia_cat.dec, 1)
 
-    hdu_img = fits.open(img.f)
-    naxis1 = hdu_img[0].header['NAXIS1']
-    naxis2 = hdu_img[0].header['NAXIS2']
-    w_img = WCS(hdu_img[0].header)
-    x_img, y_img = w_img.all_world2pix(gaia_cat.ra, gaia_cat.dec, 1)
 
-    # compute the pair-wise integer pixel shifts between the image and the reference
-    x_shift, y_shift = np.rint(np.median(x_ref-x_img)), np.rint(np.median(y_ref-y_img))
+    for j,img in enumerate(images):
+        # compute the pair-wise integer pixel shifts between the image and the reference
+        img.x_shift, img.y_shift = np.rint(np.median(x_ref-img.x_img)), np.rint(np.median(y_ref-img.y_img))
+        img.x_std, img.y_std = np.rint(np.std(x_ref-img.x_img)), np.rint(np.std(y_ref-img.y_img))
+        # figure out how wide the trimmed image is
+        img.x_size = np.rint(img.naxis1 + img.x_shift)
+        img.y_size = np.rint(img.naxis2 + img.y_shift)
+        # keep track
+        xsizes[j] = img.x_size
+        ysizes[j] = img.y_size
+        # shift the images so that they are aligned to the "reference"
+        # use relative coordinates-- negative values are applied to the image, 
+        # we will not change the 'reference' because we've already decided it shouldn't shift
+        iraf.imcopy(img.f, 'temp{:1d}.fits'.format(j))
+        if img.x_shift < 0.5:
+            trim_img = 'temp{:1d}.fits[{:d}:{:d},*]'.format(j,int(abs(img.x_shift))+1, img.naxis1)
+            iraf.imcopy(trim_img, 'temp{:1d}.fits'.format(j))
+        else:
+            raise Exception
 
-    # shift the images so that they are aligned to the "reference"
-    # use relative coordinates-- negative values are applied to the image, positives to the 'reference'
-    iraf.imcopy(img.f, 'temp.fits')
-    iraf.imcopy(img_ref.f, 'temp_ref.fits')
+        if img.y_shift < 0.5:
+            trim_img = 'temp{:1d}.fits[*,{:d}:{:d}]'.format(j,int(abs(img.y_shift))+1, img.naxis2)
+            iraf.imcopy(trim_img, 'temp{:1d}.fits'.format(j))
+        else:
+            raise Exception
 
-    if x_shift < 0.0:
-        trim_img = 'temp.fits[{:d}:{:d},*]'.format(int(abs(x_shift))+1, naxis1)
-        iraf.imcopy(trim_img, 'temp.fits')
-    else:
-        trim_img = 'temp_ref.fits[{:d}:{:d},*]'.format(int(abs(x_shift))+1, naxis1_ref)
-        iraf.imcopy(trim_img, 'temp_ref.fits')
+    # figure out what the smallest image size is
+    min_xsize = np.min(xsizes)
+    min_ysize = np.min(ysizes)
 
-    if y_shift < 0.0:
-        trim_img = 'temp.fits[*,{:d}:{:d}]'.format(int(abs(y_shift))+1, naxis2)
-        iraf.imcopy(trim_img, 'temp.fits')
-    else:
-        trim_img = 'temp_ref.fits[*,{:d}:{:d}]'.format(int(abs(y_shift))+1, naxis2_ref)
-        iraf.imcopy(trim_img, 'temp_ref.fits')
-
-    # then take any excess pixels off at the high end of the range in each dimension so that the images have identical dimensions
-    # select the smallest dimension in any image
-    new_img = img.f[:-5]+'_match.fits'
-    new_ref = img_ref.f[:-5]+'_match.fits'
-
-    hdu_tempref = fits.open('temp_ref.fits')
-    naxis1_tempref = hdu_tempref[0].header['NAXIS1']
-    naxis2_tempref = hdu_tempref[0].header['NAXIS2']
-
-    hdu_temp = fits.open('temp.fits')
-    naxis1_temp = hdu_temp[0].header['NAXIS1']
-    naxis2_temp = hdu_temp[0].header['NAXIS2']
-
-    min_xsize = min(naxis1_temp, naxis1_tempref)
-    min_ysize = min(naxis2_temp, naxis2_tempref)
-
-    trim_img = 'temp.fits[1:{:d},1:{:d}]'.format(int(min_xsize)-1, int(min_ysize)-1) 
-    trim_ref = 'temp_ref.fits[1:{:d},1:{:d}]'.format(int(min_xsize)-1, int(min_ysize)-1)
-
-    iraf.imcopy(trim_img, new_img)
-    iraf.imcopy(trim_ref, new_ref)    
-
-    # delete the temporary working images
-    iraf.imdelete('temp.fits')
-    iraf.imdelete('temp_ref.fits')
-    
+    for j,img in enumerate(images):
+        # then take any excess pixels off at the high end of the range in each dimension so that the images have identical dimensions
+        new_img = img.f[:-5]+'_match.fits'
+        trim_img = 'temp{:1d}.fits[1:{:d},1:{:d}]'.format(j,int(min_xsize)-1, int(min_ysize)-1) 
+        # make the copy
+        iraf.imcopy(trim_img, new_img)    
+        # delete the temporary working images
+        iraf.imdelete('temp{:1d}.fits'.format(j))
+        
 def main():
-    images = [odi.StackedImage('AGC249320_odi_g.fits'),odi.StackedImage('AGC249320_odi_i.fits')]
+    images = [odi.StackedImage('NGC524_odi_g.fits'),odi.StackedImage('NGC524_odi_r.fits'),odi.StackedImage('NGC524_odi_i.fits')]
     imalign(images)
 
 if __name__ == '__main__':
