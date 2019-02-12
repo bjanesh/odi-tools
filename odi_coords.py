@@ -731,7 +731,7 @@ def get_gaia_coords(img,ota,inst,output='test.gaia',cluster=False,**kwargs):
     naxis1 = hdu_ota.header['NAXIS1']
     naxis2 = hdu_ota.header['NAXIS2']
     ota_center_radec = w.wcs_pix2world([[naxis1/2.,naxis2/2.]],1)
-    print ota_center_radec
+    # print ota_center_radec
 
     corners = w.calc_footprint()
 
@@ -741,7 +741,7 @@ def get_gaia_coords(img,ota,inst,output='test.gaia',cluster=False,**kwargs):
                                corners[0,1]*u.deg,frame='icrs')
     cone_radius = center_skycoord.separation(corner_skycoord).value
     # tqdm.write('{:4.0f} {:4.0f} {:6.4f}'.format(naxis1/2., naxis2/2., cone_radius))
-    print '{:4.0f} {:4.0f} {:6.4f}'.format(naxis1/2., naxis2/2., cone_radius)
+    # print '{:4.0f} {:4.0f} {:6.4f}'.format(naxis1/2., naxis2/2., cone_radius)
     #Set up vizier query for Gaia DR2
     vquery = Vizier(columns=['RA_ICRS', 'DE_ICRS', 'e_RA_ICRS', 'e_DE_ICRS', 'Gmag'],
                     column_filters={"Gmag":"<21.0"},
@@ -758,8 +758,6 @@ def get_gaia_coords(img,ota,inst,output='test.gaia',cluster=False,**kwargs):
         gaia_table = vquery.query_region(SkyCoord(ra=ota_center_radec[0][0], dec=ota_center_radec[0][1], unit=(u.deg, u.deg), frame='icrs'), radius=cone_radius*u.deg, catalog='I/345/gaia2')[0]
     except:
         print vquery.response.content
-
-    print gaia_table.columns
 
     hdulist.close()
     if cluster == True:
