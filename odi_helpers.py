@@ -539,9 +539,10 @@ def imcombine_lists(images, filters):
             list_name.close()
     return
 
-def reproject_ota(img, ota, wcsref):
+def reproject_ota(img, ota, rad, decd, wcsref):
     """
-    Reproject an OTA to a reference tangent plane with constant pixel scale.
+    Use the IRAF task ``mscimage`` in the ``mscred`` package to reproject
+    an OTA to a reference tangent plane with constant pixel scale.
 
     Parameters
     ----------
@@ -549,30 +550,61 @@ def reproject_ota(img, ota, wcsref):
         Name of image being processed
     ota : str
         Name of current ``ota`` being processed in ``img``
-    wcfref : header object
-        The header containing the reference WCS for reprojection 
-        (OTA33 from the first image in the config file)
+    rad : float
+        Reference Ra position for reprojection
+    decd : float
+        Reference Ra position for reprojection
+    wcfreg : str
+        Name of image and ota to be used as the reference image for ``mscimage``
 
     Note
     ----
     Nothing is returned by this function but the reprojected ota is saved to the
-    ``reprojpath``. The pipeline is setup to use OTA33 of
+    ``repreopath``. The pipeline is setup to use OTA33 of
     the first image in the images list as the reference image for this function.
-    The ``reproject_exact`` function from the ``reproject`` package will use parallel
-    processing when available.
+
+    Here is how the ``mscimage`` IRAF parameters are set:
+
+    - iraf.mscred.mscimage.format='image'
+    - iraf.mscred.mscimage.pixmask='yes'
+    - iraf.mscred.mscimage.verbose='yes'
+    - iraf.mscred.mscimage.wcssour='image'
+    - iraf.mscred.mscimage.ref=wcsref
+    - iraf.mscred.mscimage.ra=rad
+    - iraf.mscred.mscimage.dec=decd
+    - iraf.mscred.mscimage.scale=0.11
+    - iraf.mscred.mscimage.rotation=0.0
+    - iraf.mscred.mscimage.blank=-999
+    - iraf.mscred.mscimage.interpo='poly5'
+    - iraf.mscred.mscimage.minterp='poly5'
+    - iraf.mscred.mscimage.nxbl=4096
+    - iraf.mscred.mscimage.nybl=4096
+    - iraf.mscred.mscimage.fluxcon='yes'
+    - iraf.mscred.mscimage(image,imout)
 
     """
-    from reproject import reproject_exact, reproject_interp
-
+    from pyraf import iraf
     image = odi.illcorpath+'illcor_'+ota+'.'+img.stem()
     imout = odi.reprojpath+'reproj_'+ota+'.'+img.stem()
-
-    image_hdu = odi.fits.open(image)
-    image_hdu.info()
-
-    array_new, footprint = reproject_interp(image_hdu, wcsref, order=5)
-
-    odi.fits.writeto(imout, array_new, wcsref, overwrite=True)
+    iraf.mscred(_doprint=0)
+    iraf.clobber='no'
+    iraf.unlearn(iraf.mscred.mscimage)
+    iraf.mscred.mscimage.format='image'
+    iraf.mscred.mscimage.pixmask='yes'
+    iraf.mscred.mscimage.verbose='yes'
+    iraf.mscred.mscimage.wcssour='image'
+    iraf.mscred.mscimage.ref=wcsref
+    iraf.mscred.mscimage.ra=rad
+    iraf.mscred.mscimage.dec=decd
+    iraf.mscred.mscimage.scale=0.11
+    iraf.mscred.mscimage.rotation=0.0
+    iraf.mscred.mscimage.blank=-999
+    iraf.mscred.mscimage.interpo='poly5'
+    iraf.mscred.mscimage.minterp='poly5'
+    iraf.mscred.mscimage.nxbl=4096
+    iraf.mscred.mscimage.nybl=4096
+    iraf.mscred.mscimage.fluxcon='yes'
+    iraf.mscred.mscimage(image,imout)
 
     return
 

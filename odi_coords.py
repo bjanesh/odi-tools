@@ -305,18 +305,18 @@ def repoxy_offline(img, ota, gapmask, inst,gmaglim=19.,source='sdss'):
         psfMagErr_z    = np.ones(len(ras))
     tqdm.write('Using Ra and Dec from {:s} for reproject'.format(outcoords))
     w = odi.WCS(hdu.header)
-    with open(outputxy, 'w+') as fxy:
-        for i,c in enumerate(ras):
-            coords2 = [[ras[i],decs[i]]]
-            pixcrd2 = w.wcs_world2pix(coords2, 1)
-            if psfMag_g[i]<gmaglim:
-                if  100.0 <= pixcrd2[0][0] < xdim-100.0 and 100.0 <= pixcrd2[0][1] < ydim-100.0:
-                    # make an image cutout of the gap mask
-                    x, y = int(round(pixcrd2[0][0])), int(round(pixcrd2[0][1]))
-                    cutout = gapmask[y-30:y+30,x-30:x+30]
-                    if not (cutout.astype(bool)).any():
-                        print(pixcrd2[0][0], pixcrd2[0][1], ras[i],decs[i],psfMag_u[i],psfMagErr_u[i],psfMag_g[i],psfMagErr_g[i],psfMag_r[i],psfMagErr_r[i],psfMag_i[i],psfMagErr_i[i],psfMag_z[i],psfMagErr_z[i], file=fxy)
-
+    fxy = open(outputxy, 'w+')
+    for i,c in enumerate(ras):
+        coords2 = [[ras[i],decs[i]]]
+        pixcrd2 = w.wcs_world2pix(coords2, 1)
+        if psfMag_g[i]<gmaglim:
+            if 100.0 <= pixcrd2[0][0] < xdim-100.0 and 100.0 <= pixcrd2[0][1] < ydim-100.0:
+                # make an image cutout of the gap mask
+                x, y = int(round(pixcrd2[0][0])), int(round(pixcrd2[0][1]))
+                cutout = gapmask[y-30:y+30,x-30:x+30]
+                if not (cutout.astype(bool)).any():
+                    print(pixcrd2[0][0], pixcrd2[0][1], ras[i],decs[i],psfMag_u[i],psfMagErr_u[i],psfMag_g[i],psfMagErr_g[i],psfMag_r[i],psfMagErr_r[i],psfMag_i[i],psfMagErr_i[i],psfMag_z[i],psfMagErr_z[i], file=fxy)
+    fxy.close()
 
     hdulist.close()
 

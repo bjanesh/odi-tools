@@ -101,8 +101,9 @@ if not os.path.isfile('derived_props.txt'):
                 odi.illumination_corrections(image_to_correct, correction_image, corrected_image, do_correction=illcor_flag)
             gaps = odi.get_gaps(img, ota)
             reprojed_image = 'reproj_'+ota+'.'+img.stem()
-            wcsrefimg = odi.illcorpath+'illcor_OTA33.SCI.'+images_[0].stem()
-            wcsref = odi.fits.getheader(wcsrefimg)
+            # wcsrefimg = odi.illcorpath+'illcor_OTA33.SCI.'+images_[0].stem()
+            # wcsref = odi.fits.getheader(wcsrefimg)
+            wcsref = odi.illcorpath+'illcor_OTA33.SCI.'+images_[0].stem()
             if not os.path.isfile(odi.reprojpath+reprojed_image):
                 if wcs_flag:
                     pixcrd3 = odi.list_wcs_coords(img, ota, gaps, inst,output=img.nofits()+'.'+ota+'.radec.coo', gmaglim=23., stars_only=True, offline = True, source = source)
@@ -116,7 +117,7 @@ if not os.path.isfile('derived_props.txt'):
                         except:
                             print('there might be too few stars for msccmatch, just skip it.')
                 if reproject_flag:
-                    odi.reproject_ota(img, ota, wcsref)
+                    odi.reproject_ota(img, ota, rad, decd, wcsref)
                     odi.tpv2tan_hdr(img, ota)
                     
             gaps = odi.get_gaps_rep(img, ota)
@@ -166,8 +167,9 @@ else:
                     odi.illumination_corrections(image_to_correct, correction_image, corrected_image, do_correction=illcor_flag)
                 gaps = odi.get_gaps(img, ota)
                 reprojed_image = 'reproj_'+ota+'.'+img.stem()
-                wcsrefimg = odi.illcorpath+'illcor_OTA33.SCI.'+images_[0].stem()
-                wcsref = odi.fits.getheader(wcsrefimg)
+                # wcsrefimg = odi.illcorpath+'illcor_OTA33.SCI.'+images_[0].stem()
+                # wcsref = odi.fits.getheader(wcsrefimg)
+                wcsref = odi.illcorpath+'illcor_OTA33.SCI.'+images_[0].stem()
                 if not os.path.isfile(odi.reprojpath+reprojed_image):
                     if wcs_flag:
                         pixcrd3 = odi.list_wcs_coords(img, ota, gaps, inst,output=img.nofits()+'.'+ota+'.radec.coo', gmaglim=23., stars_only=True, offline = True, source = source)
@@ -180,7 +182,7 @@ else:
                             time.sleep(1.0)
                             odi.fix_wcs(img, ota, coords=img.nofits()+'.'+ota+'.radec.coo', iters=1)
                     if reproject_flag:
-                        odi.reproject_ota(img, ota, wcsref)
+                        odi.reproject_ota(img, ota, rad, decd, wcsref)
                 gaps = odi.get_gaps_rep(img, ota)
                 odi.refetch_sdss_coords(img, ota, gaps, inst,gmaglim=21.5,offline = True,source=source)
                 #run an additional refetch to get the xy for 2mass so they can be used for scaling
