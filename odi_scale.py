@@ -5,7 +5,7 @@ import shutil
 import numpy as np
 from pyraf import iraf
 from photutils import detect_sources
-from photutils import source_properties, properties_table
+from photutils import source_properties
 import odi_config as odi
 import pandas as pd
 import astropy
@@ -56,13 +56,13 @@ def source_find(img,ota,inst,nbg_std=10.0):
     #     w.wcs.ctype = ["RA---TPV", "DEC--TPV"]
     bg_mean,bg_median,bg_std = odi.mask_ota(img,ota,reproj=True)
     threshold = bg_median + (bg_std * nbg_std)
-    print bg_mean,bg_median,bg_std
+    print(bg_mean,bg_median,bg_std)
     segm_img = detect_sources(hdu_ota.data, threshold, npixels=20)
     source_props = source_properties(hdu_ota.data,segm_img,wcs=w)
 
     columns = ['id', 'xcentroid', 'ycentroid', 'ra_icrs_centroid',
 	       'dec_icrs_centroid','source_sum','max_value','elongation']
-    source_tbl = properties_table(source_props,columns=columns)
+    source_tbl = source_props.to_table(columns=columns)
     source_tbl_df = source_tbl.to_pandas()
 
     outputfile = odi.sourcepath+'source_'+ota+'.'+img.base()+'.csv'
@@ -115,7 +115,7 @@ def source_xy(img,ota,gapmask,filter,inst):
                 x, y = int(round(pixcrd2[0][0])), int(round(pixcrd2[0][1]))
                 cutout = gapmask[y-30:y+30,x-30:x+30]
                 if not (cutout.astype(bool)).any():
-                    print >> fxy, pixcrd2[0][0], pixcrd2[0][1], id[i],ra_icrs_centroid[i],dec_icrs_centroid[i],source_sum[i],max_value[i],elongation[i]
+                    print(pixcrd2[0][0], pixcrd2[0][1], id[i],ra_icrs_centroid[i],dec_icrs_centroid[i],source_sum[i],max_value[i],elongation[i], file=fxy)
     QR_raw.close()
     fxy.close()
 
@@ -140,7 +140,7 @@ def getfwhm_source(img, ota, radius=4.0, buff=7.0, width=5.0):
     """
     image = odi.reprojpath+'reproj_'+ota+'.'+img.stem()
     coords = odi.sourcepath+'source_'+ota+'.'+img.base()+'.xy'
-    print image, coords
+    print(image, coords)
     outputfile = odi.sourcepath+img.nofits()+'.'+ota+'.fwhm.log'
 
     iraf.tv.rimexam.setParam('radius',radius)
@@ -168,7 +168,7 @@ def getfwhm_source(img, ota, radius=4.0, buff=7.0, width=5.0):
     # gfwhm = seeing/0.11
     sfwhm = np.median(gfwhm[np.where(gfwhm < 900.0)])
 
-    print 'median gwfhm in ota',ota+': ',sfwhm,'pixels'# (determined via QR)'
+    print('median gwfhm in ota',ota+': ',sfwhm,'pixels')# (determined via QR)'
     return sfwhm
 
 def phot_sources(img, ota, fwhm, run_detect = True):
@@ -308,9 +308,8 @@ def phot_combine(img, ota, run_detect = True):
     output = odi.sourcepath+'source_'+ota+'.'+img.base()+'.totphot'
 
     with open(output, 'w+') as xy:
-	for i in range(len(x)):
-	    print >> xy,x[i], y[i], id[i],ra_icrs_centroid[i],dec_icrs_centroid[i],source_sum[i],max_value[i],elongation[i], MAG[i], MERR[i], SKY[i], SERR[i], RAPERT[i], XPOS[i], YPOS[i], fwhm[i],peak[i], ITIME[i]
-    xy.close()
+        for i in range(len(x)):
+	        print(x[i], y[i], id[i],ra_icrs_centroid[i],dec_icrs_centroid[i],source_sum[i],max_value[i],elongation[i], MAG[i], MERR[i], SKY[i], SERR[i], RAPERT[i], XPOS[i], YPOS[i], fwhm[i],peak[i], ITIME[i], file=xy)
 
 def source_scale(img,ref,filter):
     """
@@ -375,7 +374,7 @@ def source_scale(img,ref,filter):
 
     id_img, id_ref, d2d, d3d = ref_catalog.search_around_sky(img_catalog,match_radius*u.deg)
 
-    print img.stem(), len(id_img),len(id_ref)
+    print(img.stem(), len(id_img),len(id_ref))
 
     MAG_img    = MAG_img[id_img]
     MERR_img   = MERR_img[id_img]
@@ -419,7 +418,7 @@ def source_scale(img,ref,filter):
 
     rat = np.power(10.0,-0.4*(magA-magRef))/expRatio
 
-    print np.mean(rat),np.std(rat),len(rat)
+    print(np.mean(rat),np.std(rat),len(rat))
     n = 1
     sigTest = np.std(rat)
     if sigTest <= sigThreshold:
@@ -439,13 +438,13 @@ def source_scale(img,ref,filter):
             sigTest = np.std(rat)
             n = n + 1
             if n > 20:
-                print "Iteration did not converge to sigma <", repr(sigThreshold),"for", img
-                print "Quitting..."
+                print("Iteration did not converge to sigma <", repr(sigThreshold),"for", img)
+                print("Quitting...")
                 exit()
             #print len(rat), np.mean(rat), np.median(rat), np.std(rat), n
             #scale[img] = np.mean(rat)
             #std[img] = np.std(rat)
-            print np.mean(rat),np.std(rat),len(rat)
+            print(np.mean(rat),np.std(rat),len(rat))
         scale = np.mean(rat)
         std = np.std(rat)
     return scale,std,len(rat)
@@ -467,7 +466,7 @@ def sdss_source_props_ota(img,ota):
     x,y,ra,dec,g,g_err,r,r_err = np.loadtxt(sdss_source_file,usecols=(0,1,2,3,
                                                                       6,7,8,9),unpack=True)
 
-    box_centers = zip(y,x)
+    box_centers = list(zip(y,x))
     box_centers = np.reshape(box_centers,(len(box_centers),2))
     source_dict = {}
     total_fwhm = []
@@ -502,7 +501,7 @@ def sdss_source_props_ota(img,ota):
         if len(source_props) > 0:
             columns = ['xcentroid', 'ycentroid','elongation','semimajor_axis_sigma','semiminor_axis_sigma']
             if i == 0:
-                source_tbl = odi.properties_table(source_props,columns=columns)
+                source_tbl = source_props.to_table(columns=columns)
             else:
                 source_tbl.add_row((source_props[0].xcentroid,source_props[0].ycentroid,
                                     source_props[0].elongation,source_props[0].semimajor_axis_sigma,
