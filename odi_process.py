@@ -119,7 +119,7 @@ if not os.path.isfile('derived_props.txt'):
                 if reproject_flag:
                     odi.reproject_ota(img, ota, rad, decd, wcsref)
                     odi.tpv2tan_hdr(img, ota)
-                    
+            guide = odi.is_guide_ota(img, ota)        
             gaps = odi.get_gaps_rep(img, ota)
             odi.refetch_sdss_coords(img, ota, gaps, inst,gmaglim=21.5,offline = True,source=source)
             #run an additional refetch to get the xy for 2mass so they can be used for scaling
@@ -138,7 +138,7 @@ if not os.path.isfile('derived_props.txt'):
                 bg_mean, bg_median, bg_std = odi.bgsub_ota(img, ota, apply=True)
             else:
                 bg_mean, bg_median, bg_std = odi.bgsub_ota(img, ota, apply=False)
-            print(img.dither(), ota, filt, fwhm, zp_med, zp_std, bg_mean, bg_median, bg_std, file=f1)
+            print("{0:1d} {1:9s} {2:5s} {3:5s} {4:3.1f} {5:5.2f} {6:5.2f} {7:8.2f} {8:8.2f} {9:8.2f}".format(img.dither(), ota, filt, guide, fwhm, zp_med, zp_std, bg_mean, bg_median, bg_std), file=f1)
             dim_stats = odi.check_mask_dim(img,ota)
             if not dim_stats:
                 print('mask dimensions do not match image')
@@ -146,8 +146,8 @@ if not os.path.isfile('derived_props.txt'):
                 raise ValueError
     f1.close()
 else:
-    imgnum,fwhm,zp_med, zp_std, bg_mean, bg_median, bg_std = np.loadtxt('derived_props.txt',usecols=(0,3,4,5,6,7,8),unpack=True)
-    ota_d, filt_d = np.loadtxt('derived_props.txt',usecols=(1,2),unpack=True,dtype=str)
+    imgnum,fwhm,zp_med, zp_std, bg_mean, bg_median, bg_std = np.loadtxt('derived_props.txt',usecols=(0,4,5,6,7,8,9),unpack=True)
+    ota_d, filt_d, guide_d = np.loadtxt('derived_props.txt',usecols=(1,2,3),unpack=True,dtype=str)
     finished = list(zip(imgnum,ota_d,filt_d))
     f1 = open('derived_props.txt','a+')
     for img in images_:
@@ -184,6 +184,7 @@ else:
                     if reproject_flag:
                         odi.reproject_ota(img, ota, rad, decd, wcsref)
                 gaps = odi.get_gaps_rep(img, ota)
+                guide = odi.is_guide_ota(img, ota)        
                 odi.refetch_sdss_coords(img, ota, gaps, inst,gmaglim=21.5,offline = True,source=source)
                 #run an additional refetch to get the xy for 2mass so they can be used for scaling
                 # odi.repoxy_offline(img, ota, gaps, inst,gmaglim=21.5,source='twomass')
