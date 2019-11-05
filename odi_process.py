@@ -13,6 +13,8 @@ except IOError:
     print('config.yaml does not exist, quitting...')
     exit()
 
+np.warnings.filterwarnings('ignore')
+
 # for basic processing, filter shouldn't matter enough to consider separately
 # or rather, this script already handles that just fine
 # so just stick all the image names together into one long list
@@ -28,8 +30,7 @@ inst = odi.instrument(instrument)
 
 #Create offline catalogs
 for img in images_:
-    print('Retrieving QR SDSS and Gaia catalogs for:', img.stem())
-    for key in tqdm(odi.OTA_dictionary):
+    for key in tqdm(odi.OTA_dictionary, desc='Retrieving QR SDSS and Gaia catalogs for: {:s}'.format(img.stem()), ncols=0):
         ota = odi.OTA_dictionary[key]
         outputsd = odi.sdsspath+'offline_'+ota+'.'+img.base()+'.sdss'
         if not os.path.isfile(outputsd):
@@ -88,9 +89,8 @@ if not os.path.isfile('derived_props.txt'):
     print('# img                        ota       filter  guide  fwhm  zp_med  zp_std  bg_mean   bg_med   bg_std', file=f1)
     finished = list()
 else:
-    imgnum, fwhm, zp_med, zp_std, bg_mean, bg_median, bg_std = np.loadtxt('derived_props.txt',usecols=(0,4,5,6,7,8,9),unpack=True)
-    ota_d, filt_d, guide_d = np.loadtxt('derived_props.txt',usecols=(1,2,3),unpack=True,dtype=str)
-    print(imgnum.size)
+    fwhm, zp_med, zp_std, bg_mean, bg_median, bg_std = np.loadtxt('derived_props.txt',usecols=(4,5,6,7,8,9),unpack=True)
+    imgnum, ota_d, filt_d, guide_d = np.loadtxt('derived_props.txt',usecols=(0,1,2,3),unpack=True,dtype=str)
     finished = list(zip(imgnum,ota_d,filt_d))
     f1 = open('derived_props.txt','a+')
 
@@ -101,7 +101,7 @@ for img in images_:
         hdulist = odi.fits.open(img.f)
         hdr = hdulist[0].header
         filt = hdr['filter']
-        finishcheck = (int(img.dither()),ota,filt)
+        finishcheck = (img.stem(),ota,filt)
         if finishcheck in finished:
             already = 0
         else:

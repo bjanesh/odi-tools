@@ -43,8 +43,8 @@ def find_sources_full(img,fwhm,bg_std,threshold=4.0):
     """
     output = img.nofits()+'_sources.coo'
     if not os.path.isfile(output):
-        print 'Locating sources on ',img
-        print 'Will output to ',output
+        print('Locating sources on ',img)
+        print('Will output to ',output)
         iraf.unlearn(iraf.apphot.daofind)
         iraf.datapars.setParam('fwhmpsf',fwhm,check=1)
         iraf.datapars.setParam('datamin',-900,check=1)
@@ -83,7 +83,7 @@ def phot_sources_full(img,fwhm,airmass,apfactor):
     output = img.nofits()+'.phot.1'
     phot_tbl = img.nofits()+'.srcphot'
     if not os.path.isfile(phot_tbl) :
-        print 'phot-ing ', img, ' from daofind'
+        print('phot-ing ', img, ' from daofind')
         iraf.unlearn(iraf.apphot.phot,iraf.datapars,iraf.photpars,iraf.centerpars,iraf.fitskypars)
         iraf.apphot.phot.setParam('interactive',"no")
         iraf.apphot.phot.setParam('verify',"no")
@@ -163,7 +163,7 @@ def phot_sources_xy2sky(img,inst):
         for i,c in enumerate(XPOS):
             coords2 = [[XPOS[i],YPOS[i]]]
             pixcrd2 = w.wcs_pix2world(coords2, 1)
-            print >> fxy, pixcrd2[0][0], pixcrd2[0][1],XPOS[i],YPOS[i],MAG[i], MERR[i],SKY[i],SERR[i],RAPERT[i]
+            print(pixcrd2[0][0], pixcrd2[0][1],XPOS[i],YPOS[i],MAG[i], MERR[i],SKY[i],SERR[i],RAPERT[i], file=fxy)
     hdulist.close()
 
 def match_phot_srcs(img1,img2):
@@ -202,7 +202,7 @@ def match_phot_srcs(img1,img2):
 
     id_img1, id_img2, d2d, d3d = img2_catalog.search_around_sky(img1_catalog,0.00005*u.deg)
 
-    print len(id_img1),len(id_img2),len(x_1),len(x_2)
+    print(len(id_img1),len(id_img2),len(x_1),len(x_2))
 
     ra_1      =    ra_1[id_img1]
     dec_1     =    dec_1[id_img1]
@@ -228,14 +228,14 @@ def match_phot_srcs(img1,img2):
         with open(img2_srsc_match,'w+') as m2:
             with open('calibration.dat','w+') as cal:
                 for i,s in enumerate(ra_1):
-                    print >> m1,ra_1[i], dec_1[i],x_1[i],y_1[i],mag_1[i],merr_1[i],sky_1[i],serr_1[i],rapert_1[i]
-                    print >> m2,ra_2[i], dec_2[i],x_2[i],y_2[i],mag_2[i],merr_2[i],sky_2[i],serr_2[i],rapert_2[i]
-                    print >> cal, i, x_1[i], y_1[i], rapert_1[i], mag_1[i], merr_1[i], x_2[i], y_2[i], rapert_2[i], mag_2[i], merr_2[i]
+                    print(ra_1[i], dec_1[i],x_1[i],y_1[i],mag_1[i],merr_1[i],sky_1[i],serr_1[i],rapert_1[i], file=m1)
+                    print(ra_2[i], dec_2[i],x_2[i],y_2[i],mag_2[i],merr_2[i],sky_2[i],serr_2[i],rapert_2[i], file=m2)
+                    print(i, x_1[i], y_1[i], rapert_1[i], mag_1[i], merr_1[i], x_2[i], y_2[i], rapert_2[i], mag_2[i], merr_2[i], file=cal)
     m1.close()
     m2.close()
     junk = open('match.reg',"w")
     for i in range(len(ra_1)):
-        print >> junk, x_2[i], y_2[i]
+        print(x_2[i], y_2[i], file=junk)
     junk.close()
 
 def calc_calibrated_mags(apcor_g, cal_A_g, apcor_r, cal_A_r, photcalFile, object_str):
@@ -293,7 +293,7 @@ def calc_calibrated_mags(apcor_g, cal_A_g, apcor_r, cal_A_r, photcalFile, object
     photcalFile.close()
 
     nid,gx,gy,g_i,g_ierr,rx,ry,r_i,r_ierr = np.loadtxt('calibration.dat',usecols=(0,1,2,4,5,6,7,9,10),unpack=True)
-    print apcor_g,apcor_r
+    print(apcor_g,apcor_r)
     g0 = g_i - (kg*amg) + apcor_g
     r0 = r_i - (kr*amr) + apcor_r
     gmr = mu_gr*(g0-r0) + zp_gr
@@ -303,14 +303,14 @@ def calc_calibrated_mags(apcor_g, cal_A_g, apcor_r, cal_A_r, photcalFile, object
     r_mag = r_mag - cal_A_r
     gmr = g_mag - r_mag
 
-    print 'Median (g-r) :: g - r = {0:7.4f}'.format(np.median(gmr))
-    print 'Final number of phot-ed stars :: g = {0:5d} : r = {1:5d}'.format(len(g_mag),len(r_mag))
+    print('Median (g-r) :: g - r = {0:7.4f}'.format(np.median(gmr)))
+    print('Final number of phot-ed stars :: g = {0:5d} : r = {1:5d}'.format(len(g_mag),len(r_mag)))
 
     g_mag_lims = [g_mag[i] for i in range(len(g_mag)) if (g_ierr[i] >= 0.2)]
     r_mag_lims = [r_mag[i] for i in range(len(r_mag)) if (r_ierr[i] >= 0.2)]
     with open('calibrated_magstest.dat', 'w+') as f3:
         for i in range(len(rx)) :
-            print >> f3, '{0:8.2f} {1:8.2f} {2:12.3f} {3:12.3f} {4:8.2f} {5:8.2f} {6:12.3f} {7:12.3f} {8:12.3f} '.format(gx[i],gy[i],g_mag[i],g_ierr[i],rx[i],ry[i],r_mag[i],r_ierr[i],gmr[i])
+            print('{0:8.2f} {1:8.2f} {2:12.3f} {3:12.3f} {4:8.2f} {5:8.2f} {6:12.3f} {7:12.3f} {8:12.3f} '.format(gx[i],gy[i],g_mag[i],g_ierr[i],rx[i],ry[i],r_mag[i],r_ierr[i],gmr[i]), file=f3)
 
     plt.clf()
 

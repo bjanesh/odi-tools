@@ -3,8 +3,8 @@ from astropy.io import fits
 from astropy.wcs import WCS
 from astropy.convolution import Gaussian2DKernel
 from astropy.stats import sigma_clipped_stats
-from photutils import detect_sources
-from photutils.utils import random_cmap
+from photutils.segmentation import detect_sources
+# from photutils.utils import random_cmap
 from scipy.ndimage import binary_dilation
 
 from odi_calibrate import *

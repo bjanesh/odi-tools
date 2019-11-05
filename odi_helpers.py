@@ -688,13 +688,17 @@ def bkg_boxes(hdu,nboxes,length,sources):
                     if sources == True:
                         threshold = median + (std * 2.)
                         segm_img = odi.detect_sources(box, threshold, npixels=20)
-                        mask = segm_img.data.astype(np.bool)# turn segm_img into a mask
-                        selem = np.ones((10, 10))    # dilate using a 25x25 box
-                        mask2 = odi.binary_dilation(mask, selem)
-                        #new_mask = mask_first_pass + mask2
-                        new_mask = mask2
+                        if segm_img is not None: # if the box doesn't have any sources, then just take the sigma clipped numbers
+                            # print(box, threshold, segm_img)
+                            mask = segm_img.data.astype(np.bool)# turn segm_img into a mask
+                            selem = np.ones((10, 10))    # dilate using a 25x25 box
+                            mask2 = odi.binary_dilation(mask, selem)
+                            #new_mask = mask_first_pass + mask2
+                            new_mask = mask2
 
-                        mean_mask, median_mask, std_mask = odi.sigma_clipped_stats(box, sigma=3.0, mask=new_mask)
+                            mean_mask, median_mask, std_mask = odi.sigma_clipped_stats(box, sigma=3.0, mask=new_mask)
+                        else :
+                            mean_mask, median_mask, std_mask = mean, median, std
                         bg_stats.append((mean_mask, median_mask, std_mask))
 
     bg_stats = np.reshape(np.array(bg_stats),(len(bg_stats),3))
@@ -835,13 +839,19 @@ def find_new_bg(refimg, filter):
         Median background level
 
     """
-    img, ota, filt, fwhm, zp_med, zp_std, bg_mean, bg_med, bg_std = np.loadtxt('derived_props.txt', usecols=(0,1,2,3,4,5,6,7,8), dtype=str, unpack=True)
-    keep = np.where((img == refimg.dither()) & (filt==filter))
+    fwhm, zp_med, zp_std, bg_mean, bg_median, bg_std = np.loadtxt('derived_props.txt',usecols=(4,5,6,7,8,9),unpack=True)
+    imgnum, ota_d, filt_d, guide_d = np.loadtxt('derived_props.txt',usecols=(0,1,2,3),unpack=True,dtype=str)
+    imgs = []
+    for i,s in enumerate(imgnum):
+        idn = s[0]
+        imgs.append(idn)
+    img = np.array(imgs)
+    keep = np.where((img == refimg.dither()) & (filt_d==filter))
 
-    sky_med = np.median(bg_med[keep].astype(float))
+    sky_med = np.median(bg_median[keep].astype(float))
     sky_mean = np.median(bg_mean[keep].astype(float))
     sky_std = np.median(bg_std[keep].astype(float))
-    tqdm.write('calculated sky median, mean, std to re-add:', sky_med, sky_mean, sky_std)
+    tqdm.write('calculated sky median, mean, std to re-add: {:.3f} {:.3f} {:.3f}'.format(sky_med, sky_mean, sky_std))
     return sky_med, sky_mean, sky_std
     
 def is_guide_ota(img, ota):
@@ -952,7 +962,7 @@ def stack_images(stackname, refimg):
     """
     from astropy.io import fits
     from pyraf import iraf
-    tqdm.write(refimg)
+    tqdm.write(refimg.f)
     fitsref = fits.open(refimg.f)
     hduref = fitsref[0]
     objname = stackname.replace(' ','_') #hduref.header['object'].replace(' ','_')
@@ -1184,9 +1194,13 @@ def tpv2tan_hdr(img, ota):
     iraf.imutil.hedit(show='no', mode='h')
 
 def find_ref_image(images):
-    imgs, fwhm, zp_med, zp_std, bg_mean, bg_median, bg_std = np.loadtxt('derived_props.txt', usecols=(0,3,4,5,6,7,8), unpack=True)
-    filter_string = np.loadtxt('derived_props.txt', usecols=(2,), unpack=True,dtype=str)
-
+    fwhm, zp_med, zp_std, bg_mean, bg_median, bg_std = np.loadtxt('derived_props.txt',usecols=(4,5,6,7,8,9),unpack=True)
+    imgnum, ota_d, filt_d, guide_d = np.loadtxt('derived_props.txt',usecols=(0,1,2,3),unpack=True,dtype=str)
+    imgs = []
+    for i,s in enumerate(imgnum):
+        idn = s[0]
+        imgs.append(idn)
+    imgs = np.array(imgs)
     lvls = []
     ams = []
     zps = []
@@ -1196,7 +1210,7 @@ def find_ref_image(images):
         hdulist = odi.fits.open(im.f)
         airmass = hdulist[0].header['AIRMASS']
         filter  = hdulist[0].header['FILTER']
-        these = np.where((imgs.astype(int)==int(im.dither())) & (filter_string == filter))
+        these = np.where((imgs.astype(int)==int(im.dither())) & (filt_d == filter))
         bg_lvl = np.mean(bg_median[these])
         lvls.append(bg_lvl)
         ams.append(airmass)
@@ -1232,10 +1246,8 @@ def imalign(images, square=False):
     x_ref_i = np.argmin(x0s)
     y_ref_i = np.argmin(y0s)
 
-    print(x0s,y0s)
-
-    # (pick the most positive image as a "reference")
-    img_ref = images[x_ref_i]
+    # (pick the first image as a "reference")
+    img_ref = images[0]
     
     hdu_ref = fits.open(img_ref.f)
     naxis1_ref = hdu_ref[0].header['NAXIS1']
@@ -1243,33 +1255,39 @@ def imalign(images, square=False):
     w_ref = WCS(hdu_ref[0].header)
     x_ref, y_ref = w_ref.all_world2pix(gaia_cat.ra, gaia_cat.dec, 1)
 
+    for j,img in enumerate(images):
+        iraf.imcopy(img.f, 'temp{:1d}.fits'.format(j))
 
     for j,img in enumerate(images):
         # compute the pair-wise integer pixel shifts between the image and the reference
         img.x_shift, img.y_shift = np.rint(np.median(x_ref-img.x_img)), np.rint(np.median(y_ref-img.y_img))
-        print(img.x_shift, img.y_shift)
         img.x_std, img.y_std = np.rint(np.std(x_ref-img.x_img)), np.rint(np.std(y_ref-img.y_img))
-        # figure out how wide the trimmed image is
-        img.x_size = np.rint(img.naxis1 + img.x_shift)
-        img.y_size = np.rint(img.naxis2 + img.y_shift)
-        # keep track
-        xsizes[j] = img.x_size
-        ysizes[j] = img.y_size
+
         # shift the images so that they are aligned to the "reference"
         # use relative coordinates-- negative values are applied to the image, 
-        # we will not change the 'reference' because we've already decided it shouldn't shift
-        iraf.imcopy(img.f, 'temp{:1d}.fits'.format(j))
+        # the 'reference' will change if the shift is positive        
         if img.x_shift < 0.5:
             trim_img = 'temp{:1d}.fits[{:d}:{:d},*]'.format(j,int(abs(img.x_shift))+1, img.naxis1)
             iraf.imcopy(trim_img, 'temp{:1d}.fits'.format(j))
         else:
-            raise Exception
+            trim_img = 'temp0.fits[{:d}:{:d},*]'.format(int(abs(img.x_shift))+1, naxis1_ref)
+            iraf.imcopy(trim_img, 'temp0.fits')
 
         if img.y_shift < 0.5:
             trim_img = 'temp{:1d}.fits[*,{:d}:{:d}]'.format(j,int(abs(img.y_shift))+1, img.naxis2)
             iraf.imcopy(trim_img, 'temp{:1d}.fits'.format(j))
         else:
-            raise Exception
+            trim_img = 'temp0.fits[*,{:d}:{:d}]'.format(int(abs(img.y_shift))+1, naxis2_ref)
+            iraf.imcopy(trim_img, 'temp0.fits')
+
+    for j,img in enumerate(images):        
+        hdu = fits.open('temp{:1d}.fits'.format(j))
+        # figure out how wide the trimmed image is
+        img.x_size = hdu[0].header['NAXIS1']
+        img.y_size = hdu[0].header['NAXIS2']
+        # keep track
+        xsizes[j] = img.x_size
+        ysizes[j] = img.y_size
 
     # figure out what the smallest image size is
     min_xsize = np.min(xsizes)

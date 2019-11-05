@@ -20,8 +20,9 @@ except IOError:
 source = 'sdss'
 inst = odi.instrument(instrument)
 
-imgnum,fwhm_d,zp_med, zp_std, bg_mean, bg_median, bg_std = np.loadtxt('derived_props.txt',usecols=(0,3,4,5,6,7,8),unpack=True)
-ota_d, filt_d = np.loadtxt('derived_props.txt',usecols=(1,2),unpack=True,dtype=str)
+fwhm_d, zp_med, zp_std, bg_mean, bg_median, bg_std = np.loadtxt('derived_props.txt',usecols=(4,5,6,7,8,9),unpack=True)
+imgnum, ota_d, filt_d, guide_d = np.loadtxt('derived_props.txt',usecols=(0,1,2,3),unpack=True,dtype=str)
+
 id_d = list(zip(imgnum,ota_d,filt_d))
 fwhm_dict = dict(list(zip(id_d,fwhm_d)))
 
