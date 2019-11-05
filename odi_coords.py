@@ -70,13 +70,13 @@ def get_sdss_coords(img, ota, inst,output='test.sdss'):
         #print(xam,yam)
         #radius for query: sqrt2 = 1.414
         sizeam = 1.414*(xam+yam)/4
-        print sizeam
+        print(sizeam)
 
         #qry = "limit=5000&format=csv&imgparams=ra,dec,u,err_u,g,err_g,r,err_r,i,err_i,z,err_z,probPSF&specparams=none&ra="+repr(rac)+"&dec="+repr(decc)+"&radius="+repr(sizeam)+"&magType=psf"
         qry = "limit=5000&format=csv&imgparams=ra,dec,psfMag_u,psfMagErr_u,psfMag_g,psfMagErr_g,psfMag_r,psfMagErr_r,psfMag_i,psfMagErr_i,psfMag_z,psfMagErr_z,probPSF&specparams=none&ra="+repr(rac)+"&dec="+repr(decc)+"&radius="+repr(sizeam)+"&magType=psf"
 
         #print 'with query\n-->', qry
-        print 'fetching SDSS sources around',rac,decc,'with radius',sizeam,'arcmin'
+        print('fetching SDSS sources around',rac,decc,'with radius',sizeam,'arcmin')
         url = default_url
         fmt = default_fmt
         writefirst = 1
@@ -98,7 +98,7 @@ def get_sdss_coords(img, ota, inst,output='test.sdss'):
             line = file_.readline()
         ofp.close()
     else:
-        print 'SDSS sources already fetched!'
+        print('SDSS sources already fetched!')
     return xdim, ydim
     hdulist.close()
 
@@ -160,14 +160,14 @@ def refetch_sdss_coords(img, ota, gapmask, inst,gmaglim=19.,offline = False,sour
             #print(xam,yam)
             #radius for query: sqrt2 = 1.414
             sizeam = 1.414*(xam+yam)/4
-            print sizeam
+            print(sizeam)
 
             #qry = "limit=5000&format=csv&imgparams=ra,dec,u,err_u,g,err_g,r,err_r,i,err_i,z,err_z,probPSF&specparams=none&ra="+repr(rac)+"&dec="+repr(decc)+"&radius="+repr(sizeam)+"&magType=psf"
             qry = "limit=5000&format=csv&imgparams=ra,dec,psfMag_u,psfMagErr_u,psfMag_g,psfMagErr_g,psfMag_r,psfMagErr_r,psfMag_i,psfMagErr_i,psfMag_z,psfMagErr_z,probPSF&specparams=none&ra="+repr(rac)+"&dec="+repr(decc)+"&radius="+repr(sizeam)+"&magType=psf"
 
 
             #print 'with query\n-->', qry
-            print 'fetching SDSS sources around',rac,decc,'with radius',sizeam,'arcmin'
+            print('fetching SDSS sources around',rac,decc,'with radius',sizeam,'arcmin')
             url = default_url
             fmt = default_fmt
             writefirst = 1
@@ -189,7 +189,7 @@ def refetch_sdss_coords(img, ota, gapmask, inst,gmaglim=19.,offline = False,sour
                 line = file_.readline()
             ofp.close()
         else:
-            print 'SDSS sources already fetched!'
+            print('SDSS sources already fetched!')
 
         ras,decs,psfMag_u,psfMagErr_u,psfMag_g,psfMagErr_g,psfMag_r,psfMagErr_r,psfMag_i,psfMagErr_i,psfMag_z,psfMagErr_z = np.loadtxt(outcoords,usecols=(0,1,2,3,4,5,6,7,8,9,10,11), unpack=True, delimiter=',', skiprows=2)
         probPSF = np.loadtxt(outcoords, usecols=(12,), dtype=int, unpack=True, delimiter=',', skiprows=2)
@@ -209,7 +209,7 @@ def refetch_sdss_coords(img, ota, gapmask, inst,gmaglim=19.,offline = False,sour
                         # k+=1
                         # print k,cutout.astype(bool).any()
                         if not (cutout.astype(bool)).any():
-                            print >> fxy, pixcrd2[0][0], pixcrd2[0][1], ras[i],decs[i],psfMag_u[i],psfMagErr_u[i],psfMag_g[i],psfMagErr_g[i],psfMag_r[i],psfMagErr_r[i],psfMag_i[i],psfMagErr_i[i],psfMag_z[i],psfMagErr_z[i]
+                            print(pixcrd2[0][0], pixcrd2[0][1], ras[i],decs[i],psfMag_u[i],psfMagErr_u[i],psfMag_g[i],psfMagErr_g[i],psfMag_r[i],psfMagErr_r[i],psfMag_i[i],psfMagErr_i[i],psfMag_z[i],psfMagErr_z[i], file=fxy)
 
 
     if offline == True:
@@ -257,7 +257,7 @@ def refetch_sdss_coords(img, ota, gapmask, inst,gmaglim=19.,offline = False,sour
                         x, y = int(round(pixcrd2[0][0])), int(round(pixcrd2[0][1]))
                         cutout = gapmask[y-30:y+30,x-30:x+30]
                         if not (cutout.astype(bool)).any():
-                            print >> fxy, pixcrd2[0][0], pixcrd2[0][1], ras[i],decs[i],psfMag_u[i],psfMagErr_u[i],psfMag_g[i],psfMagErr_g[i],psfMag_r[i],psfMagErr_r[i],psfMag_i[i],psfMagErr_i[i],psfMag_z[i],psfMagErr_z[i]
+                            print(pixcrd2[0][0], pixcrd2[0][1], ras[i],decs[i],psfMag_u[i],psfMagErr_u[i],psfMag_g[i],psfMagErr_g[i],psfMag_r[i],psfMagErr_r[i],psfMag_i[i],psfMagErr_i[i],psfMag_z[i],psfMagErr_z[i], file=fxy)
 
 
     hdulist.close()
@@ -305,18 +305,18 @@ def repoxy_offline(img, ota, gapmask, inst,gmaglim=19.,source='sdss'):
         psfMagErr_z    = np.ones(len(ras))
     tqdm.write('Using Ra and Dec from {:s} for reproject'.format(outcoords))
     w = odi.WCS(hdu.header)
-    with open(outputxy, 'w+') as fxy:
-        for i,c in enumerate(ras):
-            coords2 = [[ras[i],decs[i]]]
-            pixcrd2 = w.wcs_world2pix(coords2, 1)
-            if psfMag_g[i]<gmaglim:
-                if  100.0 <= pixcrd2[0][0] < xdim-100.0 and 100.0 <= pixcrd2[0][1] < ydim-100.0:
-                    # make an image cutout of the gap mask
-                    x, y = int(round(pixcrd2[0][0])), int(round(pixcrd2[0][1]))
-                    cutout = gapmask[y-30:y+30,x-30:x+30]
-                    if not (cutout.astype(bool)).any():
-                        print >> fxy, pixcrd2[0][0], pixcrd2[0][1], ras[i],decs[i],psfMag_u[i],psfMagErr_u[i],psfMag_g[i],psfMagErr_g[i],psfMag_r[i],psfMagErr_r[i],psfMag_i[i],psfMagErr_i[i],psfMag_z[i],psfMagErr_z[i]
-
+    fxy = open(outputxy, 'w+')
+    for i,c in enumerate(ras):
+        coords2 = [[ras[i],decs[i]]]
+        pixcrd2 = w.wcs_world2pix(coords2, 1)
+        if psfMag_g[i]<gmaglim:
+            if 100.0 <= pixcrd2[0][0] < xdim-100.0 and 100.0 <= pixcrd2[0][1] < ydim-100.0:
+                # make an image cutout of the gap mask
+                x, y = int(round(pixcrd2[0][0])), int(round(pixcrd2[0][1]))
+                cutout = gapmask[y-30:y+30,x-30:x+30]
+                if not (cutout.astype(bool)).any():
+                    print(pixcrd2[0][0], pixcrd2[0][1], ras[i],decs[i],psfMag_u[i],psfMagErr_u[i],psfMag_g[i],psfMagErr_g[i],psfMag_r[i],psfMagErr_r[i],psfMag_i[i],psfMagErr_i[i],psfMag_z[i],psfMagErr_z[i], file=fxy)
+    fxy.close()
 
     hdulist.close()
 
@@ -386,13 +386,13 @@ def sdss_coords_full(img, inst,gmaglim=19.):
       #print(xam,yam)
       #radius for query: sqrt2 = 1.414
       sizeam = 1.414*(xam+yam)/4
-      print sizeam
+      print(sizeam)
 
       #qry = "limit=5000&format=csv&imgparams=ra,dec,u,err_u,g,err_g,r,err_r,i,err_i,z,err_z,probPSF&specparams=none&ra="+repr(rac)+"&dec="+repr(decc)+"&radius="+repr(sizeam)+"&magType=psf"
       qry = "limit=10000&format=csv&imgparams=ra,dec,psfMag_u,psfMagErr_u,psfMag_g,psfMagErr_g,psfMag_r,psfMagErr_r,psfMag_i,psfMagErr_i,psfMag_z,psfMagErr_z,probPSF&specparams=none&ra="+repr(rac)+"&dec="+repr(decc)+"&radius="+repr(sizeam)+"&magType=psf"
 
       #print 'with query\n-->', qry
-      print 'fetching SDSS sources around',rac,decc,'with radius',sizeam,'arcmin'
+      print('fetching SDSS sources around',rac,decc,'with radius',sizeam,'arcmin')
       url = default_url
       fmt = default_fmt
       writefirst = 1
@@ -414,7 +414,7 @@ def sdss_coords_full(img, inst,gmaglim=19.):
           line = file_.readline()
       ofp.close()
     else:
-      print 'SDSS sources already fetched!'
+      print('SDSS sources already fetched!')
 
     ras,decs,psfMag_u,psfMagErr_u,psfMag_g,psfMagErr_g,psfMag_r,psfMagErr_r,psfMag_i,psfMagErr_i,psfMag_z,psfMagErr_z = np.loadtxt(outcoords,usecols=(0,1,2,3,4,5,6,7,8,9,10,11), unpack=True, delimiter=',', skiprows=2)
     probPSF = np.loadtxt(outcoords, usecols=(12,), dtype=int, unpack=True, delimiter=',', skiprows=2)
@@ -434,8 +434,8 @@ def sdss_coords_full(img, inst,gmaglim=19.):
                     # k+=1
                     # print i,(cutout<-900).any()
                     if not (cutout<-900).any():
-                      print >> f, r, d, psfMag_g[i]
-                      print >> fxy, pixcrd2[0][0], pixcrd2[0][1], ras[i],decs[i],psfMag_u[i],psfMagErr_u[i],psfMag_g[i],psfMagErr_g[i],psfMag_r[i],psfMagErr_r[i],psfMag_i[i],psfMagErr_i[i],psfMag_z[i],psfMagErr_z[i]
+                      print(r, d, psfMag_g[i], file=f)
+                      print(pixcrd2[0][0], pixcrd2[0][1], ras[i],decs[i],psfMag_u[i],psfMagErr_u[i],psfMag_g[i],psfMagErr_g[i],psfMag_r[i],psfMagErr_r[i],psfMag_i[i],psfMagErr_i[i],psfMag_z[i],psfMagErr_z[i], file=fxy)
     hdulist.close()
 
 # def get_sdss_coords_offline(img, ota, inst,output='test.sdss'):
@@ -514,7 +514,7 @@ def refetch_sdss_coords_offline(img, ota, gapmask, inst,gmaglim=19.):
       #print(xam,yam)
       #radius for query: sqrt2 = 1.414
       sizeam = 1.414*(xam+yam)/4
-      print sizeam
+      print(sizeam)
 
 
 
@@ -543,7 +543,7 @@ def refetch_sdss_coords_offline(img, ota, gapmask, inst,gmaglim=19.):
                     # print pixcrd2[0][0], pixcrd2[0][1],x-30,x+30,y-30,y+30
                     # plt.imshow(cutout)
                     # plt.show()
-                    print >> fxy, pixcrd2[0][0], pixcrd2[0][1], ras[i],decs[i],psfMag_u[i],psfMagErr_u[i],psfMag_g[i],psfMagErr_g[i],psfMag_r[i],psfMagErr_r[i],psfMag_i[i],psfMagErr_i[i],psfMag_z[i],psfMagErr_z[i]
+                    print(pixcrd2[0][0], pixcrd2[0][1], ras[i],decs[i],psfMag_u[i],psfMagErr_u[i],psfMag_g[i],psfMagErr_g[i],psfMag_r[i],psfMagErr_r[i],psfMag_i[i],psfMagErr_i[i],psfMag_z[i],psfMagErr_z[i], file=fxy)
         # print j
     hdulist.close()
 
@@ -583,112 +583,112 @@ def get_sdss_coords_offline(img, ota, inst,output='test.sdss'):
     xdim = hdu.header['NAXIS1']
     ydim = hdu.header['NAXIS2']
     try:
-        sdss_cat_img = hdulist['CAT.PHOTCALIB']
+        sdss_cat_img = hdulist[u"CAT.PHOTCALIB"]
         cat_img_data = Table.read(sdss_cat_img, format='fits')
-        # print cat_img_data.colnames
+        # print(cat_img_data.colnames)
         # force little-endian byte order to make FITS play nice with pandas
         sdss_cat_img_df = cat_img_data.to_pandas()
         # sdss_cat_img_df = pd.DataFrame.from_dict(cat_img_dict)
         # print sdss_cat_img_df.keys()
         ota = float(ota.strip('OTA.SCI'))
-        # print 'catalog source:', hdulist[0].header['PHOTMCAT']
-        if 'sdss_dr' in hdulist[0].header['PHOTMCAT']:
-            try:
-                # print sdss_cat_img_df.columns
-                ota_matches_df = sdss_cat_img_df.iloc[np.where(sdss_cat_img_df[u'ODI_OTA'] == ota)]
-                needed_columns = [u'REF_RA',u'REF_DEC',u'REF_U',
-                                  u'REF_ERR_U', u'REF_G', u'REF_ERR_G', u'REF_R',
-                                  u'REF_ERR_R', u'REF_I', u'REF_ERR_I', u'REF_Z',
-                                  u'REF_ERR_Z', u'ODI_OTA']
+        # print('catalog source:', hdulist[u"CAT.PHOTCALIB"].header['PHOTMCAT'])
+        source = hdulist[u"CAT.PHOTCALIB"].header['PHOTMCAT']
+    #     if 'sdss_dr' in hdulist[0].header['PHOTMCAT']:
+    #         try:
+    #             # print sdss_cat_img_df.columns
+        ota_matches_df = sdss_cat_img_df.iloc[np.where(sdss_cat_img_df['ODI_OTA'] == ota)]
+        needed_columns = ['REF_RA','REF_DEC', 'REF_G', 'REF_ERR_G', 'REF_R',
+                          'REF_ERR_R', 'REF_I', 'REF_ERR_I', 'REF_Z',
+                          'REF_ERR_Z', 'ODI_OTA']
+
+        output_df = ota_matches_df[needed_columns]
+        output_df.to_csv(output,index=False)
+    #         except KeyError:
+    #             oditable = hdulist['CAT.ODI'].data
+    #             oditalbe_df = pd.DataFrame.from_dict(oditable)
     
-                output_df = ota_matches_df[needed_columns]
-                output_df.to_csv(output,index=False)
-            except KeyError:
-                oditable = hdulist['CAT.ODI'].data
-                oditalbe_df = pd.DataFrame.from_dict(oditable)
+    #             ODI_RA = np.squeeze(np.array(oditalbe_df['RA']))
+    #             ODI_DEC = np.squeeze( np.array(oditalbe_df['DEC']))
+    #             ODI_OTA = np.squeeze( np.array(oditalbe_df['OTA']))
     
-                ODI_RA = np.squeeze(np.array(oditalbe_df['RA']))
-                ODI_DEC = np.squeeze( np.array(oditalbe_df['DEC']))
-                ODI_OTA = np.squeeze( np.array(oditalbe_df['OTA']))
+    #             junkdict = OrderedDict([('ODI_RA',ODI_RA),
+    #                                     ('ODI_DEC',ODI_DEC),
+    #                                     ('ODI_OTA',ODI_OTA.astype(float))])
+    #             junk_df = pd.DataFrame.from_dict(junkdict)
     
-                junkdict = OrderedDict([(u'ODI_RA',ODI_RA),
-                                        (u'ODI_DEC',ODI_DEC),
-                                        (u'ODI_OTA',ODI_OTA.astype(float))])
-                junk_df = pd.DataFrame.from_dict(junkdict)
+    #             matched_df = pd.merge(sdss_cat_img_df,junk_df ,on = ['ODI_RA','ODI_DEC'],how='inner')
+    #             # print matched_df.columns
+    #             needed_columns = np.insert(sdss_cat_img_df.columns.values,0,'ODI_OTA')
     
-                matched_df = pd.merge(sdss_cat_img_df,junk_df ,on = [u'ODI_RA',u'ODI_DEC'],how='inner')
-                # print matched_df.columns
-                needed_columns = np.insert(sdss_cat_img_df.columns.values,0,u'ODI_OTA')
+    #             full_df = matched_df[needed_columns]
+    #             ota_matches_df = full_df.iloc[np.where(full_df['ODI_OTA'] == ota)]
+    #             needed_columns = ['SDSS_RA','SDSS_DEC',
+    #                               'SDSS_MAG_U','SDSS_ERR_U',
+    #                               'SDSS_MAG_G', 'SDSS_ERR_G',
+    #                               'SDSS_MAG_R','SDSS_ERR_R',
+    #                               'SDSS_MAG_I', 'SDSS_ERR_I',
+    #                               'SDSS_MAG_Z','SDSS_ERR_Z',
+    #                               'ODI_OTA']
+    #             output_df = ota_matches_df[needed_columns]
+    #             output_df.to_csv(output,index=False)
+    #     else:
+    #         ota_matches_df = sdss_cat_img_df.iloc[np.where(sdss_cat_img_df['ODI_OTA'] == ota)]
+    #         ota_matches_df = ota_matches_df.reset_index()
+    #         junk_u = np.ones(len(ota_matches_df))
+    #         junk_u_err = np.ones(len(ota_matches_df))
+    #         ota_matches_df['IPP_MAG_U'] = junk_u
+    #         ota_matches_df['IPP_ERR_U'] = junk_u_err
     
-                full_df = matched_df[needed_columns]
-                ota_matches_df = full_df.iloc[np.where(full_df[u'ODI_OTA'] == ota)]
-                needed_columns = [u'SDSS_RA',u'SDSS_DEC',
-                                  u'SDSS_MAG_U',u'SDSS_ERR_U',
-                                  u'SDSS_MAG_G', u'SDSS_ERR_G',
-                                  u'SDSS_MAG_R',u'SDSS_ERR_R',
-                                  u'SDSS_MAG_I', u'SDSS_ERR_I',
-                                  u'SDSS_MAG_Z',u'SDSS_ERR_Z',
-                                  u'ODI_OTA']
-                output_df = ota_matches_df[needed_columns]
-                output_df.to_csv(output,index=False)
-        else:
-            ota_matches_df = sdss_cat_img_df.iloc[np.where(sdss_cat_img_df[u'ODI_OTA'] == ota)]
-            ota_matches_df = ota_matches_df.reset_index()
-            junk_u = np.ones(len(ota_matches_df))
-            junk_u_err = np.ones(len(ota_matches_df))
-            ota_matches_df[u'IPP_MAG_U'] = junk_u
-            ota_matches_df[u'IPP_ERR_U'] = junk_u_err
+    #         needed_columns = ['IPP_RA', 'IPP_DEC',
+    #                           'IPP_MAG_U', 'IPP_ERR_U',
+    #                           'IPP_MAG_G', 'IPP_ERR_G',
+    #                           'IPP_MAG_R', 'IPP_ERR_R',
+    #                           'IPP_MAG_I', 'IPP_ERR_I',
+    #                           'IPP_MAG_Z','IPP_ERR_Z',
+    #                           'ODI_OTA']
     
-            needed_columns = [u'IPP_RA', u'IPP_DEC',
-                              u'IPP_MAG_U', u'IPP_ERR_U',
-                              u'IPP_MAG_G', u'IPP_ERR_G',
-                              u'IPP_MAG_R', u'IPP_ERR_R',
-                              u'IPP_MAG_I', u'IPP_ERR_I',
-                              u'IPP_MAG_Z',u'IPP_ERR_Z',
-                              u'ODI_OTA']
+    #         output_df = ota_matches_df[needed_columns]
+    #         output_df.to_csv(output,index=False)
     
-            output_df = ota_matches_df[needed_columns]
-            output_df.to_csv(output,index=False)
+    #     if 'SDSS' in hdulist[0].header['PHOTMCAT']:
+    #         try:
+    #             # print sdss_cat_img_df.columns
+    #             ota_matches_df = sdss_cat_img_df.iloc[np.where(sdss_cat_img_df['ODI_OTA'] == ota)]
+    #             needed_columns = ['SDSS_RA','SDSS_DEC','SDSS_MAG_U',
+    #                               'SDSS_ERR_U', 'SDSS_MAG_G', 'SDSS_ERR_G', 'SDSS_MAG_R',
+    #                               'SDSS_ERR_R', 'SDSS_MAG_I', 'SDSS_ERR_I', 'SDSS_MAG_Z',
+    #                               'SDSS_ERR_Z', 'ODI_OTA']
     
-        if 'SDSS' in hdulist[0].header['PHOTMCAT']:
-            try:
-                # print sdss_cat_img_df.columns
-                ota_matches_df = sdss_cat_img_df.iloc[np.where(sdss_cat_img_df[u'ODI_OTA'] == ota)]
-                needed_columns = [u'SDSS_RA',u'SDSS_DEC',u'SDSS_MAG_U',
-                                  u'SDSS_ERR_U', u'SDSS_MAG_G', u'SDSS_ERR_G', u'SDSS_MAG_R',
-                                  u'SDSS_ERR_R', u'SDSS_MAG_I', u'SDSS_ERR_I', u'SDSS_MAG_Z',
-                                  u'SDSS_ERR_Z', u'ODI_OTA']
+    #             output_df = ota_matches_df[needed_columns]
+    #             output_df.to_csv(output,index=False)
+    #         except KeyError:
+    #             oditable = hdulist['CAT.ODI'].data
+    #             oditalbe_df = pd.DataFrame.from_dict(oditable)
     
-                output_df = ota_matches_df[needed_columns]
-                output_df.to_csv(output,index=False)
-            except KeyError:
-                oditable = hdulist['CAT.ODI'].data
-                oditalbe_df = pd.DataFrame.from_dict(oditable)
+    #             ODI_RA = np.squeeze(np.array(oditalbe_df['RA']))
+    #             ODI_DEC = np.squeeze( np.array(oditalbe_df['DEC']))
+    #             ODI_OTA = np.squeeze( np.array(oditalbe_df['OTA']))
     
-                ODI_RA = np.squeeze(np.array(oditalbe_df['RA']))
-                ODI_DEC = np.squeeze( np.array(oditalbe_df['DEC']))
-                ODI_OTA = np.squeeze( np.array(oditalbe_df['OTA']))
+    #             junkdict = OrderedDict([('ODI_RA',ODI_RA),
+    #                                     ('ODI_DEC',ODI_DEC),
+    #                                     ('ODI_OTA',ODI_OTA.astype(float))])
+    #             junk_df = pd.DataFrame.from_dict(junkdict)
     
-                junkdict = OrderedDict([(u'ODI_RA',ODI_RA),
-                                        (u'ODI_DEC',ODI_DEC),
-                                        (u'ODI_OTA',ODI_OTA.astype(float))])
-                junk_df = pd.DataFrame.from_dict(junkdict)
+    #             matched_df = pd.merge(sdss_cat_img_df,junk_df ,on = ['ODI_RA','ODI_DEC'],how='inner')
+    #             # print matched_df.columns
+    #             needed_columns = np.insert(sdss_cat_img_df.columns.values,0,'ODI_OTA')
     
-                matched_df = pd.merge(sdss_cat_img_df,junk_df ,on = [u'ODI_RA',u'ODI_DEC'],how='inner')
-                # print matched_df.columns
-                needed_columns = np.insert(sdss_cat_img_df.columns.values,0,u'ODI_OTA')
-    
-                full_df = matched_df[needed_columns]
-                ota_matches_df = full_df.iloc[np.where(full_df[u'ODI_OTA'] == ota)]
-                needed_columns = [u'SDSS_RA',u'SDSS_DEC',
-                                  u'SDSS_MAG_U',u'SDSS_ERR_U',
-                                  u'SDSS_MAG_G', u'SDSS_ERR_G',
-                                  u'SDSS_MAG_R',u'SDSS_ERR_R',
-                                  u'SDSS_MAG_I', u'SDSS_ERR_I',
-                                  u'SDSS_MAG_Z',u'SDSS_ERR_Z',
-                                  u'ODI_OTA']
-                output_df = ota_matches_df[needed_columns]
-                output_df.to_csv(output,index=False)
+    #             full_df = matched_df[needed_columns]
+    #             ota_matches_df = full_df.iloc[np.where(full_df['ODI_OTA'] == ota)]
+    #             needed_columns = ['SDSS_RA','SDSS_DEC',
+    #                               'SDSS_MAG_U','SDSS_ERR_U',
+    #                               'SDSS_MAG_G', 'SDSS_ERR_G',
+    #                               'SDSS_MAG_R','SDSS_ERR_R',
+    #                               'SDSS_MAG_I', 'SDSS_ERR_I',
+    #                               'SDSS_MAG_Z','SDSS_ERR_Z',
+    #                               'ODI_OTA']
+    #             output_df = ota_matches_df[needed_columns]
+    #             output_df.to_csv(output,index=False)
     except KeyError:
         tqdm.write(img.f+'['+ota_id+']: missing PHOTCALIB table, skipping SDSS')
     hdulist.close()
@@ -717,8 +717,8 @@ def get_gaia_coords(img,ota,inst,output='test.gaia',cluster=False,**kwargs):
         from astroquery.vizier import Vizier
         from astropy import __version__ as astropyversion
     except ImportError:
-        print "astroquery not installed"
-        print "try  pip --user --no-deps install astroquery or contact admin"
+        print("astroquery not installed")
+        print("try  pip --user --no-deps install astroquery or contact admin")
     hdulist = fits.open(img.f)
     if ota=='None':
         hdu_ota = hdulist[0]
@@ -757,7 +757,7 @@ def get_gaia_coords(img,ota,inst,output='test.gaia',cluster=False,**kwargs):
     try:                                       
         gaia_table = vquery.query_region(SkyCoord(ra=ota_center_radec[0][0], dec=ota_center_radec[0][1], unit=(u.deg, u.deg), frame='icrs'), radius=cone_radius*u.deg, catalog='I/345/gaia2')[0]
     except:
-        print vquery.response.content
+        print(vquery.response.content)
 
     hdulist.close()
     if cluster == True:
@@ -767,7 +767,7 @@ def get_gaia_coords(img,ota,inst,output='test.gaia',cluster=False,**kwargs):
             min_radius = kwargs['min_radius']
             G_lim = kwargs['G_lim']
         except KeyError:
-            print 'Must provide racenter, deccenter, and min_radius'
+            print('Must provide racenter, deccenter, and min_radius')
         cluster_center = SkyCoord(racenter*u.degree
                                   ,deccenter*u.degree,
                                   frame='icrs')
@@ -806,5 +806,6 @@ def get_gaia_coords(img,ota,inst,output='test.gaia',cluster=False,**kwargs):
 
 if __name__ == '__main__':
     from odi_config import ODIImage
-    img = ODIImage("20130316T011714.1_AGC238626_odi_g.7474.fits", 1, 'podi')
-    get_gaia_coords(img, img.otas.values()[0], img.inst, output='test.gaia', cluster=False)
+    img = ODIImage("20161025T221120.1_HI0126+05_odi_g.7376.fits", 1, '5odi')
+    get_sdss_coords_offline(img, 'OTA33.SCI', '5odi', output='test.sdss')
+    # get_gaia_coords(img, list(img.otas.values())[0], img.inst, output='test.gaia', cluster=False)

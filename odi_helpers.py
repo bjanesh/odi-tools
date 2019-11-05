@@ -117,12 +117,12 @@ def list_wcs_coords(img, ota, gapmask, inst,output='radec.coo', gmaglim=20., sta
         xdim, ydim = odi.get_sdss_coords(img, ota, inst,output=odi.coordspath+img.nofits()+'.'+ota+'.sdss')
         ras,decs,psfMag_u,psfMagErr_u,psfMag_g,psfMagErr_g,psfMag_r,psfMagErr_r,psfMag_i,psfMagErr_i,psfMag_z,psfMagErr_z = np.loadtxt(odi.coordspath+img.nofits()+'.'+ota+'.sdss',usecols=(0,1,2,3,4,5,6,7,8,9,10,11), unpack=True, delimiter=',', skiprows=2)
         probPSF = np.loadtxt(odi.coordspath+img.nofits()+'.'+ota+'.sdss', usecols=(12,), dtype=int, unpack=True, delimiter=',', skiprows=2)
-        coords2 = zip(ras[np.where((psfMag_g<gmaglim) & (probPSF==1))],decs[np.where((psfMag_g<gmaglim) & (probPSF==1))])
+        coords2 = list(zip(ras[np.where((psfMag_g<gmaglim) & (probPSF==1))],decs[np.where((psfMag_g<gmaglim) & (probPSF==1))]))
     if offline == True and source == 'sdss':
         sdss_cat = odi.sdsspath+'offline_'+ota+'.'+img.base()+'.sdss'
-        print 'Using Ra and Dec from:', sdss_cat,'for fixwcs'
+        tqdm.write('Using Ra and Dec from:', sdss_cat,'for fixwcs')
         ras,decs,psfMag_u,psfMagErr_u,psfMag_g,psfMagErr_g,psfMag_r,psfMagErr_r,psfMag_i,psfMagErr_i,psfMag_z,psfMagErr_z = np.loadtxt(sdss_cat,usecols=(0,1,2,3,4,5,6,7,8,9,10,11), unpack=True, delimiter=',', skiprows=1)
-        coords2 = zip(ras[np.where(psfMag_g<gmaglim)],decs[np.where(psfMag_g<gmaglim)])
+        coords2 = list(zip(ras[np.where(psfMag_g<gmaglim)],decs[np.where(psfMag_g<gmaglim)]))
     if offline == True and source == 'twomass':
         twomass_cat = odi.twomasspath+'offline_'+ota+'.'+img.base()+'.mass'
         ras,decs = np.loadtxt(twomass_cat,usecols=(2,3), unpack=True, delimiter=',', skiprows=1)
@@ -137,7 +137,7 @@ def list_wcs_coords(img, ota, gapmask, inst,output='radec.coo', gmaglim=20., sta
         psfMagErr_i    = np.ones(len(ras))
         psfMag_z       = np.ones(len(ras))
         psfMagErr_z    = np.ones(len(ras))
-        coords2 = zip(ras,decs)
+        coords2 = list(zip(ras,decs))
     if source == 'gaia':
         gaia_cat = odi.gaiapath+'offline_'+ota+'.'+img.base()+'.gaia'
         ras,decs = np.loadtxt(gaia_cat,usecols=(0,1), unpack=True, delimiter=',', skiprows=1)
@@ -153,7 +153,7 @@ def list_wcs_coords(img, ota, gapmask, inst,output='radec.coo', gmaglim=20., sta
         psfMagErr_i    = np.ones(len(ras))
         psfMag_z       = np.ones(len(ras))
         psfMagErr_z    = np.ones(len(ras))
-        coords2 = zip(ras,decs)
+        coords2 = list(zip(ras,decs))
 
     hdulist = odi.fits.open(img.f)
     hdu = odi.tan_header_fix(hdulist[ota])
@@ -177,9 +177,9 @@ def list_wcs_coords(img, ota, gapmask, inst,output='radec.coo', gmaglim=20., sta
                         if not (cutout.astype(bool)).any():
                             pixid.append(i)
                             r, d = odi.deg_to_sex(c[0], c[1])
-                            print >> f, r, d, psfMag_g[i]
-                            print >> fp, pixcrd2[i,0], pixcrd2[i,1], i, 'm'
-                            print >> fxy, pixcrd2[i,0], pixcrd2[i,1], ras[i],decs[i],psfMag_u[i],psfMagErr_u[i],psfMag_g[i],psfMagErr_g[i],psfMag_r[i],psfMagErr_r[i],psfMag_i[i],psfMagErr_i[i],psfMag_z[i],psfMagErr_z[i]
+                            print(r, d, psfMag_g[i], file=f)
+                            print(pixcrd2[i,0], pixcrd2[i,1], i, 'm', file=fp)
+                            print(pixcrd2[i,0], pixcrd2[i,1], ras[i],decs[i],psfMag_u[i],psfMagErr_u[i],psfMag_g[i],psfMagErr_g[i],psfMag_r[i],psfMagErr_r[i],psfMag_i[i],psfMagErr_i[i],psfMag_z[i],psfMagErr_z[i], file=fxy)
 
     pixid = np.array(pixid)
     pixcrd3 = pixcrd2[pixid]
@@ -250,12 +250,12 @@ def fix_wcs(img, ota, coords='radec.coo', iters=3):
                              fit='no',
                              accept='yes',
                              Stdout=1)
-        print 'fixing WCS for',img.f+'['+ota+'], iter ='+repr(i)
-        print fix[-6]
-        print fix[-5]
-        print fix[-4]
-        print fix[-3]
-        print fix[-2]
+        tqdm.write('fixing WCS for',img.f+'['+ota+'], iter ='+repr(i))
+        tqdm.write(fix[-6])
+        tqdm.write(fix[-5])
+        tqdm.write(fix[-4])
+        tqdm.write(fix[-3])
+        tqdm.write(fix[-2])
 
 def fix_wcs_full(img, coords='radec.coo', iters=1):
     """
@@ -294,7 +294,6 @@ def fix_wcs_full(img, coords='radec.coo', iters=1):
     - accept='yes'
     - Stdout=1
     """
-    print coords
     iraf.mscred(_doprint=0)
     iraf.unlearn(iraf.mscred.msccmatch)
     # otaext = {'33':'[1]','34':'[2]','44':'[3]','43':'[4]','42':'[5]','32':'[6]','22':'[7]','23':'[8]','24':'[9]'}
@@ -317,15 +316,15 @@ def fix_wcs_full(img, coords='radec.coo', iters=1):
                              fit='no',
                              accept='yes',
                              Stdout=1)
-        print 'fixing WCS for',img.f+', iter ='+repr(i)
-        print fix[-6]
-        print fix[-5]
-        print fix[-4]
-        print fix[-3]
-        print fix[-2]
+        tqdm.write('fixing WCS for',img.f+', iter ='+repr(i))
+        tqdm.write(fix[-6])
+        tqdm.write(fix[-5])
+        tqdm.write(fix[-4])
+        tqdm.write(fix[-3])
+        tqdm.write(fix[-2])
 
 def repair_bad_wcs(img, ota, refimg, refota):
-    print 'repairing bad wcs solution for',img.f+'['+ota+']...'
+    tqdm.write('repairing bad wcs solution for',img.f+'['+ota+']...')
     # get good CD matrix values from the reference image
     # refimg = refimg.f+'['+refota+']'
     refhdu = odi.fits.open(refimg)
@@ -334,7 +333,7 @@ def repair_bad_wcs(img, ota, refimg, refota):
         tpv = 'T'+pv
         refhdu[refota].header.rename_keyword(pv, tpv, force=False)
     w_ref = odi.WCS(refhdu[refota].header)
-    print w_ref.wcs.cd, w_ref.wcs.crpix, w_ref.wcs.crval
+    tqdm.write(w_ref.wcs.cd, w_ref.wcs.crpix, w_ref.wcs.crval)
 
     # get the bad WCS info so we can do some checking
     # image = img.f+'['+ota+']'
@@ -344,15 +343,15 @@ def repair_bad_wcs(img, ota, refimg, refota):
         tpv = 'T'+pv
         hdu[refota].header.rename_keyword(pv, tpv, force=False)
     w = odi.WCS(hdu[ota].header)
-    print w.wcs.cd, w.wcs.crpix, w.wcs.crval
+    tqdm.write(w.wcs.cd, w.wcs.crpix, w.wcs.crval)
 
 def repair_wcs_keywords(img):
     hdulist = odi.fits.open(img.f, mode='update')
     existing_radesys = hdulist[0].header['RADESYS']
-    print img.f
-    print '--> Existing RADESYS value:', existing_radesys
+    tqdm.write(img.f)
+    tqdm.write('--> Existing RADESYS value:', existing_radesys)
     correct_radesys = existing_radesys.strip("'").strip()
-    print '--> Correct RADESYS value:', correct_radesys
+    tqdm.write('--> Correct RADESYS value:', correct_radesys)
     hdulist[0].header["RADESYS"] = correct_radesys
     # print 'fixing CTYPES in OTA headers'
     for k in tqdm(img.otas):
@@ -437,7 +436,8 @@ def getfwhm_ota(img, ota, gaia=False, radius=4.0, buff=7.0, width=5.0):
     # hdulist = ast.io.fits.open(image)
     # seeing = hdulist[0].header['FWHMSTAR']
     # gfwhm = seeing/0.11
-    print 'median gwfhm in ota',ota+': ',np.median(gfwhm[np.where(gfwhm < 900.0)]),'pixels'# (determined via QR)'
+    medfwhm = np.median(gfwhm[np.where(gfwhm < 900.0)])
+    tqdm.write('median gwfhm in ota {:s}: {:5.2f} pixels'.format(ota, medfwhm))# (determined via QR)'
     return np.median(gfwhm[np.where(gfwhm < 900.0)])
 
 def getfwhm_full(img, radius=4.0, buff=7.0, width=5.0):
@@ -503,7 +503,7 @@ def getfwhm_full(img, radius=4.0, buff=7.0, width=5.0):
     # hdulist = ast.io.fits.open(image)
     # seeing = hdulist[0].header['FWHMSTAR']
     # gfwhm = seeing/0.11
-    print 'median gwfhm in ',img.f+': ',np.median(gfwhm),'pixels'# (determined via QR)'
+    tqdm.write('median gwfhm in ',img.f+': ',np.median(gfwhm),'pixels')# (determined via QR)'
     return np.median(gfwhm)
 
 def imcombine_lists(images, filters):
@@ -534,7 +534,7 @@ def imcombine_lists(images, filters):
                 hdr = hdulist[0].header
                 filt = hdr['filter']
                 if filt == filter:
-                    print >>list_name,images[i].f+'['+str(key)+']'
+                    print(images[i].f+'['+str(key)+']', file=list_name)
                 hdulist.close()
             list_name.close()
     return
@@ -688,13 +688,17 @@ def bkg_boxes(hdu,nboxes,length,sources):
                     if sources == True:
                         threshold = median + (std * 2.)
                         segm_img = odi.detect_sources(box, threshold, npixels=20)
-                        mask = segm_img.data.astype(np.bool)# turn segm_img into a mask
-                        selem = np.ones((10, 10))    # dilate using a 25x25 box
-                        mask2 = odi.binary_dilation(mask, selem)
-                        #new_mask = mask_first_pass + mask2
-                        new_mask = mask2
+                        if segm_img is not None: # if the box doesn't have any sources, then just take the sigma clipped numbers
+                            # print(box, threshold, segm_img)
+                            mask = segm_img.data.astype(np.bool)# turn segm_img into a mask
+                            selem = np.ones((10, 10))    # dilate using a 25x25 box
+                            mask2 = odi.binary_dilation(mask, selem)
+                            #new_mask = mask_first_pass + mask2
+                            new_mask = mask2
 
-                        mean_mask, median_mask, std_mask = odi.sigma_clipped_stats(box, sigma=3.0, mask=new_mask)
+                            mean_mask, median_mask, std_mask = odi.sigma_clipped_stats(box, sigma=3.0, mask=new_mask)
+                        else :
+                            mean_mask, median_mask, std_mask = mean, median, std
                         bg_stats.append((mean_mask, median_mask, std_mask))
 
     bg_stats = np.reshape(np.array(bg_stats),(len(bg_stats),3))
@@ -805,7 +809,6 @@ def deep_obj_mask(img, ota, apply=False):
     #maskhdu[0].data +
 
     nx, ny = hdu_ota.data.shape
-    print nx, ny
     mean1, median1, std1 = sigma_clipped_stats(hdu_ota.data[0:ny/2,0:nx/2], mask=total_mask[0:ny/2,0:nx/2], sigma=3.0, iters=3)
     mean2, median2, std2 = sigma_clipped_stats(hdu_ota.data[0:ny/2,nx/2:nx], mask=total_mask[0:ny/2,nx/2:nx], sigma=3.0, iters=3)
     mean3, median3, std3 = sigma_clipped_stats(hdu_ota.data[ny/2:ny,0:nx/2], mask=total_mask[ny/2:ny,0:nx/2], sigma=3.0, iters=3)
@@ -836,13 +839,19 @@ def find_new_bg(refimg, filter):
         Median background level
 
     """
-    img, ota, filt, fwhm, zp_med, zp_std, bg_mean, bg_med, bg_std = np.loadtxt('derived_props.txt', usecols=(0,1,2,3,4,5,6,7,8), dtype=str, unpack=True)
-    keep = np.where((img == refimg.dither()) & (filt==filter))
+    fwhm, zp_med, zp_std, bg_mean, bg_median, bg_std = np.loadtxt('derived_props.txt',usecols=(4,5,6,7,8,9),unpack=True)
+    imgnum, ota_d, filt_d, guide_d = np.loadtxt('derived_props.txt',usecols=(0,1,2,3),unpack=True,dtype=str)
+    imgs = []
+    for i,s in enumerate(imgnum):
+        idn = s[0]
+        imgs.append(idn)
+    img = np.array(imgs)
+    keep = np.where((img == refimg.dither()) & (filt_d==filter))
 
-    sky_med = np.median(bg_med[keep].astype(float))
+    sky_med = np.median(bg_median[keep].astype(float))
     sky_mean = np.median(bg_mean[keep].astype(float))
     sky_std = np.median(bg_std[keep].astype(float))
-    print 'calculated sky median, mean, std to re-add:', sky_med, sky_mean, sky_std
+    tqdm.write('calculated sky median, mean, std to re-add: {:.3f} {:.3f} {:.3f}'.format(sky_med, sky_mean, sky_std))
     return sky_med, sky_mean, sky_std
     
 def is_guide_ota(img, ota):
@@ -862,9 +871,9 @@ def is_guide_ota(img, ota):
         True if guide OTA, False if not
     """
     from astropy.io import fits
-    from photutils.segmentation import detect_sources, source_properties, properties_table
+    from photutils.segmentation import detect_sources, source_properties
     guide = False
-    check_ota = 'illcor_'+ota+'.'+img.stem()
+    check_ota = 'illcor/illcor_'+ota+'.'+img.stem()
     hdu = fits.open(check_ota)
     data = hdu[0].data
     segm = detect_sources(data, 1.0, 50000)
@@ -875,11 +884,11 @@ def is_guide_ota(img, ota):
         yc, xc = int(p.cutout_centroid[0].value), int(p.cutout_centroid[1].value)
         bgcent = cutout[yc,xc]
         bgcorn = np.array([cutout[0,0], cutout[0,-1], cutout[-1,0], cutout[-1,-1]])
+        # print(bgcent, bgcorn)
         bgrat = bgcorn/bgcent
         corners.append(np.median(bgrat))
     med_ratio = np.median(corners)
-    print med_ratio
-    if med_ratio > 3.:
+    if med_ratio < 0.2 or np.isnan(med_ratio):
         guide = True
     return guide
 
@@ -923,7 +932,7 @@ def make_stack_list(object, filter, inst):
                 # guide = odi.is_guide_ota(im, ota[j])
                 # # print head+ota[j]+'.'+im+tail, factor
                 # if not guide:
-                print >> stack_file, im
+                print(im, file=stack_file)
 
 
 def stack_images(stackname, refimg):
@@ -953,7 +962,7 @@ def stack_images(stackname, refimg):
     """
     from astropy.io import fits
     from pyraf import iraf
-    print refimg
+    tqdm.write(refimg.f)
     fitsref = fits.open(refimg.f)
     hduref = fitsref[0]
     objname = stackname.replace(' ','_') #hduref.header['object'].replace(' ','_')
@@ -964,7 +973,7 @@ def stack_images(stackname, refimg):
     # sky_med = hduref.header['skybg']
     output = objname+'_'+filter_name+'.fits'
     output_bpm = objname+'_'+filter_name+'_bpm.pl'
-    print '@'+objname+'_'+filter_name+'_stack.list'
+    tqdm.write('@'+objname+'_'+filter_name+'_stack.list')
     if not os.path.isfile(output):
         iraf.unlearn(iraf.immatch.imcombine, iraf.imutil.imarith)
         iraf.immatch.imcombine('@'+objname+'_'+filter_name+'_stack.list', 'temp', combine='average', reject='none', offsets='wcs', masktype='goodvalue', maskval=0, blank=-999, scale='none', zero='none', lthresh=-900, hthresh=60000)
@@ -1117,7 +1126,7 @@ def instrument(instrument_name):
     # hdulist = fits.open(img.f)
     # instrument_name = hdulist[0].header['INSTRUME']
     # hdulist.close()
-    print 'Setting instrument to: ', instrument_name
+    print('Setting instrument to: ', instrument_name)
 
     if instrument_name == '5odi':
         # odi.OTA_dictionary = odi.odi5narrow_dictionary
@@ -1185,26 +1194,30 @@ def tpv2tan_hdr(img, ota):
     iraf.imutil.hedit(show='no', mode='h')
 
 def find_ref_image(images):
-    imgs, fwhm, zp_med, zp_std, bg_mean, bg_median, bg_std = np.loadtxt('derived_props.txt', usecols=(0,3,4,5,6,7,8), unpack=True)
-    filter_string = np.loadtxt('derived_props.txt', usecols=(2,), unpack=True,dtype=str)
-
+    fwhm, zp_med, zp_std, bg_mean, bg_median, bg_std = np.loadtxt('derived_props.txt',usecols=(4,5,6,7,8,9),unpack=True)
+    imgnum, ota_d, filt_d, guide_d = np.loadtxt('derived_props.txt',usecols=(0,1,2,3),unpack=True,dtype=str)
+    imgs = []
+    for i,s in enumerate(imgnum):
+        idn = s[0]
+        imgs.append(idn)
+    imgs = np.array(imgs)
     lvls = []
     ams = []
     zps = []
     #print images
-    print '#'+ ' '*len(images[0].f)+'     bg         airmass'
+    print('#'+ ' '*len(images[0].f)+'     bg         airmass')
     for j,im in enumerate(images):
         hdulist = odi.fits.open(im.f)
         airmass = hdulist[0].header['AIRMASS']
         filter  = hdulist[0].header['FILTER']
-        these = np.where((imgs.astype(int)==int(im.dither())) & (filter_string == filter))
+        these = np.where((imgs.astype(int)==int(im.dither())) & (filt_d == filter))
         bg_lvl = np.mean(bg_median[these])
         lvls.append(bg_lvl)
         ams.append(airmass)
         hdulist.close()
-        print im.dither(), im.f, '%10.3f'%bg_lvl, '%10.3f'%airmass
+        print(im.dither(), im.f, '%10.3f'%bg_lvl, '%10.3f'%airmass)
         ref_img = np.argmin(np.array(ams))
-    print 'reference image:',images[ref_img].stem()
+    print('reference image:',images[ref_img].stem())
     return ref_img
     
 def imalign(images, square=False):
@@ -1230,11 +1243,11 @@ def imalign(images, square=False):
         img.x_img, img.y_img = w_img.all_world2pix(gaia_cat.ra, gaia_cat.dec, 1)
         x0s[j], y0s[j] = img.x_img[0], img.y_img[0]
         hdu_img.close()
-    x_ref = np.argmin(x0s)
-    y_ref = np.argmin(y0s)
+    x_ref_i = np.argmin(x0s)
+    y_ref_i = np.argmin(y0s)
 
-    # (pick the most positive image as a "reference")
-    img_ref = images[x_ref]
+    # (pick the first image as a "reference")
+    img_ref = images[0]
     
     hdu_ref = fits.open(img_ref.f)
     naxis1_ref = hdu_ref[0].header['NAXIS1']
@@ -1242,32 +1255,39 @@ def imalign(images, square=False):
     w_ref = WCS(hdu_ref[0].header)
     x_ref, y_ref = w_ref.all_world2pix(gaia_cat.ra, gaia_cat.dec, 1)
 
+    for j,img in enumerate(images):
+        iraf.imcopy(img.f, 'temp{:1d}.fits'.format(j))
 
     for j,img in enumerate(images):
         # compute the pair-wise integer pixel shifts between the image and the reference
         img.x_shift, img.y_shift = np.rint(np.median(x_ref-img.x_img)), np.rint(np.median(y_ref-img.y_img))
         img.x_std, img.y_std = np.rint(np.std(x_ref-img.x_img)), np.rint(np.std(y_ref-img.y_img))
-        # figure out how wide the trimmed image is
-        img.x_size = np.rint(img.naxis1 + img.x_shift)
-        img.y_size = np.rint(img.naxis2 + img.y_shift)
-        # keep track
-        xsizes[j] = img.x_size
-        ysizes[j] = img.y_size
+
         # shift the images so that they are aligned to the "reference"
         # use relative coordinates-- negative values are applied to the image, 
-        # we will not change the 'reference' because we've already decided it shouldn't shift
-        iraf.imcopy(img.f, 'temp{:1d}.fits'.format(j))
+        # the 'reference' will change if the shift is positive        
         if img.x_shift < 0.5:
             trim_img = 'temp{:1d}.fits[{:d}:{:d},*]'.format(j,int(abs(img.x_shift))+1, img.naxis1)
             iraf.imcopy(trim_img, 'temp{:1d}.fits'.format(j))
         else:
-            raise Exception
+            trim_img = 'temp0.fits[{:d}:{:d},*]'.format(int(abs(img.x_shift))+1, naxis1_ref)
+            iraf.imcopy(trim_img, 'temp0.fits')
 
         if img.y_shift < 0.5:
             trim_img = 'temp{:1d}.fits[*,{:d}:{:d}]'.format(j,int(abs(img.y_shift))+1, img.naxis2)
             iraf.imcopy(trim_img, 'temp{:1d}.fits'.format(j))
         else:
-            raise Exception
+            trim_img = 'temp0.fits[*,{:d}:{:d}]'.format(int(abs(img.y_shift))+1, naxis2_ref)
+            iraf.imcopy(trim_img, 'temp0.fits')
+
+    for j,img in enumerate(images):        
+        hdu = fits.open('temp{:1d}.fits'.format(j))
+        # figure out how wide the trimmed image is
+        img.x_size = hdu[0].header['NAXIS1']
+        img.y_size = hdu[0].header['NAXIS2']
+        # keep track
+        xsizes[j] = img.x_size
+        ysizes[j] = img.y_size
 
     # figure out what the smallest image size is
     min_xsize = np.min(xsizes)
@@ -1283,8 +1303,23 @@ def imalign(images, square=False):
         iraf.imdelete('temp{:1d}.fits'.format(j))
         
 def main():
-    images = [odi.StackedImage('NGC524_odi_g.fits'),odi.StackedImage('NGC524_odi_r.fits'),odi.StackedImage('NGC524_odi_i.fits')]
-    imalign(images)
+    import odi_config as odi
+
+    try:
+        object_str, filters, instrument, images, illcor_flag, skyflat_src, wcs_flag, reproject_flag, scale_flag, scale_ref, stack_flag, align_flag, gaia_flag, cluster_flag, ra_center, dec_center, min_radius = odi.cfgparse('config.yaml')
+    except IOError:
+        print('config.yaml does not exist, quitting...')
+        exit()
+
+    inst = odi.instrument(instrument)
+    images_ = [img for sublist in list(images.values()) for img in sublist]
+
+    for img in images_:
+        otalist = sorted(odi.OTA_dictionary.keys())
+        for key in otalist:
+            ota = odi.OTA_dictionary[key]
+            guide = odi.is_guide_ota(img, ota)
+            print(img.f, ota, guide)
 
 if __name__ == '__main__':
     main()

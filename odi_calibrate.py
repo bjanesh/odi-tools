@@ -24,9 +24,9 @@ default_fmt='csv'
 
 def usage(status, msg=''):
     "Error message and usage"
-    print __doc__
+    print(__doc__)
     if msg:
-        print '-- ERROR: %s' % msg
+        print('-- ERROR: %s' % msg)
     sys.exit(status)
 
 def filtercomment(sql):
@@ -39,10 +39,10 @@ def filtercomment(sql):
 
 def query(sql,url=default_url,fmt=default_fmt):
     "Run query and return file object"
-    import urllib
+    import urllib.request, urllib.parse, urllib.error
     fsql = filtercomment(sql)
-    params = urllib.urlencode({'cmd': fsql, 'format': fmt})
-    return urllib.urlopen(url+'?%s' % params)    
+    params = urllib.parse.urlencode({'cmd': fsql, 'format': fmt})
+    return urllib.request.urlopen(url+'?%s' % params)    
 
 def write_header(ofp,pre,url,qry):
     import  time
@@ -61,9 +61,9 @@ def download_sdss(img1, img2, gmaglim = 21):
         import os
         import string
     except ImportError:
-        print "You should 'pip install astropy' before you try to run this program" 
+        print("You should 'pip install astropy' before you try to run this program") 
 
-    print 'fetching SDSS data from \n--> '+public_url
+    print('fetching SDSS data from \n--> '+public_url)
     
     image = img1
     
@@ -140,7 +140,7 @@ def download_sdss(img1, img2, gmaglim = 21):
         qry = "select O.ra, O.dec, O.psfMag_u, O.psfMagErr_u, O.psfMag_g, \nO.psfMagErr_g, O.psfMag_r, O.psfMagErr_r, O.psfMag_i, \nO.psfMagErr_i, O.psfMag_z, O.psfMagErr_z, O.probPSF \nfrom \ndbo.fGetNearbyObjEq("+repr(rac)+","+repr(decc)+","+repr(sizeam)+") \nas N inner join PhotoObjAll as O on O.objID = N.objID order by N.distance"
     
         # print it to the terminal
-        print 'with query\n-->', qry
+        print('with query\n-->', qry)
         url = default_url
         fmt = default_fmt
         writefirst = 1
@@ -168,27 +168,27 @@ def download_sdss(img1, img2, gmaglim = 21):
     ras,decs,psfMag_u,psfMagErr_u,psfMag_g,psfMagErr_g,psfMag_r,psfMagErr_r,psfMag_i,psfMagErr_i,psfMag_z,psfMagErr_z = np.loadtxt(image[:-5]+'.sdss',usecols=(0,1,2,3,4,5,6,7,8,9,10,11), unpack=True, delimiter=',', skiprows=2)
     probPSF = np.loadtxt(image[:-5]+'.sdss', usecols=(12,), dtype=int, unpack=True, delimiter=',', skiprows=2)
 
-    coords2 = zip(ras,decs)
+    coords2 = list(zip(ras,decs))
     pixcrd2 = w.wcs_world2pix(coords2, 1)
     pixcrd2_r = w_r.wcs_world2pix(coords2, 1)
 
     # keep things that are actually stars (defined as being psf's) and with the right magnitude range (arbitrary)
 
     keep_stars = ((probPSF == 1) & (psfMag_g < gmaglim))
-    print 'keeping', len(np.where(keep_stars)[0]), 'stars of', len(psfMag_g), 'sources'
+    print('keeping', len(np.where(keep_stars)[0]), 'stars of', len(psfMag_g), 'sources')
     
     # then write out separate files for g and i
     with open(image[:-5]+'.sdssxy','w+') as f1:
-        print >> f1, "# x_g y_g ra dec u uerr g gerr r rerr i ierr z zerr (all psfmags)"
+        print("# x_g y_g ra dec u uerr g gerr r rerr i ierr z zerr (all psfmags)", file=f1)
         for i,id in enumerate(np.where(keep_stars)[0]):
             if 100.0 < pixcrd2[id][0] < xdim-100.0 and 100.0 < pixcrd2[id][1] < ydim-100.0:
-                print >> f1, pixcrd2[id][0], pixcrd2[id][1], ras[id], decs[id], psfMag_u[id], psfMagErr_u[id], psfMag_g[id], psfMagErr_g[id], psfMag_r[id], psfMagErr_r[id], psfMag_i[id], psfMagErr_i[id], psfMag_z[id], psfMagErr_z[id]
+                print(pixcrd2[id][0], pixcrd2[id][1], ras[id], decs[id], psfMag_u[id], psfMagErr_u[id], psfMag_g[id], psfMagErr_g[id], psfMag_r[id], psfMagErr_r[id], psfMag_i[id], psfMagErr_i[id], psfMag_z[id], psfMagErr_z[id], file=f1)
             
     with open(img2[:-5]+'.sdssxy','w+') as f1:
-        print >> f1, "# x_r y_r ra dec u uerr g gerr r rerr i ierr z zerr (all psfmags)"
+        print("# x_r y_r ra dec u uerr g gerr r rerr i ierr z zerr (all psfmags)", file=f1)
         for i,id in enumerate(np.where(keep_stars)[0]):
             if 100.0 < pixcrd2_r[id][0] < xdim-100.0 and 100.0 < pixcrd2_r[id][1] < ydim-100.0:
-                print >> f1, pixcrd2_r[id][0], pixcrd2_r[id][1], ras[id], decs[id], psfMag_u[id], psfMagErr_u[id], psfMag_g[id], psfMagErr_g[id], psfMag_r[id], psfMagErr_r[id], psfMag_i[id], psfMagErr_i[id], psfMag_z[id], psfMagErr_z[id]
+                print(pixcrd2_r[id][0], pixcrd2_r[id][1], ras[id], decs[id], psfMag_u[id], psfMagErr_u[id], psfMag_g[id], psfMagErr_g[id], psfMag_r[id], psfMagErr_r[id], psfMag_i[id], psfMagErr_i[id], psfMag_z[id], psfMagErr_z[id], file=f1)
 
 # def linear(x, m, b):
 #     y = m*x + b
@@ -232,14 +232,14 @@ def getfwhm(image, radius=4.0, buff=7.0, width=5.0, rplot=15.0, center='yes'):
     # hdulist = ast.io.fits.open(image)
     # seeing = hdulist[0].header['FWHMSTAR']
     # gfwhm = seeing/0.11
-    print 'median gwfhm in ',image+': ',np.median(gfwhm),'pixels'# (determined via QR)'
+    print('median gwfhm in ',image+': ',np.median(gfwhm),'pixels')# (determined via QR)'
     return np.median(gfwhm)
 
     
 def ota_zp(x, y, gi, di, x_ota, y_ota):
     filterName = 'r'
     ota_dict = {2:[350,4500], 3:[4500,8800], 4:[8800,13000]} 
-    print ota_dict[x_ota], ota_dict[y_ota]
+    print(ota_dict[x_ota], ota_dict[y_ota])
     keep_ota = np.where((x>ota_dict[x_ota][0])&(x<ota_dict[x_ota][1])&(y>ota_dict[y_ota][0])&(y<ota_dict[y_ota][1]))
     gi_new = gi[keep_ota]
     di_new = di[keep_ota]
@@ -248,9 +248,9 @@ def ota_zp(x, y, gi, di, x_ota, y_ota):
     p, pcov = np.polyfit(gi_new, di_new, 1, cov=True)
     perr = np.sqrt(np.diag(pcov))
     eps_gi, zp_i, std_eps_gi, std_zp_i = p[0], p[1], perr[0], perr[1]
-    print 'ZP for OTA['+repr(x_ota)+','+repr(y_ota)+']'
-    print 'eps_g'+filterName+'     std_eps_g'+filterName+' zp_'+filterName+'        std_zp_'+filterName
-    print '{0:10.7f} {1:10.7f} {2:10.7f} {3:10.7f}'.format(eps_gi, std_eps_gi, zp_i, std_zp_i)
+    print('ZP for OTA['+repr(x_ota)+','+repr(y_ota)+']')
+    print('eps_g'+filterName+'     std_eps_g'+filterName+' zp_'+filterName+'        std_zp_'+filterName)
+    print('{0:10.7f} {1:10.7f} {2:10.7f} {3:10.7f}'.format(eps_gi, std_eps_gi, zp_i, std_zp_i))
     return zp_i
     
 def calibrate(img1 = None, img2 = None, podicut = 0.03, sdsscut = 0.03):
@@ -262,8 +262,8 @@ def calibrate(img1 = None, img2 = None, podicut = 0.03, sdsscut = 0.03):
         import scipy.optimize as opt
         import matplotlib.pyplot as plt
     except ImportError:
-        print 'You need some non-core python packages and a working IRAF to run this program'
-        print "Try 'pip install astropy numpy scipy matplotlib pyraf' and try again"
+        print('You need some non-core python packages and a working IRAF to run this program')
+        print("Try 'pip install astropy numpy scipy matplotlib pyraf' and try again")
 
     img_root = img1.split('_')[0]
     
@@ -329,7 +329,7 @@ def calibrate(img1 = None, img2 = None, podicut = 0.03, sdsscut = 0.03):
     # now phot each image with the individual params
     # use txdump to put things in a nicer format for reading in
     if not os.path.isfile(img1[0:-5]+'_cal.sdssphot'): # only do this once
-        print 'phot-ing the g image, this might take a while...'
+        print('phot-ing the g image, this might take a while...')
         iraf.datapars.setParam('fwhmpsf',fwhm1)
         iraf.photpars.setParam('apertures',5.*fwhm1) # use a big aperture for this
         iraf.fitskypars.setParam('annulus',6.*fwhm1)
@@ -338,7 +338,7 @@ def calibrate(img1 = None, img2 = None, podicut = 0.03, sdsscut = 0.03):
             iraf.ptools.txdump(textfiles=img1[0:-5]+'_cal.phot.1', fields="id,mag,merr,msky,stdev,rapert,xcen,ycen,ifilter,xairmass,image", expr='MAG != INDEF && MERR != INDEF', headers='no', Stdout=txdump_out)
 
     if not os.path.isfile(img2[0:-5]+'_cal.sdssphot'):
-        print 'phot-ing the r/i image, this might take a while...'
+        print('phot-ing the r/i image, this might take a while...')
         iraf.datapars.setParam('fwhmpsf',fwhm2)
         iraf.photpars.setParam('apertures',5.*fwhm2) # use a big aperture for this
         iraf.fitskypars.setParam('annulus',6.*fwhm2)
@@ -393,14 +393,14 @@ def calibrate(img1 = None, img2 = None, podicut = 0.03, sdsscut = 0.03):
     # apply airmass extinction correction to instrumental magnitudes
     g0 = gMAG - kg*gXAIRMASS
     if iFILTER[0].endswith('i'):
-        print 'you gave me an i-band image, proceeding...'
+        print('you gave me an i-band image, proceeding...')
         i0 = iMAG - ki*iXAIRMASS
         filterName = 'i'
         # determine catalog color and error
         gi = g - i
         gie = np.sqrt(ge**2 + ie**2)
     elif iFILTER[0].endswith('r'):
-        print 'you gave me an r-band image, proceeding...'
+        print('you gave me an r-band image, proceeding...')
         i0 = iMAG - kr*iXAIRMASS    
         filterName = 'r'
         # determine catalog color and error
@@ -419,15 +419,15 @@ def calibrate(img1 = None, img2 = None, podicut = 0.03, sdsscut = 0.03):
     die = np.sqrt(ie**2 + iMERR**2)
 
     # podicut, sdsscut = 0.01, 0.03
-    print np.median(gSERR), np.median(iSERR)
+    print(np.median(gSERR), np.median(iSERR))
     # cuts for better fits go here
     errcut = [j for j in range(len(gMERR)) if (gMERR[j] < podicut and iMERR[j] < podicut and ge[j] < sdsscut and ie[j] < sdsscut and 1000.0 < peak1[j]< 45000.0 and 1000.0 < peak2[j]< 45000.0)]#gSKY[j] > np.median(gSERR) and iSKY[j] > np.median(iSERR))]
 
     with open('photcal_stars.pos','w+') as f1:
         for i, xp in enumerate(gXPOS[errcut]):
-            print >> f1, xp, gYPOS[i]
+            print(xp, gYPOS[i], file=f1)
             
-    print len(gi0[errcut])
+    print(len(gi0[errcut]))
 
     # fit color term
     # linear lsq with numpy.polyfit
@@ -473,10 +473,10 @@ def calibrate(img1 = None, img2 = None, podicut = 0.03, sdsscut = 0.03):
     mu_lcb=mu_gi*x + zp_gi -dy	# Lower confidence band
 
 
-    print '--------------------------------------------------------------------------'
-    print 'Here are the fit values:'
-    print 'mu_g'+filterName+'      std_mu_g'+filterName+'  zp_g'+filterName+'      std_zp_g'+filterName
-    print '{0:10.7f} {1:10.7f} {2:10.7f} {3:10.7f}'.format(mu_gi, std_mu_gi, zp_gi, std_zp_gi)
+    print('--------------------------------------------------------------------------')
+    print('Here are the fit values:')
+    print('mu_g'+filterName+'      std_mu_g'+filterName+'  zp_g'+filterName+'      std_zp_g'+filterName)
+    print('{0:10.7f} {1:10.7f} {2:10.7f} {3:10.7f}'.format(mu_gi, std_mu_gi, zp_gi, std_zp_gi))
 
     # fit zero point
     # linear lsq with numpy.polyfit
@@ -503,8 +503,8 @@ def calibrate(img1 = None, img2 = None, podicut = 0.03, sdsscut = 0.03):
     p, pcov = np.polyfit(gi_3, di_3, 1, cov=True)
     perr = np.sqrt(np.diag(pcov))
     eps_gi, zp_i, std_eps_gi, std_zp_i = p[0], p[1], perr[0], perr[1]
-    print 'eps_g'+filterName+'     std_eps_g'+filterName+' zp_'+filterName+'        std_zp_'+filterName
-    print '{0:10.7f} {1:10.7f} {2:10.7f} {3:10.7f}'.format(eps_gi, std_eps_gi, zp_i, std_zp_i)
+    print('eps_g'+filterName+'     std_eps_g'+filterName+' zp_'+filterName+'        std_zp_'+filterName)
+    print('{0:10.7f} {1:10.7f} {2:10.7f} {3:10.7f}'.format(eps_gi, std_eps_gi, zp_i, std_zp_i))
     
     # zp_check=[]
     # for i in [2,3,4]:
@@ -595,66 +595,66 @@ def calibrate(img1 = None, img2 = None, podicut = 0.03, sdsscut = 0.03):
 
     # print out a steven style help file, no writing to headers YET
     with open(img_root+'_help.txt','w+') as f1:
-        print >> f1, "this has some information about the calibration. don't panic."
-        print >> f1, ""
-        print >> f1, "this is the revised (Feb 2015) version of pODI - SDSS calibrations"
-        print >> f1, "   it is run on matched pairs of images (g+i, for UCHVC project)"
-        print >> f1, ""
-        print >> f1, "it follows the extremely standard method of photometric calibrations:"
-        print >> f1, ""
-        print >> f1, "g-i = mu_gi ( g0 - i0 ) + ZP_gi"
-        print >> f1, "i = i0 + eps_gi ( g - i ) + ZP_i"
-        print >> f1, ""
-        print >> f1, "   where g0 = g_i - k_g * X_g  include airmass extinction"
-        print >> f1, "         i0 = i_i - k_i * X_i"
-        print >> f1, "Fits generate errors on mu/eps/ZP and also rms for both"
-        print >> f1, ""
-        print >> f1, "g_i/i_i are instrumental magnitudes, measured in apertures 5x FWHM"
-        print >> f1, ""
-        print >> f1, "all of these coefficients are saved to both g&i image headers,"
-        print >> f1, "    and are reproduced below."
-        print >> f1, ""
-        print >> f1, "in particular, this is the calibration for $!gal"
-        print >> f1, ""
-        print >> f1, "  name          symbol     IMHEAD     value"
-        print >> f1, "----------------------------------------------------"
-        print >> f1, "  extn coeff      k_g      F_KG       {0:.7f}".format(kg)
-        print >> f1, "  extn coeff      k_g      F_KG       {0:.7f}".format(kg)
-        print >> f1, "  extn coeff      k_i      F_KI       {0:.7f}".format(ki)
-        print >> f1, "  airmass in g    X_g      F_XG       {0:.7f}".format(gXAIRMASS)
-        print >> f1, "  airmass in "+filterName+"    X_"+filterName+"      F_X"+filterName.upper()+"       {0:.7f}".format(iXAIRMASS)
-        print >> f1, " - - - - - - - - - - - - - - - - - - - - - - - - - -"
-        print >> f1, "  g-"+filterName+" color term  mu_g"+filterName+"    F_MU_G"+filterName.upper()+"    {0:.7f}".format(mu_gi)
-        print >> f1, "  g-"+filterName+" c.t. err    mue_g"+filterName+"   F_MUE_G"+filterName.upper()+"   {0:.7f}".format(std_mu_gi)
-        print >> f1, "  g-"+filterName+" zeropoint   ZP_g"+filterName+"    F_ZP_G"+filterName.upper()+"    {0:.7f}".format(zp_gi)
-        print >> f1, "  g-"+filterName+" ZP err      ZPE_g"+filterName+"   F_ZPE_G"+filterName.upper()+"   {0:.7f}".format(std_zp_gi)
-        print >> f1, "  g-"+filterName+" fit RMS     rms      F_RMS_G"+filterName.upper()+"   {0:.7f}".format(dy1.std())
-        print >> f1, " - - - - - - - - - - - - - - - - - - - - - - - - - -"
-        print >> f1, "  "+filterName+" color term    eps_g"+filterName+"   F_EPS_G"+filterName.upper()+"   {0:.7f}".format(eps_gi)
-        print >> f1, "  "+filterName+" c.t. err      epse_g"+filterName+"  F_EPSE_G"+filterName.upper()+"  {0:.7f}".format(std_eps_gi)
-        print >> f1, "  "+filterName+" zeropoint     ZP_"+filterName+"     F_ZP_"+filterName.upper()+"     {0:.7f}".format(zp_i)
-        print >> f1, "  "+filterName+" ZP err        ZPe_"+filterName+"    F_ZPE_"+filterName.upper()+"    {0:.7f}".format(std_zp_i)
-        print >> f1, "  "+filterName+" fit RMS       rms      F_RMS_"+filterName.upper()+"    {0:.7f}".format(dy2.std())
-        print >> f1, "----------------------------------------------------"
-        print >> f1, "other details:"
-        print >> f1, "  FWHM PSF [px]   fwhm    FWHMPSF    [see header]"
-        print >> f1, "  FWHM [arcsec] g fwhm    F_AVGSEE   {0:.5f}".format(0.11*gRAPERT/5)
-        print >> f1, "  FWHM [arcsec] "+filterName+" fwhm    F_AVGSEE   {0:.5f}".format(0.11*iRAPERT/5)
-        print >> f1, "  phot aperture (5xFWHM) g [arcsec]  {0:.5f}".format(0.11*gRAPERT)
-        print >> f1, "  phot aperture (5xFWHM) "+filterName+" [arcsec]  {0:.5f}".format(0.11*iRAPERT)
-        print >> f1, "----------------------------------------------------"
-        print >> f1, "photometric error cuts:"
-        print >> f1, "  maximum acceptable pODI PHOT error: {0:.4f}".format(podicut)
-        print >> f1, "  maximum acceptable sdss phot error: {0:.4f}".format(sdsscut)
-        print >> f1, "  N_stars surviving error cuts: {0:4d}".format(len(gi[errcut]))
-        print >> f1, "  N_stars surviving sigma clip (i-i0 vs g-"+filterName+" plot): {0:4d}".format(len(gi_3))
-    print '--------------------------------------------------------------------------'
-    print 'Done! I saved some important information in the following files for you:'
-    print 'SDSS raw catalog values (csv):         ', img_root+'.sdss'
-    print 'SDSS catalog values w/ x,y positions:  ', img_root+'.sdssxy'
-    print 'Instrumental ODI magnitudes per image: ', img_root+'*_cal.sdssphot'
-    print 'Calibration fit diagnostic plots:      ', img_root+'_photcal.pdf'
-    print 'Final calibration values:              ', img_root+'_help.txt'
+        print("this has some information about the calibration. don't panic.", file=f1)
+        print("", file=f1)
+        print("this is the revised (Feb 2015) version of pODI - SDSS calibrations", file=f1)
+        print("   it is run on matched pairs of images (g+i, for UCHVC project)", file=f1)
+        print("", file=f1)
+        print("it follows the extremely standard method of photometric calibrations:", file=f1)
+        print("", file=f1)
+        print("g-i = mu_gi ( g0 - i0 ) + ZP_gi", file=f1)
+        print("i = i0 + eps_gi ( g - i ) + ZP_i", file=f1)
+        print("", file=f1)
+        print("   where g0 = g_i - k_g * X_g  include airmass extinction", file=f1)
+        print("         i0 = i_i - k_i * X_i", file=f1)
+        print("Fits generate errors on mu/eps/ZP and also rms for both", file=f1)
+        print("", file=f1)
+        print("g_i/i_i are instrumental magnitudes, measured in apertures 5x FWHM", file=f1)
+        print("", file=f1)
+        print("all of these coefficients are saved to both g&i image headers,", file=f1)
+        print("    and are reproduced below.", file=f1)
+        print("", file=f1)
+        print("in particular, this is the calibration for $!gal", file=f1)
+        print("", file=f1)
+        print("  name          symbol     IMHEAD     value", file=f1)
+        print("----------------------------------------------------", file=f1)
+        print("  extn coeff      k_g      F_KG       {0:.7f}".format(kg), file=f1)
+        print("  extn coeff      k_g      F_KG       {0:.7f}".format(kg), file=f1)
+        print("  extn coeff      k_i      F_KI       {0:.7f}".format(ki), file=f1)
+        print("  airmass in g    X_g      F_XG       {0:.7f}".format(gXAIRMASS), file=f1)
+        print("  airmass in "+filterName+"    X_"+filterName+"      F_X"+filterName.upper()+"       {0:.7f}".format(iXAIRMASS), file=f1)
+        print(" - - - - - - - - - - - - - - - - - - - - - - - - - -", file=f1)
+        print("  g-"+filterName+" color term  mu_g"+filterName+"    F_MU_G"+filterName.upper()+"    {0:.7f}".format(mu_gi), file=f1)
+        print("  g-"+filterName+" c.t. err    mue_g"+filterName+"   F_MUE_G"+filterName.upper()+"   {0:.7f}".format(std_mu_gi), file=f1)
+        print("  g-"+filterName+" zeropoint   ZP_g"+filterName+"    F_ZP_G"+filterName.upper()+"    {0:.7f}".format(zp_gi), file=f1)
+        print("  g-"+filterName+" ZP err      ZPE_g"+filterName+"   F_ZPE_G"+filterName.upper()+"   {0:.7f}".format(std_zp_gi), file=f1)
+        print("  g-"+filterName+" fit RMS     rms      F_RMS_G"+filterName.upper()+"   {0:.7f}".format(dy1.std()), file=f1)
+        print(" - - - - - - - - - - - - - - - - - - - - - - - - - -", file=f1)
+        print("  "+filterName+" color term    eps_g"+filterName+"   F_EPS_G"+filterName.upper()+"   {0:.7f}".format(eps_gi), file=f1)
+        print("  "+filterName+" c.t. err      epse_g"+filterName+"  F_EPSE_G"+filterName.upper()+"  {0:.7f}".format(std_eps_gi), file=f1)
+        print("  "+filterName+" zeropoint     ZP_"+filterName+"     F_ZP_"+filterName.upper()+"     {0:.7f}".format(zp_i), file=f1)
+        print("  "+filterName+" ZP err        ZPe_"+filterName+"    F_ZPE_"+filterName.upper()+"    {0:.7f}".format(std_zp_i), file=f1)
+        print("  "+filterName+" fit RMS       rms      F_RMS_"+filterName.upper()+"    {0:.7f}".format(dy2.std()), file=f1)
+        print("----------------------------------------------------", file=f1)
+        print("other details:", file=f1)
+        print("  FWHM PSF [px]   fwhm    FWHMPSF    [see header]", file=f1)
+        print("  FWHM [arcsec] g fwhm    F_AVGSEE   {0:.5f}".format(0.11*gRAPERT/5), file=f1)
+        print("  FWHM [arcsec] "+filterName+" fwhm    F_AVGSEE   {0:.5f}".format(0.11*iRAPERT/5), file=f1)
+        print("  phot aperture (5xFWHM) g [arcsec]  {0:.5f}".format(0.11*gRAPERT), file=f1)
+        print("  phot aperture (5xFWHM) "+filterName+" [arcsec]  {0:.5f}".format(0.11*iRAPERT), file=f1)
+        print("----------------------------------------------------", file=f1)
+        print("photometric error cuts:", file=f1)
+        print("  maximum acceptable pODI PHOT error: {0:.4f}".format(podicut), file=f1)
+        print("  maximum acceptable sdss phot error: {0:.4f}".format(sdsscut), file=f1)
+        print("  N_stars surviving error cuts: {0:4d}".format(len(gi[errcut])), file=f1)
+        print("  N_stars surviving sigma clip (i-i0 vs g-"+filterName+" plot): {0:4d}".format(len(gi_3)), file=f1)
+    print('--------------------------------------------------------------------------')
+    print('Done! I saved some important information in the following files for you:')
+    print('SDSS raw catalog values (csv):         ', img_root+'.sdss')
+    print('SDSS catalog values w/ x,y positions:  ', img_root+'.sdssxy')
+    print('Instrumental ODI magnitudes per image: ', img_root+'*_cal.sdssphot')
+    print('Calibration fit diagnostic plots:      ', img_root+'_photcal.pdf')
+    print('Final calibration values:              ', img_root+'_help.txt')
 
 def js_calibrate(img1 = None, img2 = None, podicut = 0.03, sdsscut = 0.03, verbose=False):
     try:
@@ -667,8 +667,8 @@ def js_calibrate(img1 = None, img2 = None, podicut = 0.03, sdsscut = 0.03, verbo
         import matplotlib.pyplot as plt
         import matplotlib.cm as cm
     except ImportError:
-        print 'You need some non-core python packages and a working IRAF to run this program'
-        print "Try 'pip install astropy numpy scipy matplotlib pyraf' and try again"
+        print('You need some non-core python packages and a working IRAF to run this program')
+        print("Try 'pip install astropy numpy scipy matplotlib pyraf' and try again")
 
     img_root = img1.split('_')[0]
 
@@ -736,7 +736,7 @@ def js_calibrate(img1 = None, img2 = None, podicut = 0.03, sdsscut = 0.03, verbo
     # now phot each image with the individual params
     # use txdump to put things in a nicer format for reading in
     if not os.path.isfile(img1[0:-5]+'_cal.sdssphot'): # only do this once
-        print 'phot-ing the g image, this might take a while...'
+        print('phot-ing the g image, this might take a while...')
         iraf.datapars.setParam('fwhmpsf',fwhm1)
         iraf.photpars.setParam('apertures',5.*fwhm1) # use a big aperture for this
         iraf.fitskypars.setParam('annulus',6.*fwhm1)
@@ -745,7 +745,7 @@ def js_calibrate(img1 = None, img2 = None, podicut = 0.03, sdsscut = 0.03, verbo
             iraf.ptools.txdump(textfiles=img1[0:-5]+'_cal.phot.1', fields="id,mag,merr,msky,stdev,rapert,xcen,ycen,ifilter,xairmass,image", expr='MAG != INDEF && MERR != INDEF', headers='no', Stdout=txdump_out)
     
     if not os.path.isfile(img2[0:-5]+'_cal.sdssphot'):
-        print 'phot-ing the r/i image, this might take a while...'
+        print('phot-ing the r/i image, this might take a while...')
         iraf.datapars.setParam('fwhmpsf',fwhm2)
         iraf.photpars.setParam('apertures',5.*fwhm2) # use a big aperture for this
         iraf.fitskypars.setParam('annulus',6.*fwhm2)
@@ -800,14 +800,14 @@ def js_calibrate(img1 = None, img2 = None, podicut = 0.03, sdsscut = 0.03, verbo
     # apply airmass extinction correction to instrumental magnitudes
     g0 = gMAG - kg*gXAIRMASS
     if iFILTER[0].endswith('i'):
-        print 'you gave me an i-band image, proceeding...'
+        print('you gave me an i-band image, proceeding...')
         i0 = iMAG - ki*iXAIRMASS
         filterName = 'i'
         # determine catalog color and error
         gi = g - i
         gie = np.sqrt(ge**2 + ie**2)
     elif iFILTER[0].endswith('r'):
-        print 'you gave me an r-band image, proceeding...'
+        print('you gave me an r-band image, proceeding...')
         i0 = iMAG - kr*iXAIRMASS    
         filterName = 'r'
         # determine catalog color and error
@@ -839,9 +839,9 @@ def js_calibrate(img1 = None, img2 = None, podicut = 0.03, sdsscut = 0.03, verbo
 
     if verbose:
         for j in range(len(gi[errcut])):
-            print gXPOS[errcut][j], gYPOS[errcut][j], ra[errcut][j], dec[errcut][j], gMAG[errcut][j], gMERR[errcut][j], iMAG[errcut][j], iMERR[errcut][j], di[errcut][j], dg[errcut][j], gi[errcut][j]
+            print(gXPOS[errcut][j], gYPOS[errcut][j], ra[errcut][j], dec[errcut][j], gMAG[errcut][j], gMERR[errcut][j], iMAG[errcut][j], iMERR[errcut][j], di[errcut][j], dg[errcut][j], gi[errcut][j])
 
-    print 'fitting wtih '+repr(len(gi0[errcut]))+' stars...'
+    print('fitting wtih '+repr(len(gi0[errcut]))+' stars...')
 
     # fit zero point
     # linear lsq with numpy.polyfit
@@ -870,12 +870,12 @@ def js_calibrate(img1 = None, img2 = None, podicut = 0.03, sdsscut = 0.03, verbo
     epsg_ucb=eps_g*x + zp_g +dy	# Upper confidence band
     epsg_lcb=eps_g*x + zp_g -dy	# Lower confidence band
 
-    print '--------------------------------------------------------------------------'
-    print 'Here are the fit values:'
-    print 'eps_g'+'      std_eps_g'+'  zp_g'+'         std_zp_g'
-    print '{0:10.7f} {1:10.7f} {2:10.7f} {3:10.7f}'.format(eps_g, std_eps_g, zp_g, std_zp_g)
+    print('--------------------------------------------------------------------------')
+    print('Here are the fit values:')
+    print('eps_g'+'      std_eps_g'+'  zp_g'+'         std_zp_g')
+    print('{0:10.7f} {1:10.7f} {2:10.7f} {3:10.7f}'.format(eps_g, std_eps_g, zp_g, std_zp_g))
     star_zp_g = g - g0 - eps_g*gi
-    print 'std. dev. in ZP per star (not fit): {0:10.7f}'.format(np.std(star_zp_g[errcut]))
+    print('std. dev. in ZP per star (not fit): {0:10.7f}'.format(np.std(star_zp_g[errcut])))
 
     # fit zero point
     # linear lsq with numpy.polyfit
@@ -903,10 +903,10 @@ def js_calibrate(img1 = None, img2 = None, podicut = 0.03, sdsscut = 0.03, verbo
     epsi_ucb=eps_i*x + zp_i +dy	# Upper confidence band
     epsi_lcb=eps_i*x + zp_i -dy	# Lower confidence band
 
-    print 'eps_'+filterName+'      std_eps_'+filterName+'   zp_'+filterName+'        std_zp_'+filterName
-    print '{0:10.7f} {1:10.7f} {2:10.7f} {3:10.7f}'.format(eps_i, std_eps_i, zp_i, std_zp_i)
+    print('eps_'+filterName+'      std_eps_'+filterName+'   zp_'+filterName+'        std_zp_'+filterName)
+    print('{0:10.7f} {1:10.7f} {2:10.7f} {3:10.7f}'.format(eps_i, std_eps_i, zp_i, std_zp_i))
     star_zp_i = i - i0 - eps_i*gi
-    print 'std. dev. in ZP per star (not fit): {0:10.7f}'.format(np.std(star_zp_i[errcut]))
+    print('std. dev. in ZP per star (not fit): {0:10.7f}'.format(np.std(star_zp_i[errcut])))
 
     plt.figure(1)
     plt.subplot(211)
@@ -1046,56 +1046,56 @@ def js_calibrate(img1 = None, img2 = None, podicut = 0.03, sdsscut = 0.03, verbo
     
     # print out a steven style help file, no writing to headers YET
     with open(img_root+'_help_js.txt','w+') as f1:
-        print >> f1, "#  name           symbol   IMHEAD    value"
-        print >> f1, "----------------------------------------------------"
-        print >> f1, "  extn coeff      k_g      F_KG      {0:.7f}".format(kg)
-        print >> f1, "  extn coeff      k_r      F_KR      {0:.7f}".format(kr)
-        print >> f1, "  extn coeff      k_i      F_KI      {0:.7f}".format(ki)
-        print >> f1, "  airmass in g    X_g      F_XG      {0:.7f}".format(gXAIRMASS)
-        print >> f1, "  airmass in "+filterName+"    X_"+filterName+"     F_X"+filterName.upper()+"      {0:.7f}".format(iXAIRMASS)
-        print >> f1, " - - - - - - - - - - - - - - - - - - - - - - - - - -"
-        print >> f1, "  g color term    eps_g    F_EPS_G   {0:.7f}".format(eps_g)
-        print >> f1, "  g c.t. err      epse_g   F_EPSE_G  {0:.7f}".format(std_eps_g)
-        print >> f1, "  g zeropoint     ZP_g     F_ZP_G    {0:.7f}".format(zp_g)
-        print >> f1, "  g ZP err        ZPE_g    F_ZPE_G   {0:.7f}".format(std_zp_g)
-        print >> f1, "  g fit RMS       rms      F_RMS_G   {0:.7f}".format(dy1.std())
-        print >> f1, " - - - - - - - - - - - - - - - - - - - - - - - - - -"
-        print >> f1, "  "+filterName+" color term    eps_"+filterName+"   F_EPS_"+filterName.upper()+"   {0:.7f}".format(eps_i)
-        print >> f1, "  "+filterName+" c.t. err      epse_"+filterName+"  F_EPSE_"+filterName.upper()+"  {0:.7f}".format(std_eps_i)
-        print >> f1, "  "+filterName+" zeropoint     ZP_"+filterName+"    F_ZP_"+filterName.upper()+"    {0:.7f}".format(zp_i)
-        print >> f1, "  "+filterName+" ZP err        ZPe_"+filterName+"   F_ZPE_"+filterName.upper()+"   {0:.7f}".format(std_zp_i)
-        print >> f1, "  "+filterName+" fit RMS       rms      F_RMS_"+filterName.upper()+"   {0:.7f}".format(dy2.std())
-        print >> f1, "----------------------------------------------------"
-        print >> f1, "other details:"
-        print >> f1, "  FWHM PSF [px] g fwhm     FWHMPSF   {0:6.5f}".format(gRAPERT/5)
-        print >> f1, "  FWHM PSF [px] "+filterName+" fwhm     FWHMPSF   {0:6.5f}".format(iRAPERT/5)
-        print >> f1, "  FWHM [arcsec] g fwhm     F_AVGSEE  {0:.5f}".format(0.11*gRAPERT/5)
-        print >> f1, "  FWHM [arcsec] "+filterName+" fwhm     F_AVGSEE  {0:.5f}".format(0.11*iRAPERT/5)
-        print >> f1, "  phot aperture (5xFWHM) g [arcsec]  {0:.5f}".format(0.11*gRAPERT)
-        print >> f1, "  phot aperture (5xFWHM) "+filterName+" [arcsec]  {0:.5f}".format(0.11*iRAPERT)
-        print >> f1, "----------------------------------------------------"
-        print >> f1, "photometric error cuts:"
-        print >> f1, "  maximum acceptable pODI PHOT error: {0:.4f}".format(podicut)
-        print >> f1, "  maximum acceptable sdss phot error: {0:.4f}".format(sdsscut)
-        print >> f1, "  N_stars surviving error cuts:       {0:4d}".format(len(gi[errcut]))
+        print("#  name           symbol   IMHEAD    value", file=f1)
+        print("----------------------------------------------------", file=f1)
+        print("  extn coeff      k_g      F_KG      {0:.7f}".format(kg), file=f1)
+        print("  extn coeff      k_r      F_KR      {0:.7f}".format(kr), file=f1)
+        print("  extn coeff      k_i      F_KI      {0:.7f}".format(ki), file=f1)
+        print("  airmass in g    X_g      F_XG      {0:.7f}".format(gXAIRMASS), file=f1)
+        print("  airmass in "+filterName+"    X_"+filterName+"     F_X"+filterName.upper()+"      {0:.7f}".format(iXAIRMASS), file=f1)
+        print(" - - - - - - - - - - - - - - - - - - - - - - - - - -", file=f1)
+        print("  g color term    eps_g    F_EPS_G   {0:.7f}".format(eps_g), file=f1)
+        print("  g c.t. err      epse_g   F_EPSE_G  {0:.7f}".format(std_eps_g), file=f1)
+        print("  g zeropoint     ZP_g     F_ZP_G    {0:.7f}".format(zp_g), file=f1)
+        print("  g ZP err        ZPE_g    F_ZPE_G   {0:.7f}".format(std_zp_g), file=f1)
+        print("  g fit RMS       rms      F_RMS_G   {0:.7f}".format(dy1.std()), file=f1)
+        print(" - - - - - - - - - - - - - - - - - - - - - - - - - -", file=f1)
+        print("  "+filterName+" color term    eps_"+filterName+"   F_EPS_"+filterName.upper()+"   {0:.7f}".format(eps_i), file=f1)
+        print("  "+filterName+" c.t. err      epse_"+filterName+"  F_EPSE_"+filterName.upper()+"  {0:.7f}".format(std_eps_i), file=f1)
+        print("  "+filterName+" zeropoint     ZP_"+filterName+"    F_ZP_"+filterName.upper()+"    {0:.7f}".format(zp_i), file=f1)
+        print("  "+filterName+" ZP err        ZPe_"+filterName+"   F_ZPE_"+filterName.upper()+"   {0:.7f}".format(std_zp_i), file=f1)
+        print("  "+filterName+" fit RMS       rms      F_RMS_"+filterName.upper()+"   {0:.7f}".format(dy2.std()), file=f1)
+        print("----------------------------------------------------", file=f1)
+        print("other details:", file=f1)
+        print("  FWHM PSF [px] g fwhm     FWHMPSF   {0:6.5f}".format(gRAPERT/5), file=f1)
+        print("  FWHM PSF [px] "+filterName+" fwhm     FWHMPSF   {0:6.5f}".format(iRAPERT/5), file=f1)
+        print("  FWHM [arcsec] g fwhm     F_AVGSEE  {0:.5f}".format(0.11*gRAPERT/5), file=f1)
+        print("  FWHM [arcsec] "+filterName+" fwhm     F_AVGSEE  {0:.5f}".format(0.11*iRAPERT/5), file=f1)
+        print("  phot aperture (5xFWHM) g [arcsec]  {0:.5f}".format(0.11*gRAPERT), file=f1)
+        print("  phot aperture (5xFWHM) "+filterName+" [arcsec]  {0:.5f}".format(0.11*iRAPERT), file=f1)
+        print("----------------------------------------------------", file=f1)
+        print("photometric error cuts:", file=f1)
+        print("  maximum acceptable pODI PHOT error: {0:.4f}".format(podicut), file=f1)
+        print("  maximum acceptable sdss phot error: {0:.4f}".format(sdsscut), file=f1)
+        print("  N_stars surviving error cuts:       {0:4d}".format(len(gi[errcut])), file=f1)
         # print >> f1, "  N_stars surviving sigma clip (i-i0 vs g-i plot): {0:4d}".format(len(gi_3))
-    print '--------------------------------------------------------------------------'
-    print 'Done! I saved some important information in the following files for you:'
-    print 'SDSS raw catalog values (csv):         ', img_root+'*.sdss'
-    print 'SDSS catalog values w/ x,y positions:  ', img_root+'*.sdssxy'
-    print 'Instrumental ODI magnitudes per image: ', img_root+'*_cal.sdssphot'
-    print 'Calibration fit diagnostic plots:      ', img_root+'_photcal_js.pdf'
-    print 'Zero Point map:                        ', img_root+'_photmap_js.pdf'
-    print 'Final calibration values:              ', img_root+'_help_js.txt'
+    print('--------------------------------------------------------------------------')
+    print('Done! I saved some important information in the following files for you:')
+    print('SDSS raw catalog values (csv):         ', img_root+'*.sdss')
+    print('SDSS catalog values w/ x,y positions:  ', img_root+'*.sdssxy')
+    print('Instrumental ODI magnitudes per image: ', img_root+'*_cal.sdssphot')
+    print('Calibration fit diagnostic plots:      ', img_root+'_photcal_js.pdf')
+    print('Zero Point map:                        ', img_root+'_photmap_js.pdf')
+    print('Final calibration values:              ', img_root+'_help_js.txt')
 
     
     return eps_g, std_eps_g, zp_g, std_zp_g, eps_i, std_eps_i, zp_i, std_zp_i
 
 def main():
     # ask user input on which files to run on
-    print 'This is a program to do SDSS-based photometric calibration on QR-ed pODI images.'
-    print "I'm going to do all of the hard work for you and make some helpful files. "
-    print '--------------------------------------------------------------------------'
+    print('This is a program to do SDSS-based photometric calibration on QR-ed pODI images.')
+    print("I'm going to do all of the hard work for you and make some helpful files. ")
+    print('--------------------------------------------------------------------------')
     # if not os.path.isfile('m13-se.g.phot.1'):
     #     g_img = raw_input('Enter the g image file name: \n')
     # else:

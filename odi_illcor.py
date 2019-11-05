@@ -8,7 +8,7 @@ import odi_config as odi
 def dark_sky_flat(filter, box_size=51):
     # from cv2 import medianBlur
     med_otalist = []
-    print 'making dark sky flats for',filter
+    print('making dark sky flats for',filter)
     for key in tqdm(odi.OTA_dictionary):
         image_list = odi.OTA_dictionary[key]+'.'+filter+'.lis'
         med_out = image_list.replace('.lis','.med.fits')
@@ -25,7 +25,7 @@ def dark_sky_flat(filter, box_size=51):
         iraf.immatch.imcombine(logfile='imcombine.log.txt', mode='h')
         
     iraf.set(clobber = 'yes')
-    print 'smoothing dark sky flats for',filter,'with box size {0:3d}x{0:3d}'.format(box_size)
+    print('smoothing dark sky flats for',filter,'with box size {0:3d}x{0:3d}'.format(box_size))
     for key in tqdm(odi.OTA_dictionary):
         image_list = odi.OTA_dictionary[key]+'.'+filter+'.lis'
         med_out = image_list.replace('.lis','.med.fits')
@@ -335,8 +335,9 @@ def mask_ota(img, ota, reproj=False, deep_obj=False):
     if reproj:
       # if operating on the reprojected image, return background statistics instead of the mask
       # but use the mask to get rid of sources, so it's a clean measurement
-      mean, median, std = odi.sigma_clipped_stats(hdu_ota.data, mask=total_mask, sigma=3.0, iters=1)
-      return mean, median, std#, dead_pix_mask
+      ota_mean, ota_median, ota_std = 0.0, 0.0, 0.0
+      ota_mean, ota_median, ota_std = odi.sigma_clipped_stats(hdu_ota.data, mask=total_mask, sigma=3.0, maxiters=1)
+      return ota_mean, ota_median, ota_std#, dead_pix_mask
     if deep_obj:
       mask_name = 'objmask_'+ota+'.fits'
       # BPM = mask_name.replace('fits','pl')
@@ -374,7 +375,7 @@ def mask_ota(img, ota, reproj=False, deep_obj=False):
 def main():
     odi.OTA_dictionary = odi.podi_dictionary
     norm = dark_sky_flat('odi_g')
-    print norm
+    print(norm)
 
 if __name__ == '__main__':
     main()

@@ -3,8 +3,8 @@ from astropy.io import fits
 from astropy.wcs import WCS
 from astropy.convolution import Gaussian2DKernel
 from astropy.stats import sigma_clipped_stats
-from photutils import detect_sources
-from photutils.utils import random_cmap
+from photutils.segmentation import detect_sources
+# from photutils.utils import random_cmap
 from scipy.ndimage import binary_dilation
 
 from odi_calibrate import *
@@ -113,35 +113,35 @@ class StackedImage:
 
 bpmdirectory = 'bpmasks'
 if not os.path.exists(bpmdirectory):
-    print 'Creating directory for bad pixel masks...'
+    print('Creating directory for bad pixel masks...')
     os.makedirs(bpmdirectory)
 
 bppath = bpmdirectory+'/'
 
 illcordirectory = 'illcor'
 if not os.path.exists(illcordirectory):
-    print 'Creating directory for illumination corrected ota images...'
+    print('Creating directory for illumination corrected ota images...')
     os.makedirs(illcordirectory)
 
 illcorpath = illcordirectory+'/'
 
 reprojdirectory = 'reproj'
 if not os.path.exists(reprojdirectory):
-    print 'Creating directory for reprojected ota images...'
+    print('Creating directory for reprojected ota images...')
     os.makedirs(reprojdirectory)
 
 reprojpath = reprojdirectory+'/'
 
 bgsubdirectory = 'bgsub'
 if not os.path.exists(bgsubdirectory):
-    print 'Creating directory for background subtracted ota images...'
+    print('Creating directory for background subtracted ota images...')
     os.makedirs(bgsubdirectory)
 
 bgsubpath = bgsubdirectory+'/'
 
 scaleddirectory = 'scaled'
 if not os.path.exists(scaleddirectory):
-    print 'Creating directory for scaled ota images...'
+    print('Creating directory for scaled ota images...')
     os.makedirs(scaleddirectory)
 
 scaledpath = scaleddirectory+'/'
@@ -155,28 +155,28 @@ scaledpath = scaleddirectory+'/'
 
 skyflatdirectory = 'skyflat'
 if not os.path.exists(skyflatdirectory):
-    print 'Creating directory for sky flats...'
+    print('Creating directory for sky flats...')
     os.makedirs(skyflatdirectory)
 
 skyflatpath = skyflatdirectory+'/'
 
 coordsdirectory = 'coords'
 if not os.path.exists(coordsdirectory):
-    print 'Creating directory for coordinate files...'
+    print('Creating directory for coordinate files...')
     os.makedirs(coordsdirectory)
 
 coordspath = coordsdirectory+'/'
 
 matchdirectory = 'match'
 if not os.path.exists(matchdirectory):
-    print 'Creating directory for match files...'
+    print('Creating directory for match files...')
     os.makedirs(matchdirectory)
 
 matchpath = matchdirectory+'/'
 
 sdssofflinedir = 'sdssoffline'
 if not os.path.exists(sdssofflinedir):
-    print 'Creating directory for sdss catalogs...'
+    print('Creating directory for sdss catalogs...')
     os.makedirs(sdssofflinedir)
 
 sdsspath = sdssofflinedir+'/'
@@ -190,7 +190,7 @@ sdsspath = sdssofflinedir+'/'
 
 gaiaofflinedir = 'gaiaoffline'
 if not os.path.exists(gaiaofflinedir):
-    print 'Creating directory for gaia catalogs...'
+    print('Creating directory for gaia catalogs...')
     os.makedirs(gaiaofflinedir)
 
 gaiapath = gaiaofflinedir+'/'
@@ -198,7 +198,7 @@ gaiapath = gaiaofflinedir+'/'
 
 sourcedir = 'sources'
 if not os.path.exists(sourcedir):
-    print 'Creating directory for detected sources...'
+    print('Creating directory for detected sources...')
     os.makedirs(sourcedir)
 
 sourcepath = sourcedir+'/'
@@ -294,30 +294,30 @@ def cfgparse(cfg_file, verbose=True):
         dithers = {}
         scale_ref = {}
         if verbose:
-            print '----------------------------------'
-            print 'odi_tools | Basic data:'
-            print '----------------------------------'
-            print 'object:                 ', object_str
-            print 'filters:                ', filters
-            print 'instrument:             ', instrument
-            print '----------------------------------'
-            print 'Steps to perform:'
-            print '----------------------------------'
-            print 'illumination correction:', illcor_flag
-            print 'dark sky flat source:   ', skyflat_src
-            print 'wcs correction:         ', wcs_flag
-            print 'reprojection:           ', reproject_flag
-            print 'scaling:                ', scale_flag
-            print 'stacking:               ', stack_flag
-            print 'aligning:               ', align_flag
-            print '----------------------------------'
-            print 'Images (* = scaling ref. image)'
-            print '----------------------------------'
+            print('----------------------------------')
+            print('odi_tools | Basic data:')
+            print('----------------------------------')
+            print('object:                 ', object_str)
+            print('filters:                ', filters)
+            print('instrument:             ', instrument)
+            print('----------------------------------')
+            print('Steps to perform:')
+            print('----------------------------------')
+            print('illumination correction:', illcor_flag)
+            print('dark sky flat source:   ', skyflat_src)
+            print('wcs correction:         ', wcs_flag)
+            print('reprojection:           ', reproject_flag)
+            print('scaling:                ', scale_flag)
+            print('stacking:               ', stack_flag)
+            print('aligning:               ', align_flag)
+            print('----------------------------------')
+            print('Images (* = scaling ref. image)')
+            print('----------------------------------')
         header_string = 'dither  '
         for filter in filters:
             imglist = {}
             try:
-                for d,f in data[filter].iteritems():
+                for d,f in data[filter].items():
                     # only keep integer numbers as dither names, 
                     if type(d) is int:
                         im = ODIImage(f, d, instrument)
@@ -325,14 +325,14 @@ def cfgparse(cfg_file, verbose=True):
                     # keep the 'ref' in a dictionary for passing. other string names are ignored!
                     elif 'ref' in d:
                         scale_ref[filter] = imglist[f]
-                images[filter] = imglist.values()
+                images[filter] = list(imglist.values())
             except KeyError:
-                print "images for filter '"+filter+"' not defined in configuration file..."
+                print("images for filter '"+filter+"' not defined in configuration file...")
                 exit()
             header_string = header_string + filter + ' '+' '*(len(data[filter][1])-len(filter)+1)
             # print scale_ref[filter]
         if verbose:
-            print header_string
+            print(header_string)
             dithernos = set()
             for filt in filters:
                 dithernos = dithernos | set(data[filt].keys())
@@ -343,13 +343,13 @@ def cfgparse(cfg_file, verbose=True):
                 dither_string = '   {:2d}  '.format(dither)
                 for filter in filters:
                     try:
-                        if filter in scale_ref.keys() and data[filter][dither] == scale_ref[filter].f:
+                        if filter in list(scale_ref.keys()) and data[filter][dither] == scale_ref[filter].f:
                             dither_string = dither_string + '*'+data[filter][dither]+' '
                         else:
                             dither_string = dither_string + ' '+data[filter][dither]+' '
                     except KeyError:
                         dither_string = dither_string + ' --no data'+'-'*(len(data[filter][1])-9)+' '
-                print dither_string        
+                print(dither_string)        
         return object_str, filters, instrument, images, illcor_flag, skyflat_src, wcs_flag, reproject_flag, scale_flag, scale_ref, stack_flag, align_flag, gaia_flag, cluster_flag, ra_center, dec_center, min_radius
 
 def photcfgparse(cfg_file):
@@ -410,24 +410,24 @@ def photcfgparse(cfg_file):
         filters = (data['basic'])['filters']
         instrument = (data['basic'])['instrument']
 
-        print '----------------------------------'
-        print 'odi_tools | Basic data:'
-        print '----------------------------------'
-        print 'object:                 ', object_str
-        print 'filters:                ', filters
-        print 'instrument:             ', instrument
-        print 'trim section:           ', trim_section
-        print 'arimasses:              ', airmasses
-        print '----------------------------------'
-        print 'Steps to perform:'
-        print '----------------------------------'
-        print 'remove TPV header keys:', remove_tpv_flag
-        print 'fix wcs solution:      ', wcs_flag
-        print 'trim image:            ', trim_image_flag
-        print 'new extension:         ', new_extension
-        print '----------------------------------'
-        print 'Images:'
-        print '----------------------------------'
+        print('----------------------------------')
+        print('odi_tools | Basic data:')
+        print('----------------------------------')
+        print('object:                 ', object_str)
+        print('filters:                ', filters)
+        print('instrument:             ', instrument)
+        print('trim section:           ', trim_section)
+        print('arimasses:              ', airmasses)
+        print('----------------------------------')
+        print('Steps to perform:')
+        print('----------------------------------')
+        print('remove TPV header keys:', remove_tpv_flag)
+        print('fix wcs solution:      ', wcs_flag)
+        print('trim image:            ', trim_image_flag)
+        print('new extension:         ', new_extension)
+        print('----------------------------------')
+        print('Images:')
+        print('----------------------------------')
 
         images = {}
         for filter in filters:
@@ -435,15 +435,15 @@ def photcfgparse(cfg_file):
                 images[filter] = data[filter]
                 # print data[filter].keys()
             except KeyError:
-                print "images for filter '"+filter+"' not defined in configuration file..."
+                print("images for filter '"+filter+"' not defined in configuration file...")
                 exit()
-            print images[filter][1]
+            print(images[filter][1])
 
     return object_str, filters, instrument, images, new_extension, remove_tpv_flag, trim_image_flag, wcs_flag, trim_section, airmasses
 
 def main():
     object_str, filters, instrument, images, illcor_flag, skyflat_src, wcs_flag, reproject_flag, scale_flag, scale_ref, stack_flag, align_flag, gaia_flag, cluster_flag, ra_center, dec_center, min_radius = cfgparse('example_config.yaml', verbose=True)
-    print scale_ref
+    print(scale_ref)
 
 if __name__ == '__main__':
     main()

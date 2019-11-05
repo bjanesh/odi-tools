@@ -14,27 +14,28 @@ import pandas as pd
 try:
     object_str, filters, instrument, images, illcor_flag, skyflat_src, wcs_flag, reproject_flag, scale_flag, scale_ref, stack_flag, align_flag, gaia_flag, cluster_flag, ra_center, dec_center, min_radius = odi.cfgparse('config.yaml')
 except IOError:
-    print 'config.yaml does not exist, quitting...'
+    print('config.yaml does not exist, quitting...')
     exit()
 
 source = 'sdss'
 inst = odi.instrument(instrument)
 
-imgnum,fwhm_d,zp_med, zp_std, bg_mean, bg_median, bg_std = np.loadtxt('derived_props.txt',usecols=(0,3,4,5,6,7,8),unpack=True)
-ota_d, filt_d = np.loadtxt('derived_props.txt',usecols=(1,2),unpack=True,dtype=str)
-id_d = zip(imgnum,ota_d,filt_d)
-fwhm_dict = dict(zip(id_d,fwhm_d))
+fwhm_d, zp_med, zp_std, bg_mean, bg_median, bg_std = np.loadtxt('derived_props.txt',usecols=(4,5,6,7,8,9),unpack=True)
+imgnum, ota_d, filt_d, guide_d = np.loadtxt('derived_props.txt',usecols=(0,1,2,3),unpack=True,dtype=str)
+
+id_d = list(zip(imgnum,ota_d,filt_d))
+fwhm_dict = dict(list(zip(id_d,fwhm_d)))
 
 run_detect = False
 align_these = []
 for filter in filters:
     # Scaling with all sources
     images_ = images[filter]
-    print 'Scaling images for filter ',filter
+    print('Scaling images for filter ',filter)
     for img in images_:
         # img = images_[dith]
         dither  = img.dither()+'_'
-        print 'Gathering sources for {:s}'.format(img.f)
+        print('Gathering sources for {:s}'.format(img.f))
         for key in tqdm(odi.OTA_dictionary):
             ota = odi.OTA_dictionary[key]
             # if not os.path.isfile(odi.sourcepath+'source_'+ota+'.'+img.base()+'.csv'):
@@ -60,7 +61,7 @@ for filter in filters:
 
     # choose the initial reference image (lowest airmass to start, unless we've specified one)
     # print images_.values()
-    if filter not in scale_ref.keys():
+    if filter not in list(scale_ref.keys()):
         refimg_ = odi.find_ref_image(images_)
         ref_img = images_[refimg_]
     else:
@@ -84,11 +85,11 @@ for filter in filters:
     # iterate
 
     # print np.array(scales_.values()) > 1.002
-    if filter not in scale_ref.keys():
-        while (np.array(scales_.values()) > 1.002).any() and iters < 6:
+    if filter not in list(scale_ref.keys()):
+        while (np.array(list(scales_.values())) > 1.002).any() and iters < 6:
             iters += 1
-            ims = scales_.keys()
-            scls = scales_.values()
+            ims = list(scales_.keys())
+            scls = list(scales_.values())
             new_ref = ims[np.argmax(scls)]
             if new_ref != ref_img:
                 ref_img = new_ref
@@ -100,10 +101,10 @@ for filter in filters:
                     n_[img] = n
 
     with open(filter+'_scales.txt','w+') as sclfile:
-        print >> sclfile, '# image'+' '*(len(images_[0].stem())-4)+'scale   std     n (iters = '+repr(iters)+')'
+        print('# image'+' '*(len(images_[0].stem())-4)+'scale   std     n (iters = '+repr(iters)+')', file=sclfile)
         for img in images_:
             # img = images_[dith]
-            print >> sclfile, img.stem(), '{0:7.5f} {1:7.5f} {2:5d}'.format(scales_[img], stds_[img], n_[img])
+            print(img.stem(), '{0:7.5f} {1:7.5f} {2:5d}'.format(scales_[img], stds_[img], n_[img]), file=sclfile)
 
     # actually apply the scaling factors to the images
     if scale_flag:
@@ -116,14 +117,14 @@ for filter in filters:
                     odi.scale_ota(img, ota, scales_[img])
                     odi.force_update_bpm(img, ota)
     else:
-        print 'scaling not performed, set flag in config.yaml'
+        print('scaling not performed, set flag in config.yaml')
 
     # finally stack the images
     if stack_flag:
         stacked_img = odi.stack_images(object_str, ref_img)
         align_these.append(odi.StackedImage(stacked_img))
     else:
-        print 'stacking not performed, set flag in config.yaml'
+        print('stacking not performed, set flag in config.yaml')
     
 # if the option is turned on, align the images with pixel shifts
 if align_flag:

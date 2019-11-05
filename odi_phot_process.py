@@ -15,7 +15,7 @@ import pandas as pd
 try:
     object_str, filters, instrument, images, new_extension, remove_tpv_flag, trim_image_flag, wcs_flag, trim_section, airmasses = odi.photcfgparse('phot_confing.yaml')
 except IOError:
-    print 'phot_config.yaml does not exist, quitting...'
+    print('phot_config.yaml does not exist, quitting...')
     exit()
 
 images_ = []
@@ -40,7 +40,7 @@ if wcs_flag == True:
         odi.fix_wcs_full(nopv_images[0],coords=nopv_images[0][:-5]+'.wcs.coo')
         odi.fix_wcs_full(nopv_images[1],coords=nopv_images[0][:-5]+'.wcs.coo')
         with open('full_wcs_fix.done','w+') as f:
-            print >> f, ''
+            print('', file=f)
 
 apcor_values = {}
 apcor_stds = {}
@@ -52,7 +52,7 @@ for i,img in enumerate(images_):
     peaks,gfwhms = odi.getfwhm_full_sdss(img)
 
     median_gfwhm = np.median(gfwhms[np.where(gfwhms < 20.0)])
-    print median_gfwhm
+    print(median_gfwhm)
     fwhm_values[i] = median_gfwhm
 
     odi.sdss_phot_full(img,median_gfwhm,airmasses[i])

@@ -1,0 +1,9 @@
+numpy==1.16.2
+scipy==1.2.1
+astropy==3.2.2
+astroquery==0.3.10
+pyraf==2.1.15
+matplotlib==3.0.3
+pandas==0.24.1+0.g1700680.dirty
+photutils==0.7.1
+tqdm==4.36.1
