@@ -912,8 +912,8 @@ def make_stack_list(object, filter, inst):
 
     """
 
-    # img, ota, filt = np.loadtxt('derived_props.txt', usecols=(0,1,2), dtype=str, unpack=True)
-    # fwhm, zp_med, zp_std, bg_mean, bg_med, bg_std = np.loadtxt('derived_props.txt', usecols=(3,4,5,6,7,8), dtype=float, unpack=True)
+    # fwhm_d, zp_med, zp_std, bg_mean, bg_median, bg_std = np.loadtxt('derived_props.txt',usecols=(4,5,6,7,8,9),unpack=True)
+    guide_d = np.loadtxt('derived_props.txt',usecols=(3),unpack=True,dtype=bool)
     # 
     # keep = np.where(filt==filter)
     scaled_imgs = glob.glob(odi.scaledpath+'*'+filter+'*.fits')
@@ -932,7 +932,7 @@ def make_stack_list(object, filter, inst):
             for j,im in enumerate(scaled_imgs):
                 # guide = odi.is_guide_ota(im, ota[j])
                 # # print head+ota[j]+'.'+im+tail, factor
-                if not guide[j]:
+                if not guide_d[j]:
                     print(im, file=stack_file)
 
 
