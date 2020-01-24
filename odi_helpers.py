@@ -872,6 +872,7 @@ def is_guide_ota(img, ota):
     """
     from astropy.io import fits
     from photutils.segmentation import detect_sources, source_properties
+
     guide = False
     check_ota = 'illcor/illcor_'+ota+'.'+img.stem()
     hdu = fits.open(check_ota)
@@ -885,10 +886,10 @@ def is_guide_ota(img, ota):
         bgcent = cutout[yc,xc]
         bgcorn = np.array([cutout[0,0], cutout[0,-1], cutout[-1,0], cutout[-1,-1]])
         # print(bgcent, bgcorn)
-        bgrat = bgcorn/bgcent
-        corners.append(np.median(bgrat))
+        bgrat = bgcorn.max()/bgcent
+        corners.append(bgrat)
     med_ratio = np.median(corners)
-    if med_ratio < 0.2 or np.isnan(med_ratio):
+    if med_ratio > 10:
         guide = True
     return guide
 
@@ -931,8 +932,8 @@ def make_stack_list(object, filter, inst):
             for j,im in enumerate(scaled_imgs):
                 # guide = odi.is_guide_ota(im, ota[j])
                 # # print head+ota[j]+'.'+im+tail, factor
-                # if not guide:
-                print(im, file=stack_file)
+                if not guide[j]:
+                    print(im, file=stack_file)
 
 
 def stack_images(stackname, refimg):
@@ -1304,7 +1305,7 @@ def imalign(images, square=False):
         
 def main():
     import odi_config as odi
-
+    import matplotlib.pyplot as plt
     try:
         object_str, filters, instrument, images, illcor_flag, skyflat_src, wcs_flag, reproject_flag, scale_flag, scale_ref, stack_flag, align_flag, gaia_flag, cluster_flag, ra_center, dec_center, min_radius = odi.cfgparse('config.yaml')
     except IOError:
@@ -1319,7 +1320,8 @@ def main():
         for key in otalist:
             ota = odi.OTA_dictionary[key]
             guide = odi.is_guide_ota(img, ota)
-            print(img.f, ota, guide)
+            if guide:
+                print(img.f, ota, guide)
 
 if __name__ == '__main__':
     main()
