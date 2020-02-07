@@ -753,7 +753,7 @@ def bgsub_ota(img, ota, apply=False):
     imout = odi.bgsubpath+'bgsub_'+ota+'.'+img.stem()
     bg_mean, bg_median, bg_std = odi.mask_ota(img, ota, reproj=True)
     tqdm.write('subtracting {:7.2f} from {:s}'.format(bg_median, image))
-    if apply:
+    if apply and not os.path.isfile(imout):
         # print bg_mean, bg_median, bg_std
         iraf.unlearn(iraf.imutil.imarith)
         iraf.imutil.imarith.setParam('operand1',image)
@@ -893,7 +893,7 @@ def is_guide_ota(img, ota):
         guide = True
     return guide
 
-def make_stack_list(object, filter, inst):
+def make_stack_list(images, object, filter, inst):
     """
     Makes a list of images to be stacked using ``stack_images()``. This list
     does not include the guiding OTAs as determined by ``derived_props.txt``.
@@ -913,30 +913,25 @@ def make_stack_list(object, filter, inst):
     """
 
     # fwhm_d, zp_med, zp_std, bg_mean, bg_median, bg_std = np.loadtxt('derived_props.txt',usecols=(4,5,6,7,8,9),unpack=True)
-    guide_d = np.loadtxt('derived_props.txt',usecols=(3),unpack=True,dtype=bool)
-    # 
-    # keep = np.where(filt==filter)
-    scaled_imgs = glob.glob(odi.scaledpath+'*'+filter+'*.fits')
-    #sort glob list to match order in 'derived_props.txt'
-    #this will sort on the dither number in the config file.
-    scaled_imgs = sorted(scaled_imgs, key=lambda x: x[17:18].strip('_'))
-    # head = scaled_imgs[0][:14]
-    # Need to make a list of tails. The Job IDs will not always be the same
-    # if different QR jobs were run (e.g. mix of user and operator images).
-    # old definition tail = scaled_imgs[0][25:]
-    # tail = []
-    # for name in scaled_imgs:
-    #     tail.append(name[25:])
+    imgnum, ota_d, filt_d, guide_d = np.loadtxt('derived_props.txt',usecols=(0,1,2,3),unpack=True,dtype=str)
+    guide = (guide_d == 'True') # turn the text booleans into a boolean array
+    scaled = []
+    for img in images:    # generate a list of the scaled images
+        for key in odi.OTA_dictionary:
+            ota = odi.OTA_dictionary[key]
+            scaled.append(odi.scaledpath+'scaled_'+ota+'.'+img.stem())
+
+    for j, im in enumerate(scaled): 
+        print(im, guide[j])
+
     if not os.path.isfile(object.replace(' ','_')+'_'+filter+'_stack.list'):
         with open(object.replace(' ','_')+'_'+filter+'_stack.list','w+') as stack_file:
-            for j,im in enumerate(scaled_imgs):
-                # guide = odi.is_guide_ota(im, ota[j])
-                # # print head+ota[j]+'.'+im+tail, factor
-                if not guide_d[j]:
+            for j, im in enumerate(scaled):
+                if not guide[j]:
                     print(im, file=stack_file)
 
 
-def stack_images(stackname, refimg):
+def stack_images(images, stackname, refimg):
     """
     Stack the images that are in the list produced by ``make_stack_list`` using
     the ``IRAF`` task ``imcombine``. The following are the parameters used by
@@ -970,7 +965,7 @@ def stack_images(stackname, refimg):
     filter_name = hduref.header['filter']
     ref_airmass = hduref.header['airmass']
     sky_med, sky_mean, sky_std = odi.find_new_bg(refimg, filter_name)
-    odi.make_stack_list(objname, filter_name, refimg.inst)
+    odi.make_stack_list(images, objname, filter_name, refimg.inst)
     # sky_med = hduref.header['skybg']
     output = objname+'_'+filter_name+'.fits'
     output_bpm = objname+'_'+filter_name+'_bpm.pl'

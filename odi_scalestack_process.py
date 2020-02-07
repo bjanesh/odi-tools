@@ -121,7 +121,7 @@ for filter in filters:
 
     # finally stack the images
     if stack_flag:
-        stacked_img = odi.stack_images(object_str, ref_img)
+        stacked_img = odi.stack_images(images_, object_str, ref_img)
         align_these.append(odi.StackedImage(stacked_img))
     else:
         print('stacking not performed, set flag in config.yaml')
