@@ -50,7 +50,7 @@ odi5_dictionary = {
     20:'OTA14.SCI',
     21:'OTA36.SCI',
     22:'OTA46.SCI',
-    23:'OTA21.SCI',
+#    23:'OTA21.SCI',
     24:'OTA12.SCI',
     25:'OTA15.SCI',
     26:'OTA51.SCI',
