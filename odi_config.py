@@ -111,6 +111,13 @@ class StackedImage:
     def __init__(self, filename):
         self.f = filename
 
+rawdirectory = 'raw'
+if not os.path.exists(rawdirectory):
+    print('Creating directory for raw OTA images...')
+    os.makedirs(rawdirectory)
+
+rawpath = rawdirectory+'/'
+
 bpmdirectory = 'bpmasks'
 if not os.path.exists(bpmdirectory):
     print('Creating directory for bad pixel masks...')

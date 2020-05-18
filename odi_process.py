@@ -4,7 +4,7 @@ import sys, os, glob, string
 import numpy as np
 from tqdm import tqdm
 import time
-
+from pyraf import iraf
 import odi_config as odi
 
 try:
@@ -28,9 +28,41 @@ else:
     source = 'sdss'
 inst = odi.instrument(instrument)
 
+# start by creating "raw" individual OTA images
+for img in images_:
+    for key in tqdm(odi.OTA_dictionary, desc='Creating raw OTA images:', ncols=0):
+        ota = odi.OTA_dictionary[key]
+        ota_raw_data = img.f+'['+ota+']'
+        raw_img = 'raw_'+ota+'.'+img.stem()
+        if not os.path.isfile(odi.rawpath+raw_img):
+            iraf.unlearn(iraf.imutil.imcopy)
+            iraf.imutil.imcopy.setParam('input',ota_raw_data)
+            iraf.imutil.imcopy.setParam('output',odi.rawpath+raw_img)
+            iraf.imutil.imcopy.setParam('verbose','no')
+            iraf.imutil.imcopy(mode='h')
+
+# determine guide OTAs
+if not os.path.isfile('guide_otas.txt'):
+    guide_file = open('guide_otas.txt','w+')
+    guide_otas = list() # make an empty list so we can keep track of the guide OTAs
+    for img in images_:
+        for key in tqdm(odi.OTA_dictionary, desc='Determining Guide OTAs for {:s}'.format(img.stem()), ncols=0):
+            ota = odi.OTA_dictionary[key]            
+            guide = odi.is_guide_ota(img, ota) # this function uses corner/center ratio method
+            fullid = ota+'.'+img.stem()
+            # tqdm.write("{:} {:}".format(fullid, guide))
+            if guide:   # if it looks like a guide OTA, add it to the list
+                guide_otas.append(fullid)
+                print(fullid, file=guide_file)
+    guide_otas = np.array(guide_otas)
+else:
+    guide_otas = np.loadtxt('guide_otas.txt',usecols=(0,),unpack=True,dtype=str)
+    # guide_otas = list(guide_otas_r)
+
+
 #Create offline catalogs
 for img in images_:
-    for key in tqdm(odi.OTA_dictionary, desc='Retrieving QR SDSS and Gaia catalogs for: {:s}'.format(img.stem()), ncols=0):
+    for key in tqdm(odi.OTA_dictionary, desc='Retrieving QR SDSS and Gaia catalogs for {:s}'.format(img.stem()), ncols=0):
         ota = odi.OTA_dictionary[key]
         outputsd = odi.sdsspath+'offline_'+ota+'.'+img.base()+'.sdss'
         if not os.path.isfile(outputsd):
@@ -53,11 +85,10 @@ for img in images_:
                                         output=outputg,
                                         cluster=cluster_flag)
 
-
 # if illcor_flag:
 listfiles = glob.glob('*.lis')
 if len(listfiles) == 0:
-    odi.imcombine_lists(images_, filters)
+    odi.imcombine_lists(images_, filters, guide_otas)
 else:
     print('imcombine lists done')
 
@@ -98,14 +129,19 @@ for img in images_:
     otalist = sorted(odi.OTA_dictionary.keys())
     for key in tqdm(otalist):
         ota = odi.OTA_dictionary[key]
+        fullid = ota+'.'+img.stem()
         hdulist = odi.fits.open(img.f)
         hdr = hdulist[0].header
         filt = hdr['filter']
         finishcheck = (img.stem(),ota,filt)
         if finishcheck in finished:
             already = 0
+            # guide_d = fullid in guide_otas
+            # if guide_d:
+            #     tqdm.write("{:} {:}".format(fullid, guide_d))
         else:
-            image_to_correct = img.f+'['+ota+']'
+            # image_to_correct = img.f+'['+ota+']'
+            image_to_correct = odi.rawpath+'raw_'+ota+'.'+img.stem()
             correction_image = ota+'.'+filt+'.med.smooth.fits'
             corrected_image = 'illcor_'+ota+'.'+img.stem()
             tqdm.write(corrected_image)
@@ -131,7 +167,6 @@ for img in images_:
                 if reproject_flag:
                     odi.reproject_ota(img, ota, rad, decd, wcsref)
                     odi.tpv2tan_hdr(img, ota)
-            guide = odi.is_guide_ota(img, ota)        
             gaps = odi.get_gaps_rep(img, ota)
             odi.refetch_sdss_coords(img, ota, gaps, inst,gmaglim=21.5,offline = True,source=source)
             #run an additional refetch to get the xy for 2mass so they can be used for scaling
@@ -150,6 +185,8 @@ for img in images_:
                 bg_mean, bg_median, bg_std = odi.bgsub_ota(img, ota, apply=True)
             else:
                 bg_mean, bg_median, bg_std = odi.bgsub_ota(img, ota, apply=False)
+            guide_d = fullid in guide_otas
+            tqdm.write("{:} {:}".format(fullid, guide_d))
             print("{0:s}  {1:9s}  {2:5s}  {3!s:5s}  {4:3.1f}   {5:5.2f}   {6:5.2f}  {7:8.2f}  {8:8.2f} {9:8.2f}".format(img.stem(), ota, filt, guide, fwhm, zp_med, zp_std, bg_mean, bg_median, bg_std), file=f1)
             dim_stats = odi.check_mask_dim(img,ota)
             if not dim_stats:

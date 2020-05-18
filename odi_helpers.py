@@ -506,10 +506,10 @@ def getfwhm_full(img, radius=4.0, buff=7.0, width=5.0):
     tqdm.write('median gwfhm in ',img.f+': ',np.median(gfwhm),'pixels')# (determined via QR)'
     return np.median(gfwhm)
 
-def imcombine_lists(images, filters):
+def imcombine_lists(images_, filters, guide_otas):
     """
     Create a list files for OTAs, sorted by filter, that will be later
-    combined to make a dark sky flat.
+    combined to make a dark sky flat. Does not include guide OTAs in dark sky flat!
 
     Parameters
     ----------
@@ -517,6 +517,8 @@ def imcombine_lists(images, filters):
         List of images
     filters : list
         List of filters present in the images list
+    guide_otas : list
+        List of guide OTA ids
 
     Note
     ----
@@ -525,17 +527,16 @@ def imcombine_lists(images, filters):
     ``OTA22.SCI.odi_g.lis``. Within each of these files will be a list of
     images to combine.
     """
-    from astropy.io import fits
     for filter in filters:
-        for key in odi.OTA_dictionary:
-            list_name =  open(odi.OTA_dictionary[key]+'.'+filter+'.lis',"w")
-            for i in range(len(images)):
-                hdulist = fits.open(images[i].f)
-                hdr = hdulist[0].header
-                filt = hdr['filter']
-                if filt == filter:
-                    print(images[i].f+'['+str(key)+']', file=list_name)
-                hdulist.close()
+        for key in tqdm(odi.OTA_dictionary, desc='Building dark sky flat lists:', ncols=0):
+            ota = odi.OTA_dictionary[key] 
+            list_name = open(ota+'.'+filter+'.lis',"w")
+            for img in images_:
+                fullid = ota+'.'+img.stem()
+                raw_img = 'raw_'+ota+'.'+img.stem()
+                if filter in fullid:
+                    if fullid not in guide_otas:
+                        print(odi.rawpath+raw_img, file=list_name)
             list_name.close()
     return
 
@@ -574,7 +575,7 @@ def reproject_ota(img, ota, rad, decd, wcsref):
     - iraf.mscred.mscimage.dec=decd
     - iraf.mscred.mscimage.scale=0.11
     - iraf.mscred.mscimage.rotation=0.0
-    - iraf.mscred.mscimage.blank=-999
+    - iraf.mscred.mscfimage.blank=-999
     - iraf.mscred.mscimage.interpo='poly5'
     - iraf.mscred.mscimage.minterp='poly5'
     - iraf.mscred.mscimage.nxbl=4096
@@ -874,7 +875,7 @@ def is_guide_ota(img, ota):
     from photutils.segmentation import detect_sources, source_properties
 
     guide = False
-    check_ota = 'illcor/illcor_'+ota+'.'+img.stem()
+    check_ota = 'raw/raw_'+ota+'.'+img.stem()
     hdu = fits.open(check_ota)
     data = hdu[0].data
     segm = detect_sources(data, 1.0, 50000)
@@ -913,22 +914,23 @@ def make_stack_list(images, object, filter, inst):
     """
 
     # fwhm_d, zp_med, zp_std, bg_mean, bg_median, bg_std = np.loadtxt('derived_props.txt',usecols=(4,5,6,7,8,9),unpack=True)
-    imgnum, ota_d, filt_d, guide_d = np.loadtxt('derived_props.txt',usecols=(0,1,2,3),unpack=True,dtype=str)
-    guide = (guide_d == 'True') # turn the text booleans into a boolean array
+    # imgnum, ota_d, filt_d, guide_d = np.loadtxt('derived_props.txt',usecols=(0,1,2,3),unpack=True,dtype=str)
+    # guide = (guide_d == 'True') # turn the text booleans into a boolean array
+
+    guide_otas = np.loadtxt('guide_otas.txt',usecols=(0,),unpack=True,dtype=str)
+
     scaled = []
     for img in images:    # generate a list of the scaled images
         for key in odi.OTA_dictionary:
             ota = odi.OTA_dictionary[key]
-            scaled.append(odi.scaledpath+'scaled_'+ota+'.'+img.stem())
-
-    for j, im in enumerate(scaled): 
-        print(im, guide[j])
+            fullid = ota+'.'+img.stem()
+            if fullid not in guide_otas:
+                scaled.append(odi.scaledpath+'scaled_'+ota+'.'+img.stem())
 
     if not os.path.isfile(object.replace(' ','_')+'_'+filter+'_stack.list'):
         with open(object.replace(' ','_')+'_'+filter+'_stack.list','w+') as stack_file:
-            for j, im in enumerate(scaled):
-                if not guide[j]:
-                    print(im, file=stack_file)
+            for j, im in enumerate(scaled): 
+                print(im, file=stack_file)
 
 
 def stack_images(images, stackname, refimg):
